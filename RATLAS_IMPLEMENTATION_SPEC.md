@@ -1220,7 +1220,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 - [x] Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, graph interaction controls, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
 
 - [x] Generate the target-scale dataset and inspect real fallback screenshots at both viewport sizes, including the large-host display control.
-- [ ] Exercise a real Sigma canvas in Nix-provided Firefox and classify hardware or software WebGL. Headless and headed Firefox currently return no WebGL context; canvas rendering and readability remain blocked for user review.
+- [ ] Exercise a real Sigma canvas in Nix-provided Firefox and classify hardware or software WebGL. Headless and headed Nix Firefox currently return no WebGL context. A user screenshot shows the canvas in ordinary Firefox and exposed a selected-label contrast bug; the corrected label still needs manual review.
 
 - [x] **Automated acceptance:** the accessible map list navigates repo → host → other repos; API limits have no dangling edges; full-mode failure explains its limits; catalog access survives unavailable WebGL.
 - [ ] **Automated acceptance:** real canvas selection, pan/zoom, context loss, and repeated navigation worker cleanup require a Firefox WebGL context.
