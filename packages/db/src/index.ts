@@ -7,3 +7,8 @@ export * from './demo.js';
 export * from './native.js';
 
 export * from './collection.js';
+
+export * from './public.js';
+
+export * from './graph.js';
+export * from './history.js';

@@ -58,6 +58,7 @@ export class HttpTransport implements JsonTransport {
     if (isIP(host)) await resolvePublic(host);
     const client = new Client(url.origin, {
       pipelining: 0,
+      autoSelectFamily: false,
       maxResponseSize: this.limits.responseMaxBytes,
       headersTimeout: this.limits.requestTimeoutMs,
       bodyTimeout: this.limits.requestTimeoutMs,

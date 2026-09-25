@@ -46,6 +46,8 @@ export function registerSource(db: Db, input: Source) {
     db.prepare('INSERT OR IGNORE INTO source_health(source_id) VALUES (?)').run(s.id);
     for (const { rid } of db.prepare('SELECT rid FROM repositories').all() as { rid: string }[])
       refreshPublication(db, rid);
+    if (s.policy === 'quarantine' && previous?.publication_policy !== 'quarantine')
+      db.exec('DELETE FROM stats_samples');
     if (s.policy !== 'quarantine' || (previous && previous.publication_policy !== 'quarantine'))
       incrementRevision(db);
   })();
@@ -186,7 +188,18 @@ export function storeMetadata(db: Db, input: unknown) {
       metadata.revision,
       metadata.retrievedAt,
       'ratlas-normalized-v1',
-      createHash('sha256').update(JSON.stringify(metadata)).digest('hex'),
+      createHash('sha256')
+        .update(
+          JSON.stringify([
+            metadata.name,
+            metadata.description,
+            metadata.branch,
+            metadata.delegates,
+            metadata.visibility,
+            metadata.revision,
+          ]),
+        )
+        .digest('hex'),
       'success',
     );
     if (metadata.visibility === 'private') db.exec('DELETE FROM stats_samples');

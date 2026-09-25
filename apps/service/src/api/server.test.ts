@@ -82,7 +82,7 @@ it('rejects malformed queries, hostile hosts and write requests', async () => {
     'limit=1&limit=2',
     'page=1e2',
     'limit=',
-    'q=%27%20OR%201%3D1',
+    'unsupported=value',
     'page=999999&limit=200',
   ]) {
     expect((await app.inject('/api/v1/repos?' + query)).statusCode).toBe(400);

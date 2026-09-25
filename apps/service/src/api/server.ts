@@ -4,14 +4,14 @@ import rateLimit from '@fastify/rate-limit';
 import staticFiles from '@fastify/static';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { createHash } from 'node:crypto';
-import { configSchema, repoQuerySchema, type Config } from '@ratlas/core';
-import { dataset, openReader, repositories, summary, type Db } from '@ratlas/db';
+import { configSchema, type Config } from '@ratlas/core';
+import { dataset, openReader, type Db } from '@ratlas/db';
+import { registerRoutes } from './routes.js';
 import { projectRoot } from '../commands/config.js';
 
 export async function createApi(
   config: Config,
-  options: { production?: boolean; logger?: boolean } = {},
+  options: { production?: boolean; logger?: boolean; now?: () => number } = {},
 ) {
   configSchema.parse(config);
   const staticRoot = resolve(projectRoot, 'apps/web/dist');
@@ -32,6 +32,8 @@ export async function createApi(
     db.close();
   });
   app.addHook('onRequest', async (request, reply) => {
+    if (request.url.length > 8192)
+      return reply.code(400).send({ error: 'URL too long', requestId: request.id });
     const host = request.headers.host?.split(':')[0];
     if (!host || !config.server.allowedHostnames.includes(host))
       return reply.code(400).send({ error: 'Invalid host', requestId: request.id });
@@ -61,39 +63,12 @@ export async function createApi(
       .send({ error: 'Request failed', requestId: request.id });
   });
   app.get('/healthz', async () => ({ status: 'ok' }));
-  app.get('/readyz', async () => {
-    db.prepare('SELECT schema_version FROM dataset_meta WHERE id=1').get();
+  app.get('/readyz', async (_request, reply) => {
+    const meta = db.prepare('SELECT schema_version FROM dataset_meta WHERE id=1').get();
+    if (!meta) return reply.code(503).send({ status: 'unavailable' });
     return { status: 'ready' };
   });
-  app.get('/api/v1/summary', async (request, reply) => {
-    if (Object.keys(request.query as object).length)
-      return reply.code(400).send({ error: 'Unsupported query', requestId: request.id });
-    const result = summary(db, config.presentation.observationWindow);
-    const etag =
-      'W/"' +
-      createHash('sha256')
-        .update(
-          JSON.stringify([
-            result.mode,
-            result.datasetRevision,
-            result.observationWindow,
-            Math.floor(Date.parse(result.referenceTime) / 15000),
-          ]),
-        )
-        .digest('hex') +
-      '"';
-    reply.header('Cache-Control', 'private, max-age=0, must-revalidate').header('ETag', etag);
-    if (request.headers['if-none-match'] === etag) return reply.code(304).send();
-    return result;
-  });
-  app.get('/api/v1/repos', async (request, reply) => {
-    const parsed = repoQuerySchema.safeParse(request.query);
-    if (!parsed.success)
-      return reply.code(400).send({ error: 'Invalid pagination', requestId: request.id });
-    const { page, limit } = parsed.data;
-    reply.header('Cache-Control', 'private, max-age=0, must-revalidate');
-    return repositories(db, config.presentation.observationWindow, page, limit);
-  });
+  registerRoutes(app, db, config, options.now ?? Date.now);
   if (options.production) {
     await app.register(staticFiles, { root: staticRoot });
     app.setNotFoundHandler((request, reply) => {

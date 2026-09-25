@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { sourceSchema, type Config } from '@ratlas/core';
 import {
+  sampleSummary,
   abandonInterruptedSnapshots,
   beginSnapshot,
   stageSnapshot,
@@ -496,6 +497,7 @@ export class Collector {
   async tick() {
     const at = this.now(),
       limits = this.config.collection;
+    sampleSummary(this.db, at);
     this.db
       .prepare(
         'UPDATE source_health SET heartbeat=? WHERE source_id IN (SELECT id FROM sources WHERE enabled=1)',

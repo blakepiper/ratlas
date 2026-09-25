@@ -1180,7 +1180,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 - [x] Implement the CLI NDJSON adapter and HTTP schema adapter.
 - [x] Implement atomic staged snapshots, event ordering, complete-snapshot absence rules, reconnect/backoff, coverage gaps, graceful child cleanup, queue leases, and source budgets. Keep local Radicle use read-only; do not start a node or execute replication commands.
 
-- [ ] Implement metadata variants/selection, FTS/exact-ID search, every specified API route, publication checks, stable pagination, graph projection, normalized activity/summary queries, security headers, and cache/window revision behavior. Server code must not invoke `rad` or fetch upstream URLs in response to browser requests.
+- [x] Implement metadata variants/selection, FTS/exact-ID search, every specified API route, publication checks, stable pagination, graph projection, normalized activity/summary queries, security headers, and cache/window revision behavior. Server code must not invoke `rad` or fetch upstream URLs in response to browser requests.
 
 - [ ] With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture. Request explicit user acceptance of the gap at R2.
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { repoListSchema, summarySchema } from '@ratlas/core';
+import { repoListSchema, fullSummarySchema } from '@ratlas/core';
 import styles from './App.module.css';
 
 async function getJson(path: string, signal: AbortSignal): Promise<unknown> {
@@ -27,10 +27,11 @@ export function App() {
   }, [theme]);
   const summary = useQuery({
     queryKey: ['summary'],
-    queryFn: async ({ signal }) => summarySchema.parse(await getJson('/api/v1/summary', signal)),
+    queryFn: async ({ signal }) =>
+      fullSummarySchema.parse(await getJson('/api/v1/summary', signal)),
   });
   const repos = useQuery({
-    queryKey: ['repositories', summary.data?.datasetRevision],
+    queryKey: ['repositories', summary.data?.datasetRevision, summary.data?.windowBucket],
     queryFn: async ({ signal }) =>
       repoListSchema.parse(await getJson('/api/v1/repos?limit=100', signal)),
   });

@@ -1,4 +1,5 @@
 import { syntheticNid, syntheticRid, sourceSchema } from '@ratlas/core';
+import { sampleSummary } from './history.js';
 import type { Db } from './connection.js';
 import { registerSource, observe, storeMetadata } from './observations.js';
 
@@ -111,5 +112,6 @@ export function generateSmallDemo(db: Db) {
       'UPDATE source_health SET last_attempt=?,last_success=?,last_complete_snapshot=?,event_stream_status=?',
     ).run(DEMO_REFERENCE - 600000, DEMO_REFERENCE - 600000, DEMO_REFERENCE - 3600000, 'synthetic');
     db.prepare('UPDATE dataset_meta SET generator_version=1 WHERE id=1').run();
+    sampleSummary(db, DEMO_REFERENCE);
   })();
 }
