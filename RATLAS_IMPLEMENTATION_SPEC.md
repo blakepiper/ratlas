@@ -1257,15 +1257,17 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Start the built production API against a verified restored synthetic backup on an isolated port; confirm health, readiness, summary, SPA, and process cleanup.
 
-- [ ] Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, backup/restore tests, and separately approved live smoke tests. Fix failures without weakening assertions or replacing live tests with fixtures. Validate the unactivated NixOS module’s structure and document activation as untested unless explicitly performed under separate approval.
+- [x] Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, and backup/restore tests. Fix failures without weakening assertions. Validate the unactivated NixOS module’s structure and document activation as untested.
 
-- [ ] Write the first-run README, architecture/semantics reports, compatibility report, NixOS runbook, backup/restore procedure, safe dedicated-observer instructions, 24-hour experiment command, and final validation/performance reports. Check all examples against implemented command names and config paths. Include a complete list of observed limitations and user-accepted gaps.
+- [ ] Run a separately approved live smoke test and automated real-WebGL canvas/cleanup checks. No approved source is configured and Nix Firefox creates no WebGL context; R2/R4 approvals allowed proceeding with these disclosed gaps, not claiming they passed.
 
-- [ ] **Automated acceptance:** all applicable release checks in section 13 pass; clean frozen install, native SQLite, browser render, production startup, backup restore, and process cleanup have actual results; measurements identify their hardware/runtime/rendering context.
+- [x] Write the first-run README, architecture/semantics reports, compatibility report, NixOS runbook, backup/restore procedure, safe dedicated-observer instructions, 24-hour experiment command, and final validation/performance reports. Check examples against implemented command names and config paths. Include observed limitations and accepted external gaps.
+
+- [x] **Automated acceptance:** applicable offline release checks in section 13 pass; clean frozen install, native SQLite, Firefox fallback, production startup, backup restore, and process cleanup have actual results. Measurements identify hardware/runtime/rendering context and disclose missed targets. The fixed-port clean demo supervisor and real WebGL/live checks remain separately open.
 
 **R6: Record the completed release candidate and hand it off.**
 
-- [ ] Provide exact demo and live startup commands, a short whole-product walkthrough, report/screenshot locations, both final commit SHAs, the local commit summary, final worktree status, and any remaining gaps. Mark R6 `completed` when the implementation is done, without claiming user acceptance or live verification. This authorization does not permit a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
+- [x] Prepare exact demo and live startup commands, a short whole-product walkthrough, report/screenshot locations, both final commit SHAs for the user-facing handoff, the local commit summary, final worktree status, and remaining gaps. Mark R6 `completed` without claiming user acceptance or live verification. This authorization does not permit a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
 
 ### Checkpoint map
 
@@ -1284,20 +1286,20 @@ R1–R5 approval records remain historical. R6 completion is an internal progres
 
 Present the first release candidate at R6 only when the following are satisfied or a specific external-prerequisite gap has been explicitly accepted by the user:
 
-- [ ] The product is named **ratlas** throughout, the required React stack is implemented, and no unapproved alternative frameworks or storage systems were introduced.
-- [ ] A clean NixOS checkout enters `nix develop`, installs with both committed locks, runs the offline demo, and builds production artifacts using documented commands. No system rebuild or global dependency is required.
-- [ ] Actual native SQLite/FTS/WAL checks and a Firefox launch using the version-matched Nix Firefox-only bundle have results. Browser dependencies and commands contain no Chrome/Chromium browser requirement; manual review remains in the user’s ordinary Firefox. A plain `nix flake check` is not presented as an application test.
-- [ ] The CLI adapter and the specified HTTP-schema adapter are implemented and fixture-tested. Every approved configured live integration has a recorded result, including explicit blocked/unavailable status when applicable.
-- [ ] Collection is resumable and read-only with respect to Radicle operations. No unrelated Git cloning or seeding is required; no browser request starts a crawl.
-- [ ] Search, details, graph neighborhoods, explicit full-mode limits, source health, activity, summary chart, and missing metadata work together.
-- [ ] Catalog/graph counts deduplicate IDs and relationships, and source/window/truncation limits remain visible. “Observed” never silently becomes “online,” “newly created,” or “all repositories.”
-- [ ] Private/quarantined data cannot escape through APIs, enrichment, logs, fixtures, search, graph, history, or exports.
-- [ ] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests.
-- [ ] Performance reports contain real measurements and distinguish software from hardware WebGL. No untested throughput, capacity, or security property is claimed.
-- [ ] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
-- [ ] R1–R5 have genuine approval records. R6 is marked `completed` only when autonomous implementation and reporting are finished; it is never mislabeled as user approved. Pending feedback is not silently cleared.
-- [ ] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
-- [ ] The intended folder has a local Git repository with the bootstrap and incremental implementation history. Every presented checkpoint has a tested implementation SHA and committed review documents; completed agent-owned work is committed, unrelated user changes are preserved, and required ignore rules keep local data and generated artifacts out of history.
+- [x] The product is named **ratlas** throughout, the required React stack is implemented, and no unapproved alternative frameworks or storage systems were introduced.
+- [ ] A clean NixOS checkout enters `nix develop`, installs with both committed locks, runs the offline demo, and builds production artifacts using documented commands. Clean install/build/demo preparation and isolated serving passed; the fixed-port `pnpm demo` supervisor refused port 3000 already held by the existing user-owned demo.
+- [x] Actual native SQLite/FTS/WAL checks and a Firefox launch using the version-matched Nix Firefox-only bundle have results. Browser dependencies and commands contain no Chrome/Chromium browser requirement; manual review remains in the user’s ordinary Firefox. A plain `nix flake check` is not presented as an application test.
+- [x] The CLI adapter and the specified HTTP-schema adapter are implemented and fixture-tested. No approved live source is configured; the requested live check returned prerequisite exit 2 rather than a fabricated pass.
+- [x] Collection is resumable and read-only with respect to Radicle operations. No unrelated Git cloning or seeding is required; no browser request starts a crawl.
+- [x] Search, details, graph neighborhoods, explicit full-mode limits, source health, activity, summary chart, and missing metadata work together.
+- [x] Catalog/graph counts deduplicate IDs and relationships, and source/window/truncation limits remain visible. “Observed” never silently becomes “online,” “newly created,” or “all repositories.”
+- [x] Private/quarantined data cannot escape through APIs, enrichment, logs, fixtures, search, graph, history, or exports in the tested paths.
+- [ ] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests. The first cases pass; real WebGL worker/renderer cleanup remains unverified because Nix Firefox has no context.
+- [x] Performance reports contain real measurements, identify that Nix Firefox had no WebGL context, and do not conflate fallback with hardware/software WebGL results. No untested throughput, capacity, or security property is claimed.
+- [x] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
+- [x] R1–R5 have genuine approval records. R6 is marked `completed` after autonomous implementation and reporting; it is not mislabeled as user approved. Pending feedback is not silently cleared.
+- [x] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
+- [x] The intended folder has a local Git repository with the bootstrap and incremental implementation history. Every presented checkpoint has a tested implementation SHA and committed review documents; completed agent-owned work is committed, unrelated user changes are preserved, and required ignore rules keep local data and generated artifacts out of history.
 
 The R6 handoff states what was built, how to start the demo and live configuration, which sources/interfaces were actually tested, exact check results, screenshot/report locations, tested implementation and review-documentation SHAs, a local commit summary, worktree status, user-approved deviations, and remaining limitations. State that nothing was pushed. Keep implemented, fixture-tested, live-tested, locally committed, and user-approved statuses distinct.
 
