@@ -1,16 +1,17 @@
 # ratlas checkpoints
 
-R1, R2, and R3 approved on 2026-09-25. Stage D is authorized through R4.
+R1, R2, and R3 approved on 2026-09-25. Stage D stopped at R4, blocked on a
+real Firefox WebGL rendering check. Stage E is not authorized.
 Live integration is blocked by missing approved sources; R2 approved proceeding with that gap open.
 
-| Checkpoint | Status          | Presented revision                         | User approval                                                | Review artifact     |
-| ---------- | --------------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
-| R1         | approved        | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
-| R2         | approved        | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
-| R3         | approved        | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
-| R4         | in_progress     | —                                          | Not received                                                 | —                   |
-| R5         | pending         | —                                          | Not received                                                 | —                   |
-| R6         | pending         | —                                          | Not received                                                 | —                   |
+| Checkpoint | Status   | Presented revision                         | User approval                                                | Review artifact     |
+| ---------- | -------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| R1         | approved | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
+| R2         | approved | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
+| R3         | approved | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
+| R4         | blocked  | `cdef2f9adb961646575ff5e8c5322c4166d42054` | Not received; WebGL review gap remains                       | [R4](reviews/R4.md) |
+| R5         | pending  | —                                          | Not received                                                 | —                   |
+| R6         | pending  | —                                          | Not received                                                 | —                   |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -43,3 +44,11 @@ Synthetic desktop/narrow images and actual validation results are linked in R1.m
 2026-09-25: the user requested R3 layout corrections: condense all four counts into one line beneath the ratlas logo; remove the separate counts strip, demo-mode bar, footer, and map placeholder's bottom note; and remove cached-observation header text and the theme control. These requests are feedback within Stage C, not R3 approval. The final correction was implemented and tested at `70e285f2921b314b9c51fa142c60b9c8c929879d`, and screenshots were refreshed. Stage D remains unauthorized.
 
 2026-09-25: after the revised R3 handoff explicitly requested approval before Stage D, the user replied, “Ok work the next step in the plan.” Under specification section 0.1, this approves R3 and authorizes Stage D through R4. It does not approve R4 or authorize Stage E.
+
+2026-09-25: Stage D's implementation was tested at `cdef2f9adb961646575ff5e8c5322c4166d42054`.
+The full offline check passes (52 deterministic tests, 18 Firefox desktop/narrow
+UI tests, two WebGL-dependent skips, and the production build). Exact target
+counts and synthetic fallback screenshots are recorded in [R4](reviews/R4.md).
+Headless and headed Nix-provided Firefox both created no WebGL context, so the
+real Sigma canvas check is blocked. R4 approval has not been received; the user
+must review in ordinary Firefox or explicitly accept proceeding with that gap.

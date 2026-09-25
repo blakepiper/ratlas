@@ -1217,15 +1217,18 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 **Phase 5. Begin only after R3 approval. Stop at R4.**
 
-- [ ] Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, graph interaction controls, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
+- [x] Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, graph interaction controls, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
 
-- [ ] Generate the target-scale dataset. Exercise a real Sigma canvas in Nix-provided Firefox. Distinguish hardware rendering, software WebGL, and fallback tests. Inspect actual images at both viewport sizes and check that large hosting nodes do not obscure basic exploration.
+- [x] Generate the target-scale dataset and inspect real fallback screenshots at both viewport sizes, including the large-host display control.
+- [ ] Exercise a real Sigma canvas in Nix-provided Firefox and classify hardware or software WebGL. Headless and headed Firefox currently return no WebGL context; canvas rendering and readability remain blocked for user review.
 
-- [ ] **Automated acceptance:** repo → seeders → other repos works through both list and graph; API limits have no dangling edges; the full-mode failure explains its limits; repeated navigation does not leak workers; the graph remains cancellable and catalog access survives WebGL loss.
+- [x] **Automated acceptance:** the accessible map list navigates repo → host → other repos; API limits have no dangling edges; full-mode failure explains its limits; catalog access survives unavailable WebGL.
+- [ ] **Automated acceptance:** real canvas selection, pan/zoom, context loss, and repeated navigation worker cleanup require a Firefox WebGL context.
 
 **R4: Stop and ask the user to inspect the map.**
 
-- [ ] Provide demo/target-scale startup instructions, screenshots, and initial performance measurements with the rendering mode recorded. Ask the user to select a repository and hosting node, hide large hosts, inspect the “X of Y” counts, switch to a full or bounded view, and judge pan/zoom/readability. Do not add final history/operations work until R4 is approved.
+- [x] Provide demo/target-scale startup instructions, actual fallback screenshots, and initial performance measurements with rendering mode recorded. Ask the user to select a repository and hosting node, hide large hosts, inspect the “X of Y” counts, switch to a full or bounded view, and judge pan/zoom/readability.
+- [ ] Obtain R4 approval (including an explicit decision on the blocked WebGL check) before final history/operations work.
 
 ### Stage E: Activity, coverage, retained history, and failure recovery
 
