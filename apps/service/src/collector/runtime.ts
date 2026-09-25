@@ -3,6 +3,9 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { sourceSchema, type Config } from '@ratlas/core';
 import {
   sampleSummary,
+  pruneExpired,
+  measureMaintenance,
+  isStorageFailure,
   abandonInterruptedSnapshots,
   beginSnapshot,
   stageSnapshot,
@@ -59,6 +62,7 @@ export class Collector {
   private readonly dependencies: CollectorDependencies;
   private nextSnapshot = 0;
   private stream: Promise<void> | null = null;
+  private fatalError: unknown = null;
   private capabilities: Awaited<ReturnType<typeof cliCapabilities>> | null = null;
   constructor(
     private readonly db: Db,
@@ -75,6 +79,9 @@ export class Collector {
   }
   private now() {
     return this.dependencies.now();
+  }
+  private fail(error: unknown) {
+    this.fatalError ??= error;
   }
   private async wait(ms: number) {
     if (ms > 0) await delay(ms, undefined, { signal: this.signal });
@@ -141,12 +148,14 @@ export class Collector {
           }),
           'local-observer',
         );
-        if (this.capabilities.events) this.stream = this.consumeEvents();
+        if (this.capabilities.events)
+          this.stream = this.consumeEvents().catch((error: unknown) => this.fail(error));
         else
           this.db
             .prepare('UPDATE source_health SET event_stream_status=? WHERE source_id=?')
             .run('snapshot-only', 'local-observer');
       } catch (error) {
+        if (isStorageFailure(error)) throw error;
         this.capabilities = null;
         recordGap(this.db, 'local-observer', this.now(), failureKind(error));
       }
@@ -208,6 +217,7 @@ export class Collector {
         if (!this.signal.aborted)
           recordGap(this.db, 'local-observer', this.now(), 'event-stream-eof');
       } catch (error) {
+        if (isStorageFailure(error)) throw error;
         if (!this.signal.aborted)
           recordGap(
             this.db,
@@ -282,6 +292,7 @@ export class Collector {
           .run('required', runId);
       else closeGap(this.db, 'local-observer', this.now());
     } catch (error) {
+      if (isStorageFailure(error)) throw error;
       finishSnapshot(this.db, runId, this.now(), 'failure');
       recordGap(this.db, 'local-observer', this.now(), failureKind(error));
       this.nextSnapshot = Math.min(
@@ -392,6 +403,7 @@ export class Collector {
           .run(source.id);
         closeGap(this.db, source.id, this.now());
       } catch (error) {
+        if (isStorageFailure(error)) throw error;
         finishSnapshot(this.db, runId, this.now(), 'failure');
         throw error;
       }
@@ -424,6 +436,7 @@ export class Collector {
           )
           .run(source.id);
       } catch (error) {
+        if (isStorageFailure(error)) throw error;
         this.db
           .prepare(
             "UPDATE collector_runs SET status='partial',ended_at=?,row_count=?,error_category=?,reconciliation_status='metadata-only' WHERE id=?",
@@ -454,16 +467,20 @@ export class Collector {
   }
   private async execute(job: Job) {
     const limits = this.config.collection;
-    const timer = setInterval(
-      () => renewJob(this.db, job.key, this.owner, this.now(), limits.jobLeaseMs),
-      limits.jobRenewMs,
-    );
+    const timer = setInterval(() => {
+      try {
+        renewJob(this.db, job.key, this.owner, this.now(), limits.jobLeaseMs);
+      } catch (error) {
+        this.fail(error);
+      }
+    }, limits.jobRenewMs);
     try {
       const interval = await this.httpJob(job);
       sourceSuccess(this.db, job.source_id, this.now());
       finishJob(this.db, job.key, this.owner, this.now() + interval, this.now(), null);
       this.enqueueDiscovery(job.source_id);
     } catch (error) {
+      if (isStorageFailure(error)) throw error;
       if (this.signal.aborted) {
         this.db
           .prepare(
@@ -523,8 +540,11 @@ export class Collector {
     }
   }
   async tick() {
+    if (this.fatalError) throw this.fatalError;
     const at = this.now(),
       limits = this.config.collection;
+    pruneExpired(this.db, this.config.storage, at);
+    measureMaintenance(this.db, at);
     sampleSummary(this.db, at);
     this.db
       .prepare(
@@ -532,7 +552,9 @@ export class Collector {
       )
       .run(at);
     if (this.capabilities && this.nextSnapshot <= at && !this.active.has('cli')) {
-      const promise = this.cliSnapshot().finally(() => this.active.delete('cli'));
+      const promise = this.cliSnapshot()
+        .catch((error: unknown) => this.fail(error))
+        .finally(() => this.active.delete('cli'));
       this.active.set('cli', promise);
     }
     for (const job of pendingJobs(this.db, at)) {
@@ -550,11 +572,13 @@ export class Collector {
           .run(source.id);
       this.origins.set(origin, (this.origins.get(origin) ?? 0) + 1);
       this.sourceActive.add(source.id);
-      const promise = this.execute(job).finally(() => {
-        this.active.delete(job.key);
-        this.sourceActive.delete(source.id);
-        this.origins.set(origin, this.origins.get(origin)! - 1);
-      });
+      const promise = this.execute(job)
+        .catch((error: unknown) => this.fail(error))
+        .finally(() => {
+          this.active.delete(job.key);
+          this.sourceActive.delete(source.id);
+          this.origins.set(origin, this.origins.get(origin)! - 1);
+        });
       this.active.set(job.key, promise);
     }
   }
@@ -566,6 +590,7 @@ export class Collector {
       if (once && !this.active.size) break;
       if (once) {
         await Promise.all(this.active.values());
+        if (this.fatalError) throw this.fatalError;
         if (
           !pendingJobs(this.db, this.now()).length ||
           this.now() - start >= this.config.collection.snapshotTimeoutMs
@@ -579,6 +604,7 @@ export class Collector {
         }
       }
     } while (!this.signal.aborted);
+    if (this.fatalError) throw this.fatalError;
   }
   async close() {
     await Promise.all(this.active.values());

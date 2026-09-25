@@ -2,6 +2,7 @@ import {
   catalogQuerySchema,
   catalogSchema,
   coverageSchema,
+  maintenanceViewSchema,
   sourceViewSchema,
   fullSummarySchema,
   repoDetailSchema,
@@ -111,7 +112,8 @@ export function sources(db: Db) {
  (SELECT COUNT(*) FROM coverage_gaps g WHERE g.source_id=s.id AND g.ended_at IS NULL) open_gaps,
  (SELECT COUNT(*) FROM metadata_jobs j WHERE j.source_id=s.id) queue_depth,
  (SELECT COUNT(*) FROM metadata_jobs j WHERE j.source_id=s.id AND j.last_error='budget-deferred') deferred_jobs,
- (SELECT COUNT(*) FROM collector_runs r WHERE r.source_id=s.id AND r.status IN ('partial','failure','interrupted')) partial_runs
+ (SELECT COUNT(*) FROM collector_runs r WHERE r.source_id=s.id AND r.status IN ('partial','failure','interrupted')) partial_runs,
+ (SELECT MAX(r.ended_at) FROM collector_runs r WHERE r.source_id=s.id AND r.reconciliation_status='complete') last_reconciliation
  FROM sources s JOIN source_health h ON h.source_id=s.id WHERE s.publication_policy!='quarantine' ORDER BY s.id COLLATE BINARY`,
     )
     .all() as Record<string, unknown>[];
@@ -138,6 +140,8 @@ export function sources(db: Db) {
       queueDepth: row.queue_depth,
       deferredJobs: row.deferred_jobs,
       partialRuns: row.partial_runs,
+      consecutiveFailures: row.consecutive_failures,
+      lastReconciliation: iso(row.last_reconciliation as number | null),
       breaker: row.breaker_state,
       paused: !!row.paused,
     }),
@@ -162,11 +166,15 @@ export function retentionBoundary(db: Db) {
 export function coverage(db: Db) {
   const items = sources(db),
     enabled = items.filter((s) => s.enabled);
+  const metrics = db.prepare('SELECT * FROM maintenance_state WHERE id=1').get() as Record<
+    string,
+    number | null
+  >;
   return coverageSchema.parse({
     sources: items,
     retainedHistoryFrom: retentionBoundary(db),
     limitations:
-      'Configured observers provide partial public-network knowledge. Cached observations do not establish availability. Private and unobserved repositories are outside this dataset.',
+      'Configured observers provide partial public-network knowledge. Cached observations do not establish availability. Private and unobserved repositories are outside this dataset. If one source reports private metadata, its record is withheld while independently public evidence remains visible; private conflict details are never shown.',
     collectionStatus: !enabled.length
       ? 'unconfigured'
       : enabled.some((s) => s.error || s.paused)
@@ -174,6 +182,16 @@ export function coverage(db: Db) {
         : enabled.some((s) => s.lastSuccess)
           ? 'healthy'
           : 'idle',
+    maintenance: maintenanceViewSchema.parse({
+      lastPrunedAt: iso(metrics.last_pruned_at ?? null),
+      lastMeasuredAt: iso(metrics.last_measured_at ?? null),
+      databaseBytes: metrics.database_bytes,
+      walBytes: metrics.wal_bytes,
+      queueDepth: metrics.queue_depth,
+      queueHighWater: metrics.queue_high_water,
+      eventBacklog: metrics.event_backlog,
+      eventBacklogHighWater: metrics.event_backlog_high_water,
+    }),
   });
 }
 export function publicSummary(db: Db, query: Filters, now = Date.now()) {

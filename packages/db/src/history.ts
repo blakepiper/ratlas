@@ -6,14 +6,17 @@ export type TimeQuery = z.infer<typeof timeQuerySchema>;
 export function activity(db: Db, query: TimeQuery, now = Date.now()) {
   const parameters = {
     sources: JSON.stringify(query.source),
-    from: query.from ? Date.parse(query.from) : Date.parse(retentionBoundary(db)),
+    from: Math.max(query.from ? Date.parse(query.from) : 0, Date.parse(retentionBoundary(db))),
     to: query.to ? Date.parse(query.to) : referenceTime(db, now),
   };
   const sql = `WITH events AS (
  SELECT 'route:'||c.id id,c.new_state kind,c.source_id,c.rid,c.nid,c.observed_at,NULL ended_at,
  CASE WHEN c.previous_state IS NULL THEN 'first observed: source reported a hosting relationship' WHEN c.reason='no longer present in this observer''s snapshots' THEN 'relationship no longer in source snapshots' WHEN c.new_state='missing' THEN 'source no longer reports a hosting relationship' ELSE 'source reported a hosting relationship' END message
  FROM route_changes c WHERE EXISTS (SELECT 1 FROM eligible_routes r WHERE r.source_id=c.source_id AND r.rid=c.rid AND r.nid=c.nid)
- UNION ALL SELECT 'gap:'||g.id,'gap',g.source_id,NULL,NULL,g.started_at,g.ended_at,'collection gap' FROM coverage_gaps g JOIN sources s ON s.id=g.source_id WHERE s.publication_policy!='quarantine'
+ UNION ALL SELECT 'gap:'||g.id,'gap',g.source_id,NULL,NULL,MAX(g.started_at,$from),g.ended_at,
+ CASE WHEN g.started_at<$from THEN 'collection gap began before displayed range' ELSE 'collection gap' END
+ FROM coverage_gaps g JOIN sources s ON s.id=g.source_id
+ WHERE s.publication_policy!='quarantine' AND g.started_at<=$to AND (g.ended_at IS NULL OR g.ended_at>=$from)
  ), filtered AS (SELECT * FROM events WHERE observed_at BETWEEN $from AND $to AND (json_array_length($sources)=0 OR source_id IN (SELECT value FROM json_each($sources))))`;
   const rows = db
     .prepare(
@@ -76,12 +79,10 @@ export function sampleSummary(db: Db, now = Date.now()) {
 }
 export function history(db: Db, query: TimeQuery, now = Date.now()) {
   const to = query.to ? Date.parse(query.to) : referenceTime(db, now);
-  const from = query.from
-    ? Date.parse(query.from)
-    : Math.max(
-        Math.floor(Date.parse(retentionBoundary(db)) / 3600000) * 3600000,
-        to - 90 * 86400000,
-      );
+  const from = Math.max(
+    query.from ? Date.parse(query.from) : to - 90 * 86400000,
+    Date.parse(retentionBoundary(db)),
+  );
   if (to - from > 90 * 86400000)
     throw Object.assign(new Error('Invalid history range'), { statusCode: 400 });
   const where = " FROM stats_samples WHERE scope='public' AND window=? AND hour BETWEEN ? AND ?";

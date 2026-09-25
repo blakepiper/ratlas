@@ -173,6 +173,32 @@ it('runs the HTTP pipeline offline, attributes inventories to subjects and prese
     await collector.close();
   }
 });
+it('stops on a SQLite write failure without converting it into a source outage', async () => {
+  const db = writer.db;
+  observe(db, { id: 'previous', sourceId: 'fixture', rid, nid, kind: 'present', observedAt: at });
+  scheduleJob(db, 'fixture', 'observer', 'probe', at, 0);
+  const controller = new AbortController();
+  const collector = new Collector(db, config, controller.signal, {
+    now: () => at,
+    transport: () => {
+      db.pragma('query_only=ON');
+      return { get: async () => ({ id: nid }) };
+    },
+  });
+  try {
+    await expect(collector.run(true)).rejects.toMatchObject({ code: 'SQLITE_READONLY' });
+    expect(
+      db.prepare('SELECT current_error FROM source_health WHERE source_id=?').get('fixture'),
+    ).toEqual({
+      current_error: null,
+    });
+    expect(summary(db, 'all', at).hostingRelationships).toBe(1);
+  } finally {
+    controller.abort();
+    db.pragma('query_only=OFF');
+    await collector.close();
+  }
+});
 it('never schedules or requests quarantine-only RID enrichment', async () => {
   registerSource(
     writer.db,

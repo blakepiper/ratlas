@@ -63,11 +63,19 @@ if (!config.radicle.enabled && !config.httpSources.some((s) => s.enabled)) {
     process.exitCode = 1;
   } finally {
     controller.abort();
-    await collector.close();
+    try {
+      await collector.close();
+    } catch {
+      logger.error('collector cleanup failed');
+      process.exitCode = 1;
+    }
     if (timer) clearTimeout(timer);
     process.removeListener('SIGINT', stop);
     process.removeListener('SIGTERM', stop);
-    writer.close();
-    destination.end();
+    try {
+      writer.close();
+    } finally {
+      destination.end();
+    }
   }
 }

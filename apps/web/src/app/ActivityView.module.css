@@ -142,22 +142,30 @@
 .source p {
   margin: 6px 0;
 }
-.source dl {
+.source dl,
+.metrics {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 6px 14px;
   font-size: 11px;
 }
-.source dl > div {
+.source dl > div,
+.metrics > div {
   display: contents;
 }
-.source dt {
+.source dt,
+.metrics dt {
   color: var(--muted);
 }
-.source dd {
+.source dd,
+.metrics dd {
   margin: 0;
   text-align: right;
   overflow-wrap: anywhere;
+}
+.metrics {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
 }
 @media (max-width: 1023px) {
   .view {

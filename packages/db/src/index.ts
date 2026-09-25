@@ -13,3 +13,6 @@ export * from './public.js';
 export * from './graph.js';
 export * from './history.js';
 export * from './scenario.js';
+export * from './maintenance.js';
+export * from './errors.js';
+export * from './demo-reset.js';

@@ -33,7 +33,7 @@ function SummaryChart({ items, window }: { items: HistoryItem[]; window: string 
     <section className={styles.panel} aria-label="Summary history">
       <div className={styles.panelHeading}>
         <h2>Observed counts over time</h2>
-        <span>{window} observation window · stored UTC-hour samples</span>
+        <span>{window} observation window · last 7 days of stored UTC-hour samples</span>
       </div>
       {items.length ? (
         <>
@@ -248,6 +248,34 @@ export function ActivityView({
           <p>{coverage?.limitations ?? 'Loading source coverage…'}</p>
           <p>Collection status: {coverage?.collectionStatus ?? 'Loading'}</p>
           <p>{summary?.unresolvedMetadata ?? '—'} repository names unresolved.</p>
+          {coverage && (
+            <dl className={styles.metrics}>
+              <div>
+                <dt>Retained data / WAL</dt>
+                <dd>
+                  {coverage.maintenance.lastMeasuredAt
+                    ? `${(coverage.maintenance.databaseBytes / 1048576).toFixed(1)} / ${(coverage.maintenance.walBytes / 1048576).toFixed(1)} MiB`
+                    : 'Not measured yet'}
+                </dd>
+              </div>
+              <div>
+                <dt>Last retention pass</dt>
+                <dd>{dateLabel(coverage.maintenance.lastPrunedAt)}</dd>
+              </div>
+              <div>
+                <dt>Queued jobs / peak</dt>
+                <dd>
+                  {coverage.maintenance.queueDepth} / {coverage.maintenance.queueHighWater}
+                </dd>
+              </div>
+              <div>
+                <dt>Event backlog / peak</dt>
+                <dd>
+                  {coverage.maintenance.eventBacklog} / {coverage.maintenance.eventBacklogHighWater}
+                </dd>
+              </div>
+            </dl>
+          )}
           {coverage?.sources.map((item) => (
             <section key={item.id} className={styles.source} aria-label={item.label}>
               <h3>{item.label}</h3>
@@ -280,6 +308,14 @@ export function ActivityView({
                 <div>
                   <dt>Partial runs</dt>
                   <dd>{item.partialRuns}</dd>
+                </div>
+                <div>
+                  <dt>Last reconciliation</dt>
+                  <dd>{dateLabel(item.lastReconciliation)}</dd>
+                </div>
+                <div>
+                  <dt>Consecutive failures</dt>
+                  <dd>{item.consecutiveFailures}</dd>
                 </div>
                 <div>
                   <dt>Circuit breaker</dt>

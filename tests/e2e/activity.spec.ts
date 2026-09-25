@@ -23,6 +23,8 @@ test('activity view shows stored count series, source coverage, and navigable ob
     'Last successful snapshot',
   );
   await expect(coverage).toContainText('Private and unobserved repositories');
+  await expect(coverage).toContainText('independently public evidence remains visible');
+  await expect(coverage).toContainText('Event backlog / peak');
   const feed = page.getByRole('region', { name: 'Observation activity' });
   await expect(page.getByText(/Retained history begins 2026-09-25 11:00:00 UTC/u)).toBeVisible();
   await expect(feed.getByRole('listitem').first()).toContainText(

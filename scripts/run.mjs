@@ -7,8 +7,8 @@ process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const [command, ...args] = process.argv.slice(2);
 const pnpm = (...values) => execFileSync('pnpm', values, { stdio: 'inherit' });
 const tsx = (file, ...values) => pnpm('exec', 'tsx', file, ...values);
-const tsxWithGc = (file) =>
-  execFileSync('node', ['--expose-gc', '--import', 'tsx', file], { stdio: 'inherit' });
+const tsxWithGc = (file, ...values) =>
+  execFileSync('node', ['--expose-gc', '--import', 'tsx', file, ...values], { stdio: 'inherit' });
 const buildBackend = () => pnpm('exec', 'tsc', '-b');
 const buildWeb = () => pnpm('--filter', '@ratlas/web', 'exec', 'vite', 'build');
 const commands = {
@@ -59,6 +59,11 @@ const commands = {
     buildBackend();
     tsx('scripts/demo-scenario.ts', ...args);
   },
+  'demo:reset': () => {
+    buildBackend();
+    if (args.length) tsxWithGc('scripts/demo-reset.ts', ...args);
+    else tsx('scripts/demo-reset.ts');
+  },
   collect: () => {
     buildBackend();
     tsx('apps/service/src/main-collector.ts', ...args);
@@ -87,6 +92,7 @@ if (
     'test:live',
     'data:review',
     'demo:scenario',
+    'demo:reset',
   ].includes(command)
 )
   throw new Error(`Unexpected arguments for ${command}`);

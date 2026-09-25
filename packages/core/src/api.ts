@@ -86,14 +86,27 @@ export const sourceViewSchema = z.strictObject({
   queueDepth: count,
   deferredJobs: count,
   partialRuns: count,
+  consecutiveFailures: count,
+  lastReconciliation: iso.nullable(),
   breaker: z.enum(['closed', 'open', 'half-open']),
   paused: z.boolean(),
+});
+export const maintenanceViewSchema = z.strictObject({
+  lastPrunedAt: iso.nullable(),
+  lastMeasuredAt: iso.nullable(),
+  databaseBytes: count,
+  walBytes: count,
+  queueDepth: count,
+  queueHighWater: count,
+  eventBacklog: count,
+  eventBacklogHighWater: count,
 });
 export const coverageSchema = z.strictObject({
   sources: z.array(sourceViewSchema),
   retainedHistoryFrom: iso,
   limitations: z.string(),
   collectionStatus: z.enum(['unconfigured', 'healthy', 'degraded', 'idle']),
+  maintenance: maintenanceViewSchema,
 });
 export const fullSummarySchema = summarySchema.extend({
   coverage: coverageSchema,
