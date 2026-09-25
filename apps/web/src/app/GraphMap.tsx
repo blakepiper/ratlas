@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import Graph from 'graphology';
 import FA2Layout from 'graphology-layout-forceatlas2/worker';
 import Sigma from 'sigma';
+import { drawDiscNodeHover } from 'sigma/rendering';
 import { graphLimitSchema, graphSchema, type z } from '@ratlas/core';
 import { conciseId, type Selection } from './explore.js';
 import {
@@ -144,6 +145,8 @@ function GraphCanvas({
         renderLabels: true,
         labelFont: 'system-ui, sans-serif',
         labelColor: { color: '#e8edf2' },
+        defaultDrawNodeHover: (context, data, settings) =>
+          drawDiscNodeHover(context, data, { ...settings, labelColor: { color: '#18212b' } }),
         defaultEdgeColor: '#526477',
         zIndex: true,
         nodeReducer: (key, attributes) => {
