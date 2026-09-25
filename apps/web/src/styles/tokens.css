@@ -1,0 +1,65 @@
+:root {
+  color-scheme: dark;
+  --background: #10151b;
+  --surface: #18212b;
+  --text: #e8edf2;
+  --muted: #a7b4c2;
+  --repo: #d5a562;
+  --node: #67a8c8;
+  --border: #35414e;
+  --raised: #202c38;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  background: var(--background);
+  color: var(--text);
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+  --background: #f5f6f8;
+  --surface: #ffffff;
+  --text: #18212b;
+  --muted: #536271;
+  --repo: #865613;
+  --node: #176687;
+  --border: #d7dfe6;
+  --raised: #e9eef3;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--node);
+  outline-offset: 4px;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+a {
+  color: var(--node);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

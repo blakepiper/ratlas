@@ -29,6 +29,8 @@ export function incrementRevision(db: Db) {
 export function registerSource(db: Db, input: Source) {
   const s = sourceSchema.parse(input);
   db.transaction(() => {
+    const previous = db.prepare('SELECT publication_policy FROM sources WHERE id=?').get(s.id) as
+      { publication_policy: string } | undefined;
     db.prepare(
       'INSERT INTO sources(id,adapter,label,origin,observer_nid,publication_policy,metadata_priority,enabled) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET label=excluded.label,publication_policy=excluded.publication_policy,metadata_priority=excluded.metadata_priority,enabled=excluded.enabled,observer_nid=excluded.observer_nid',
     ).run(
@@ -44,7 +46,8 @@ export function registerSource(db: Db, input: Source) {
     db.prepare('INSERT OR IGNORE INTO source_health(source_id) VALUES (?)').run(s.id);
     for (const { rid } of db.prepare('SELECT rid FROM repositories').all() as { rid: string }[])
       refreshPublication(db, rid);
-    incrementRevision(db);
+    if (s.policy !== 'quarantine' || (previous && previous.publication_policy !== 'quarantine'))
+      incrementRevision(db);
   })();
 }
 export function ensureEntities(db: Db, rid: string, nid: string | null, at: number) {

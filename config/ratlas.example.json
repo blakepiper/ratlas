@@ -1,0 +1,14 @@
+{
+  "mode": "live",
+  "storage": {
+    "databasePath": ".ratlas/live/ratlas.sqlite"
+  },
+  "radicle": {
+    "enabled": false,
+    "executablePath": null,
+    "homePath": null,
+    "socketPath": null
+  },
+  "localObserverPublication": "quarantine",
+  "httpSources": []
+}

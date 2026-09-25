@@ -8,7 +8,19 @@
   "scripts": {
     "preinstall": "node scripts/check-toolchain.mjs",
     "postinstall": "node scripts/build-native.mjs",
-    "toolchain:check": "node scripts/check-toolchain.mjs"
+    "toolchain:check": "node scripts/check-toolchain.mjs",
+    "format:check": "node scripts/run.mjs format:check",
+    "lint": "node scripts/run.mjs lint",
+    "typecheck": "node scripts/run.mjs typecheck",
+    "test": "node scripts/run.mjs test",
+    "test:e2e": "node scripts/run.mjs test:e2e",
+    "build": "node scripts/run.mjs build",
+    "doctor": "node scripts/run.mjs doctor",
+    "db:migrate": "node scripts/run.mjs db:migrate",
+    "check": "node scripts/run.mjs check",
+    "dev": "node scripts/dev.mjs dev",
+    "demo": "node scripts/dev.mjs demo",
+    "start:api": "NODE_ENV=production node apps/service/dist/main-api.js"
   },
   "devDependencies": {
     "typescript": "5.9.3",

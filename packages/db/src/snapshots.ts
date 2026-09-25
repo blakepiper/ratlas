@@ -120,7 +120,10 @@ export function finishSnapshot(
       db.prepare(
         'UPDATE source_health SET last_attempt=?,last_success=?,last_complete_snapshot=?,current_error=NULL WHERE source_id=?',
       ).run(at, at, at, run.source_id);
-      incrementRevision(db);
+      const source = db
+        .prepare('SELECT publication_policy FROM sources WHERE id=?')
+        .get(run.source_id) as { publication_policy: string };
+      if (source.publication_policy !== 'quarantine') incrementRevision(db);
     } else
       db.prepare('UPDATE source_health SET last_attempt=?,current_error=? WHERE source_id=?').run(
         at,

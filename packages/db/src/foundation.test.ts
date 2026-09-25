@@ -93,6 +93,7 @@ describe('source-specific evidence', () => {
 });
 describe('publication and metadata', () => {
   it('excludes quarantined IDs, metadata and relationships even when joined to a public RID', () => {
+    const publicBefore = summary(db);
     observe(db, event('present', 'private'));
     storeMetadata(db, {
       sourceId: 'private',
@@ -109,6 +110,7 @@ describe('publication and metadata', () => {
       evidenceSources: 0,
     });
     expect(db.prepare('SELECT * FROM repositories_fts').all()).toEqual([]);
+    expect(summary(db)).toEqual(publicBefore);
     observe(db, event('present', 'a', { nid: nids[1] }));
     expect(summary(db).nodeIdentities).toBe(1);
     expect(repositories(db).items[0]).toMatchObject({ name: null, metadataSource: null });
