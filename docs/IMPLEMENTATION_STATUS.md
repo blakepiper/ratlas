@@ -1,7 +1,7 @@
 # ratlas implementation status
 
-Current stage: C complete through R3. R3 is **awaiting_review** after requested
-layout corrections; Stage D is not authorized. Tested implementation:
+Current stage: D in progress through R4. R3 was approved on 2026-09-25 after
+requested layout corrections. Last presented implementation:
 `70e285f2921b314b9c51fa142c60b9c8c929879d`.
 Review: [R3](reviews/R3.md). R1 and R2 were approved on 2026-09-25. R2 approval
 authorized Stage C with the previously disclosed live-integration gap still open.
@@ -42,7 +42,7 @@ data. No unrelated tracked changes were present at resumption.
 Live integration remains unverified: no approved real source, observer executable,
 or profile is configured. The bounded live smoke test stays unchecked. No Radicle
 node, replication operation, personal profile, remote, or publication was used.
-Next action: human review of the revised R3 layout and approval before Stage D graph work.
+Next action: implement and test the Stage D graph, then stop at R4 for human review.
 
 Restart: `nix develop --command pnpm demo`, then http://127.0.0.1:5173 in Firefox.
 Tool environment only: prefix commands with `env -u TMPDIR` for its stale inherited
