@@ -880,9 +880,6 @@ export function App() {
               </p>
               <span className={styles.later}>No graph or layout simulation is running</span>
             </div>
-            <div className={styles.mapFooter}>
-              A hosting relationship records source evidence, not verified availability.
-            </div>
           </section>
           <aside
             className={styles.details}

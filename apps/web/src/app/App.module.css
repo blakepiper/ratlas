@@ -374,12 +374,6 @@
   color: var(--muted);
   font-size: 11px;
 }
-.mapFooter {
-  padding: 15px 22px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
-}
 .detailBody {
   padding: 8px 18px 22px;
 }

@@ -24,6 +24,9 @@ test('catalog, details, relationships, and URL restoration in the real demo', as
   await expect(page.getByRole('button', { name: /theme/iu })).toHaveCount(0);
   await expect(page.getByRole('contentinfo')).toHaveCount(0);
   await expect(page.getByText('Source observations cached', { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText('A hosting relationship records source evidence, not verified availability.'),
+  ).toHaveCount(0);
   const response = await page.request.get('/api/v1/summary');
   expect(await response.json()).toMatchObject({
     mode: 'demo',
