@@ -1,7 +1,7 @@
 # ratlas checkpoints
 
-R1–R4 approved on 2026-09-25. The user authorized Stage E after the selected-label
-fix, with the Nix Firefox WebGL check still open. Stage E awaits R5 review.
+R1–R5 approved on 2026-09-25. The user authorized Stage F after the revised
+R5 handoff, with the Nix Firefox WebGL and live-source checks still open.
 Live integration is blocked by missing approved sources; R2 approved proceeding with that gap open.
 
 | Checkpoint | Status          | Presented revision                         | User approval                                                | Review artifact     |
@@ -10,7 +10,7 @@ Live integration is blocked by missing approved sources; R2 approved proceeding 
 | R2         | approved        | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
 | R3         | approved        | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
 | R4         | approved        | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
-| R5         | awaiting_review | `e39924bd7f1510600802a16f29995daaed0407f8` | Not received                                                 | [R5](reviews/R5.md) |
+| R5         | approved        | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                  | [R5](reviews/R5.md) |
 | R6         | pending         | —                                          | Not received                                                 | —                   |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
@@ -81,3 +81,7 @@ Nix-shell check passes (59 deterministic tests, 22 Firefox UI tests, two
 WebGL-dependent skips, and production build). A first check hit an unrelated
 narrow-screen clipboard-test timeout; the full rerun passed. R5 still awaits
 approval and Stage F has not started.
+
+2026-09-25: the user replied, “Ok now continue, I approve R5” to the revised
+R5 handoff. This approves R5 and authorizes Stage F through R6. The previously
+disclosed WebGL and live-source verification gaps remain open.

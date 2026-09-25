@@ -1,6 +1,6 @@
 # ratlas implementation status
 
-Current stage: E complete and awaiting R5 review. Stage F is not authorized.
+Current stage: Stage F authorized by explicit R5 approval on 2026-09-25.
 The tested R5 implementation is `e39924bd7f1510600802a16f29995daaed0407f8`;
 see [R5](reviews/R5.md) for commands, screenshots, and review points.
 
@@ -48,4 +48,5 @@ After the current demo processes are stopped by their owner, use
 outage/recovery walkthrough from a fresh, archived baseline. Then run
 `env -u TMPDIR nix develop --command pnpm demo`, open
 http://127.0.0.1:5173 in Firefox, and invoke the scenario commands from a
-second shell. R5 approval is required before Stage F work begins.
+second shell. Stage F validation and release documentation are in progress;
+R6 remains pending.
