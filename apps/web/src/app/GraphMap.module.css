@@ -24,8 +24,7 @@
   color: var(--muted);
   font-size: 11px;
 }
-.controls,
-.canvasToolbar {
+.controls {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -34,8 +33,7 @@
   border-top: 1px solid var(--border);
   font-size: 11px;
 }
-.controls label,
-.canvasToolbar label {
+.controls label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -46,7 +44,6 @@
 }
 .controls select,
 .controls input[type='number'],
-.canvasToolbar button,
 .message button,
 .displayNote button,
 .fallback button {
@@ -56,18 +53,8 @@
   color: var(--text);
   padding: 5px 8px;
 }
-.controls input[type='checkbox'],
-.canvasToolbar input[type='checkbox'] {
+.controls input[type='checkbox'] {
   accent-color: var(--node);
-}
-.canvasToolbar {
-  border-bottom: 1px solid var(--border);
-}
-.canvasToolbar button {
-  min-width: 28px;
-}
-.canvasToolbar button:disabled {
-  opacity: 0.5;
 }
 .counts {
   display: flex;
@@ -185,7 +172,6 @@
 @media (max-width: 1023px) {
   .heading,
   .controls,
-  .canvasToolbar,
   .counts,
   .entityInfo {
     padding-left: 16px;

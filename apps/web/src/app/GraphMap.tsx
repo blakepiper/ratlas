@@ -57,8 +57,6 @@ function GraphCanvas({
   const container = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
   const renderer = useRef<Sigma | null>(null);
-  const layout = useRef<FA2Layout | null>(null);
-  const graph = useRef<Graph | null>(null);
   const timer = useRef<number | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
@@ -67,16 +65,10 @@ function GraphCanvas({
   const selectedRef = useRef(selectedKey);
   selectedRef.current = selectedKey;
   const hoveredRef = useRef<string | null>(null);
-  const labelsRef = useRef(false);
-  const allEdgesRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [rendered, setRendered] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [layoutError, setLayoutError] = useState(false);
-  const [layoutReady, setLayoutReady] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [showLabels, setShowLabels] = useState(false);
-  const [showAllEdges, setShowAllEdges] = useState(false);
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const focusedLabels = mode === 'neighborhood' && nodes.length <= 200;
   const limitedEdges = edges.length > 10_000;
@@ -113,7 +105,6 @@ function GraphCanvas({
         size: 0.7,
         color: edge.historical ? '#566272' : '#526477',
       });
-    graph.current = instance;
     let sigma: Sigma | null = null;
     let worker: FA2Layout | null = null;
     let lost = false;
@@ -153,14 +144,14 @@ function GraphCanvas({
           const focused = key === selectedRef.current || key === hoveredRef.current;
           return {
             ...attributes,
-            label: focusedLabels || labelsRef.current || focused ? attributes.label : null,
+            label: focusedLabels || focused ? attributes.label : null,
             forceLabel: focused,
             highlighted: focused,
             zIndex: focused ? 1 : 0,
           };
         },
         edgeReducer: (key, attributes) => {
-          if (!limitedEdges || allEdgesRef.current) return attributes;
+          if (!limitedEdges) return attributes;
           const [source, target] = instance.extremities(key);
           const selected = selectedRef.current;
           const hovered = hoveredRef.current;
@@ -204,15 +195,11 @@ function GraphCanvas({
               edgeWeightInfluence: 0,
             },
           });
-          layout.current = worker;
-          setLayoutReady(true);
           if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
             worker.start();
-            setRunning(true);
             timer.current = window.setTimeout(
               () => {
                 worker?.stop();
-                setRunning(false);
                 timer.current = null;
               },
               mode === 'full' ? 10_000 : 5_000,
@@ -229,8 +216,6 @@ function GraphCanvas({
       sigma?.kill();
       container.current?.replaceChildren();
       renderer.current = null;
-      layout.current = null;
-      setLayoutReady(false);
       setRendered(false);
       onUnavailableRef.current();
       setRenderError('WebGL is unavailable. Use the repository list and details to browse.');
@@ -241,7 +226,6 @@ function GraphCanvas({
       timer.current = null;
       worker?.stop();
       worker?.kill();
-      layout.current = null;
       for (const key of instance.nodes()) {
         const attributes = instance.getNodeAttributes(key);
         positions.set(key, { x: attributes.x as number, y: attributes.y as number });
@@ -250,8 +234,6 @@ function GraphCanvas({
         canvas.removeEventListener('webglcontextlost', onContextLost);
       sigma?.kill();
       renderer.current = null;
-      graph.current = null;
-      setRunning(false);
     };
   }, [ready, renderError, nodes, edges, mode, positions, focusedLabels, limitedEdges]);
 
@@ -260,122 +242,11 @@ function GraphCanvas({
     renderer.current?.refresh();
   }, [selectedKey]);
 
-  function toggleLayout() {
-    const worker = layout.current;
-    if (!worker) return;
-    if (worker.isRunning()) {
-      worker.stop();
-      if (timer.current !== null) window.clearTimeout(timer.current);
-      timer.current = null;
-      setRunning(false);
-      return;
-    }
-    worker.start();
-    setRunning(true);
-    timer.current = window.setTimeout(
-      () => {
-        worker.stop();
-        timer.current = null;
-        setRunning(false);
-      },
-      mode === 'full' ? 10_000 : 5_000,
-    );
-  }
-
-  function move(dx: number, dy: number) {
-    const camera = renderer.current?.getCamera();
-    if (!camera) return;
-    const distance = 0.12 * camera.getState().ratio;
-    camera.updateState(({ x, y }) => ({ x: x + dx * distance, y: y + dy * distance }));
-  }
-
-  function zoom(factor: number) {
-    renderer.current?.getCamera().updateState(({ ratio }) => ({ ratio: ratio * factor }));
-  }
-
-  function fit() {
-    renderer.current?.getCamera().setState({ x: 0.5, y: 0.5, ratio: 1, angle: 0 });
-  }
-
-  function reset() {
-    layout.current?.stop();
-    if (timer.current !== null) window.clearTimeout(timer.current);
-    timer.current = null;
-    setRunning(false);
-    const instance = graph.current;
-    if (instance) {
-      for (const key of instance.nodes()) {
-        const point = seededPosition(key);
-        instance.setNodeAttribute(key, 'x', point.x);
-        instance.setNodeAttribute(key, 'y', point.y);
-        positions.set(key, point);
-      }
-    }
-    fit();
-  }
-
   const hoveredNode = nodes.find((node) => node.key === hoveredKey);
   const selectedNode = nodes.find((node) => node.key === selectedKey);
   return (
     <>
-      {rendered && (
-        <div className={styles.canvasToolbar} aria-label="Map navigation controls">
-          <button type="button" onClick={() => move(-1, 0)} aria-label="Pan left">
-            ←
-          </button>
-          <button type="button" onClick={() => move(0, -1)} aria-label="Pan up">
-            ↑
-          </button>
-          <button type="button" onClick={() => move(0, 1)} aria-label="Pan down">
-            ↓
-          </button>
-          <button type="button" onClick={() => move(1, 0)} aria-label="Pan right">
-            →
-          </button>
-          <button type="button" onClick={() => zoom(0.75)} aria-label="Zoom in">
-            +
-          </button>
-          <button type="button" onClick={() => zoom(1.25)} aria-label="Zoom out">
-            −
-          </button>
-          <button type="button" onClick={fit}>
-            Fit
-          </button>
-          <button type="button" onClick={reset}>
-            Reset
-          </button>
-          <button type="button" onClick={toggleLayout} disabled={!layoutReady}>
-            {running ? 'Pause layout' : 'Resume layout'}
-          </button>
-          <label>
-            <input
-              type="checkbox"
-              checked={showLabels}
-              onChange={(event) => {
-                labelsRef.current = event.target.checked;
-                setShowLabels(event.target.checked);
-                renderer.current?.refresh();
-              }}
-            />
-            Show labels
-          </label>
-          {limitedEdges && (
-            <label>
-              <input
-                type="checkbox"
-                checked={showAllEdges}
-                onChange={(event) => {
-                  allEdgesRef.current = event.target.checked;
-                  setShowAllEdges(event.target.checked);
-                  renderer.current?.refresh();
-                }}
-              />
-              All returned edges
-            </label>
-          )}
-        </div>
-      )}
-      {rendered && limitedEdges && !showAllEdges && (
+      {rendered && limitedEdges && (
         <p className={styles.displayNote}>
           Showing only edges beside the selected or hovered entity; API results are unchanged.
         </p>
