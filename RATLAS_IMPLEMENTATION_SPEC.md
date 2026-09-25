@@ -1,27 +1,25 @@
 # ratlas
 ## Implementation specification and execution plan for Codex
 
-Revision 4 · 2026-09-25 UTC · Local Git initialization and incremental commits; no pushing
+Revision 5 · 2026-09-25 UTC · Autonomous completion authorized; local incremental commits; no pushing
 
-Project name: **ratlas**. Development platform: **NixOS, x86_64-linux**. Required environment: **the repository’s `nix develop` shell**. Frontend: **React**. Browser target: **Firefox**. Version control: **initialize or reuse a local Git repository and commit work incrementally; never push**. Execution: **six mandatory human review checkpoints**.
+Project name: **ratlas**. Development platform: **NixOS, x86_64-linux**. Required environment: **the repository’s `nix develop` shell**. Frontend: **React**. Browser target: **Firefox**. Version control: **initialize or reuse a local Git repository and commit work incrementally; never push**. Execution: **six recorded progress milestones**.
 
-This revision replaces the preceding specifications and starting prompts. It requires local Git repository setup, an initial bootstrap commit, small commits throughout each authorized stage, and committed builds at every review checkpoint. No work may be pushed or published. The Firefox-only rule, React stack, Nix development shell, application architecture, and R1–R6 review stops remain unchanged. The choices and stop rules below are binding; they are not a menu of alternatives.
+This revision incorporates the user's 2026-09-25 instruction to continue autonomously until the work is complete. It preserves local Git setup, incremental commits, recorded R1–R6 progress, the Firefox-only rule, React stack, Nix development shell, and application architecture. R1–R5 approvals remain historical facts; R6 does not require a new check-in. No work may be pushed or published. The choices and safety boundaries below remain binding.
 
 **Firefox-only rule:** do not add, download, build, launch, or require a Chrome/Chromium browser, Chromium headless shell, or Chromium-based test tool for this project. This applies to development, tests, CI, screenshots, and debugging. Use the user’s ordinary Firefox for manual review and the isolated, Nix-supplied Playwright Firefox build for automation. Never access or modify the user’s Firefox profile, extensions, preferences, saved sessions, or default-browser setting. Browser trouble is a reported blocker, not permission to fall back to Chromium.
 
 This document combines the product specification, technical design, implementation sequence, and acceptance criteria. Build the application described here. Do not respond with another implementation plan instead of implementing it.
 
-## 0. Execution instructions and approval protocol
+## 0. Execution instructions and progress protocol
 
-### 0.1 Work only as far as the next review checkpoint
+### 0.1 Work autonomously through completion
 
 Implement this specification in the project folder where it is supplied. First read any existing `AGENTS.md`, inspect the folder and its Git status, and preserve unrelated user changes. Initialize a local Git repository when this folder is not already a repository; follow section 0.6 before staging or committing anything. Do not use another project as a scaffold. This specification defines the implementation architecture; existing code is reused only where it conforms to these decisions.
 
-Execute ordinary tasks independently **inside the currently authorized stage**. At its review checkpoint, stop development, present the working result, ask the user to inspect it, and **end the turn without starting the next stage**. Do not continue because tests passed, a deadline is approaching, the user has been silent, or a previous prompt said to work end-to-end.
+The user approved R5 and then explicitly instructed the agent to continue without further check-ins until the implementation is complete. Work through the remaining Stage F and R6 tasks autonomously, recording progress and making incremental local commits. R1–R5 remain genuine historical review records; R6 is a completion milestone, not an approval gate. Do not interpret this authorization as permission to push, publish, activate services, access personal Radicle identities, or run an unconfigured live source.
 
-The initial request authorizes only work through **R1**. Explicit approval of R1 authorizes work through R2, and so on. “R1 approved, continue” and an unambiguous “continue” in response to the current review request both count. A question, bug report, or requested change is not approval. Do not require an exact passphrase when the user’s intent is clear.
-
-If the user requests changes at a checkpoint, implement those changes within the current stage, rerun its checks, and present that checkpoint again. Do not bundle later-stage features into the correction. Only a new explicit user instruction can waive or rearrange the remaining checkpoints.
+Incorporate new user feedback as it arrives, rerun affected checks, and continue independent work. If an external prerequisite is missing, record the exact untested gap and proceed with work that does not depend on it. Do not fabricate a result or approval.
 
 ### 0.2 Persist review state across sessions
 
@@ -30,27 +28,27 @@ Create or carefully extend `AGENTS.md` with the project name, Nix-shell requirem
 Maintain these files from the first stage:
 
 - `docs/IMPLEMENTATION_STATUS.md`: current stage, implemented work, checks actually run, blockers, and next authorized task.
-- `docs/CHECKPOINTS.md`: R1–R6, each with status, presented revision, review artifact locations, user feedback, and approval record.
+- `docs/CHECKPOINTS.md`: R1–R6, each with status, tested revision, artifact locations, user feedback, and any genuine approval record.
 - `docs/DECISIONS.md`: the fixed decisions in this document and any user-approved deviations. Do not use this as a place to silently override the specification.
 
-Use a Markdown table in `docs/CHECKPOINTS.md` with columns `Checkpoint`, `Status`, `Presented revision`, `User approval`, and `Review artifact`. Checkpoint status is one of `pending`, `in_progress`, `awaiting_review`, `changes_requested`, `approved`, or `blocked`. `Presented revision` must contain the actual tested implementation commit SHA once a build is presented, not a placeholder. Commit checkpoint documents separately after recording that existing SHA, following section 0.6.4. Report any unrelated pre-existing changes separately. If committing is blocked, state that explicitly and do not describe the build as a completed committed checkpoint. Record approvals only after receiving them from the user; never invent an approval record.
+Use a Markdown table in `docs/CHECKPOINTS.md` with columns `Checkpoint`, `Status`, `Presented revision`, `User approval`, and `Review artifact`. Checkpoint status is one of `pending`, `in_progress`, `awaiting_review`, `changes_requested`, `approved`, `completed`, or `blocked`. `completed` means the autonomous work was finished and reported; it does not imply user acceptance. `Presented revision` contains the actual tested implementation commit SHA once a build is recorded. Commit milestone documents separately after recording that SHA, following section 0.6.4. Report unrelated pre-existing changes separately. If committing is blocked, state that explicitly. Record approvals only after receiving them from the user; never invent an approval record.
 
-At the start of every resumed session, read these files. When the current checkpoint is `awaiting_review`, do not start the next stage. Remind the user which build is ready for inspection. A context reset does not grant approval.
+At the start of every resumed session, read these files. Continue unfinished authorized work across context resets. Existing `awaiting_review` records describe historical presentations; the user's autonomous-completion instruction supersedes their pause behavior.
 
-### 0.3 Required checkpoint handoff
+### 0.3 Progress and final handoff
 
-Every checkpoint message must state:
+The final R6 handoff must state:
 
 1. The checkpoint ID and what now works, distinguishing synthetic, fixture-tested, and live-tested behavior.
 2. The exact `nix develop` startup command and local URL, or the terminal command for a data report.
 3. Three to five concrete things for the user to inspect, with actual screenshot/report paths where available.
 4. Checks run, failures or unverified prerequisites, and material deviations awaiting a decision.
 5. The tested implementation commit SHA, the checkpoint-documentation commit SHA, a short summary of commits made in this stage, and the final worktree status with any unrelated pre-existing changes distinguished. Confirm that no push was performed.
-6. A direct request to review and approve before the next named stage.
+6. Whether the implementation is complete, which external-prerequisite checks remain unverified, and what operator action would be needed to close them. Do not request another approval to continue implementation.
 
-Save the corresponding report in `docs/reviews/R<n>.md`, recording the tested implementation SHA. Report the resulting review-documentation commit SHA in the user-facing handoff only; do not try to make a committed file contain its own commit SHA. Store generated browser images in `.ratlas/reviews/R<n>/`; record whether they show real or synthetic data. Never create a screenshot placeholder and describe it as a captured UI.
+Save the corresponding report in `docs/reviews/R<n>.md`, recording the tested implementation SHA. Report the resulting documentation commit SHA in the user-facing handoff only; do not try to make a committed file contain its own commit SHA. Store generated browser images in `.ratlas/reviews/R<n>/`; record whether they show real or synthetic data. Never create a screenshot placeholder and describe it as a captured UI.
 
-Stop live collector processes at the checkpoint after completing the bounded smoke test. Provide restart commands. A localhost development server may remain running only if the execution environment keeps that process alive; report its actual status, PID, and URL. Do not claim that a server will remain running after a terminated tool session. Never leave a live collector running simply to fill time while awaiting feedback.
+Stop live collector processes after a bounded smoke test. Provide restart commands. A localhost development server may remain running only if the execution environment keeps that process alive; report its actual status, PID, and URL. Do not claim that a server will remain running after a terminated tool session.
 
 ### 0.4 Boundaries
 
@@ -62,7 +60,7 @@ Stop live collector processes at the checkpoint after completing the bounded smo
 - Do not run a day-long experiment during implementation. The bounded live smoke test is at most five minutes. Build the longer experiment command for the user to invoke later.
 - Check the current Radicle security notice before live integration and enforce section 2’s public-only restrictions.
 
-A missing external source does not justify fabricated results. Finish independent work within the current stage, report the blocker at its checkpoint, and wait. A broken implementation test must be fixed before presenting the checkpoint as passed. A prerequisite that cannot be met without user action makes the checkpoint blocked; the user must explicitly approve proceeding with that known gap.
+A missing external source does not justify fabricated results. Finish independent work, record the unavailable check as incomplete, and keep progressing. A broken implementation test must be fixed before claiming a pass. Do not call an external prerequisite gap a passed test or user acceptance.
 
 ### 0.5 Fixed choices versus facts that must be measured
 
@@ -74,7 +72,7 @@ Use **ratlas**, lowercase, in visible branding, root package metadata, applicati
 
 ### 0.6 Required local Git workflow
 
-Local Git setup and commits are part of the implementation, not optional cleanup at the end. They are authorized within the current stage and do not need separate approval for each commit. They never authorize the next stage, a remote operation, or publication. This is the ordinary Git history of the **ratlas application folder**; it is not permission to run `rad init` or create a Radicle identity.
+Local Git setup and commits are part of the implementation, not optional cleanup at the end. They are authorized throughout the remaining work and do not need separate approval for each commit. They never authorize a remote operation or publication. This is the ordinary Git history of the **ratlas application folder**; it is not permission to run `rad init` or create a Radicle identity.
 
 #### 0.6.1 Inspect and initialize safely
 
@@ -159,21 +157,16 @@ Do not amend, squash, rebase, reset, delete branches, or otherwise rewrite histo
 
 Git operations belong to the coding agent’s explicit workflow. Do not add commit/push side effects to the flake’s shell entry, package scripts, test runners, timers, or application processes. No helper may silently commit work or publish it while a user is reviewing a checkpoint.
 
-#### 0.6.4 Commit review builds and preserve their identities
+#### 0.6.4 Commit milestone builds and preserve their identities
 
-Before asking for approval at **every** R1–R6 checkpoint:
+At R6 completion:
 
-1. Finish and test the current stage’s implementation, then commit all completed agent-owned implementation changes. Obtain the actual full SHA of that tested implementation revision.
-2. Write `docs/reviews/R<n>.md`, update `docs/IMPLEMENTATION_STATUS.md`, and set the checkpoint to `awaiting_review` in `docs/CHECKPOINTS.md`. Record the existing tested implementation SHA, actual checks, screenshot/report paths, and known gaps. Do not include secrets or raw local diagnostics.
-3. Commit those review documents with `docs(review): present R<n> for approval`. This documentation-only commit points back to the tested implementation commit; do not attempt to embed a commit’s own future SHA in itself.
-4. In the user-facing handoff, report both SHAs, summarize the stage’s local commits, identify any unrelated pre-existing worktree changes, and state that nothing was pushed. The agent-owned tracked worktree must be clean after the documentation commit. Ignored runtime data and screenshots may remain available for review.
-5. Stop and wait. A commit is a saved revision, not user acceptance. Do not continue feature implementation while `awaiting_review`.
+1. Finish and test the implementation, then commit all completed agent-owned changes. Obtain the actual full SHA of the tested implementation revision.
+2. Write `docs/reviews/R6.md`, update `docs/IMPLEMENTATION_STATUS.md`, and set R6 to `completed` in `docs/CHECKPOINTS.md` only when the autonomous work is finished. Record the tested SHA, actual checks, screenshot/report paths, and known gaps. Do not include secrets or raw local diagnostics. If work remains, leave R6 `in_progress` or `blocked` with a precise reason.
+3. Commit the final milestone documents separately with `docs(review): record R6 completion`. The documentation commit points back to the tested implementation commit; do not attempt to embed its own future SHA.
+4. In the final handoff, report both SHAs, summarize local commits, distinguish unrelated pre-existing worktree changes, and state that nothing was pushed. The agent-owned tracked worktree must be clean. Ignored runtime data and screenshots may remain available.
 
-If the user requests corrections, keep the same checkpoint, make new scoped fix commits, rerun affected checks, and make a new review-documentation commit pointing to the revised implementation SHA. Preserve the earlier presentation and feedback in the review document rather than erasing their history.
-
-After the user approves a checkpoint, record that real approval in a small local documentation commit before starting the newly authorized stage. After R6 approval, make only the local approval/status documentation commit, report its SHA, and stop. Approval never authorizes pushing, publishing, or extra implementation scope.
-
-A failed commit, missing identity, unresolved signing/hook issue, or ambiguous staged change makes the Git part of the checkpoint blocked. Report the exact issue and wait for resolution or an explicit user-approved exception; never claim an uncommitted build satisfies this requirement.
+Preserve prior R1–R5 presentations and feedback as historical records. Record future user feedback accurately and make forward fix commits. A milestone completion is not user acceptance, live verification, or publication authorization. A failed commit, missing identity, unresolved signing/hook issue, or ambiguous staged change makes the Git part incomplete; report the exact issue without claiming an uncommitted build is complete.
 
 ## 1. Product definition
 
@@ -948,7 +941,7 @@ nix develop --command pnpm exec playwright test --project=firefox-desktop --head
 
 Record whether each run was headless or headed and the renderer information actually available. Firefox may use hardware or software rendering; classify the result only when the evidence supports that classification, otherwise record the renderer as unknown. Do not mix software and hardware timing samples or present headless automation timing as the user’s normal Firefox performance.
 
-If neither the available headless nor headed Firefox session renders the real graph, preserve the accessible list/detail fallback, mark the graph-rendering check blocked, and stop at the applicable review gate. The user can inspect the application in normal Firefox and decide how to address that specific prerequisite. Never call a fallback screenshot a successful graph render.
+If neither the available headless nor headed Firefox session renders the real graph, preserve the accessible list/detail fallback and record the graph-rendering check as unverified while continuing independent work. The user can inspect the application in normal Firefox. Never call a fallback screenshot a successful graph render.
 
 ### 9.5 Runtime configuration and paths
 
@@ -1115,7 +1108,7 @@ Add tests/checks for exact pnpm and Playwright/Nix version agreement, native SQL
 
 Test that shell entry has no migrations or network collection side effects; `pnpm dev` never starts a collector; a second collector refuses an active database lease; and a demo command rejects a live database. A process-ownership lease uses an atomic directory lock adjacent to the database, containing PID, process-start identity, and nonce, refreshed every ten seconds. Remove it automatically only when the recorded process is conclusively dead on this host. If ownership cannot be established, refuse and request operator action; do not delete a lock based only on age. Test crash recovery and PID reuse.
 
-`docs/CHECKPOINTS.md` must exist and name R1–R6 with one current stage. Add a small specification check that rejects a release handoff claiming all checkpoints approved while any is pending, blocked, or awaiting review. Check that a presented checkpoint references an existing implementation commit and that required project files and lockfiles are tracked while representative local/config/database/browser-output paths are ignored. These checks must be read-only with respect to Git: tests never initialize the actual repository, stage files, commit, or push. This supports the agent’s review protocol; it is not permission to manufacture commits or user approval to satisfy a test.
+`docs/CHECKPOINTS.md` must exist and name R1–R6 with one current stage. Add a small specification check that rejects a release handoff claiming user acceptance without genuine approval, and rejects R6 `completed` without an existing tested implementation commit. Check that presented milestones reference existing implementation commits and that required project files and lockfiles are tracked while representative local/config/database/browser-output paths are ignored. These checks must be read-only with respect to Git: tests never initialize the actual repository, stage files, commit, or push. This supports progress tracking; it is not permission to manufacture commits or user approval to satisfy a test.
 
 ### 11.2 End-to-end UI tests
 
@@ -1149,11 +1142,13 @@ Engineering targets on the measured local reference machine:
 
 Treat these as targets to test and optimize, not results to assert. Do not create brittle CI failures around heterogeneous GPU timing. Use deterministic correctness/size limits in ordinary CI and record performance regressions separately. The larger view must remain cancellable and must never lock the application behind an endless layout.
 
-## 12. Implementation stages and mandatory review checkpoints
+## 12. Implementation stages and recorded milestones
 
-Implement the phases in order. Only the initial stage, through R1, is authorized at the start. Initialize or reuse the local repository in Stage A and make small local commits throughout every stage under section 0.6. Each review stop requires a tested implementation commit and a separate review-documentation commit before the handoff. Automated acceptance checks, local commits, and human approval are separate requirements; none authorizes a push.
+Implement the phases in order. R1–R5 were completed under earlier user-approved review gates. The user's 2026-09-25 autonomous-completion instruction authorizes continuing Stage F through R6 without another check-in. Keep small local commits under section 0.6 and record a tested implementation commit and separate final documentation commit. Automated acceptance, local commits, and historical human approvals remain distinct; none authorizes a push.
 
 Completion tracking: `[x]` means the line item is implemented and checked; `[ ]` means work or validation remains. Human approvals are recorded separately in `docs/CHECKPOINTS.md`.
+
+The R1–R5 stop wording below records the stages as they were originally executed. Those approvals are complete; the autonomous-completion instruction supersedes any remaining pause language.
 
 ### Stage A: Nix environment, domain foundation, and first visible screen
 
@@ -1250,7 +1245,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 ### Stage F: Validation, operations, documentation, and release candidate
 
-**Phase 7. Begin only after R5 approval. Stop at R6.**
+**Phase 7. R5 approved; continue autonomously through R6.**
 
 - [x] Add an online SQLite backup command with schema, integrity, and representative-count verification; test backup and restore while the source remains in WAL mode.
 
@@ -1262,13 +1257,13 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 - [ ] **Automated acceptance:** all applicable release checks in section 13 pass; clean frozen install, native SQLite, browser render, production startup, backup restore, and process cleanup have actual results; measurements identify their hardware/runtime/rendering context.
 
-**R6: Stop and ask the user to review the release candidate.**
+**R6: Record the completed release candidate and hand it off.**
 
-- [ ] Provide exact demo and live startup commands, a short whole-product walkthrough, report/screenshot locations, both review commit SHAs, the local commit summary, final worktree status, and any remaining gaps. Mark the release candidate `awaiting_review`, not “user accepted.” R6 approval permits recording the first version as accepted in a local documentation commit only. It does not authorize a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
+- [ ] Provide exact demo and live startup commands, a short whole-product walkthrough, report/screenshot locations, both final commit SHAs, the local commit summary, final worktree status, and any remaining gaps. Mark R6 `completed` when the implementation is done, without claiming user acceptance or live verification. This authorization does not permit a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
 
 ### Checkpoint map
 
-| Review | Work completed before stopping | User reviews | Work explicitly not yet authorized |
+| Milestone | Work recorded | Historical review focus | Next work |
 |---|---|---|---|
 | R1 | Phases 0–1: Nix shell, database foundation, minimal React screen | Setup, branding, shell, initial layout | Real collector and full API |
 | R2 | Phases 2–3: collection, metadata, complete read-only API | Data correctness, provenance, gaps | Full browsing interface |
@@ -1277,7 +1272,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 | R5 | Phase 6: complete features and recovery | History, coverage, outage behavior | Final validation/handoff |
 | R6 | Phase 7: tested release candidate | End-to-end acceptance | Publishing, deployment, extra scope |
 
-No checkpoint is a background task or automatic approval. After presenting it, stop and wait for the user.
+R1–R5 approval records remain historical. R6 completion is an internal progress record and does not require or imply user approval.
 
 ## 13. Release checklist and final handoff
 
@@ -1294,7 +1289,7 @@ Present the first release candidate at R6 only when the following are satisfied 
 - [ ] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests.
 - [ ] Performance reports contain real measurements and distinguish software from hardware WebGL. No untested throughput, capacity, or security property is claimed.
 - [ ] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
-- [ ] R1–R5 have genuine approval records. R6 is explicitly marked awaiting user review until the user approves it. Pending feedback is not silently cleared.
+- [ ] R1–R5 have genuine approval records. R6 is marked `completed` only when autonomous implementation and reporting are finished; it is never mislabeled as user approved. Pending feedback is not silently cleared.
 - [ ] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
 - [ ] The intended folder has a local Git repository with the bootstrap and incremental implementation history. Every presented checkpoint has a tested implementation SHA and committed review documents; completed agent-owned work is committed, unrelated user changes are preserved, and required ignore rules keep local data and generated artifacts out of history.
 
@@ -1302,7 +1297,7 @@ The R6 handoff states what was built, how to start the demo and live configurati
 
 An accurate handoff can say “implemented and fixture-tested; live CLI integration remains blocked because no approved observer is configured.” It must not say “fully tested” when a browser render, live connection, or service activation was not performed.
 
-The user should be able to run the demo immediately from the documented shell, then configure an approved public HTTP source or a dedicated public-only observer and inspect a real repository-node graph. After R6 approval, commit only the approval/status documentation and stop, as required by section 0.6.4. Publishing and ongoing operations remain separate user decisions.
+The user should be able to run the demo immediately from the documented shell, then configure an approved public HTTP source or a dedicated public-only observer and inspect a real repository-node graph. Finish with the separate R6 completion documentation commit required by section 0.6.4. Publishing and ongoing operations remain separate user decisions.
 
 ## 14. Primary references
 
@@ -1391,40 +1386,10 @@ References were checked during preparation. `master` links are intentionally ide
 `https://playwright.dev/docs/api/class-testoptions`
 `https://playwright.dev/docs/api/class-browsertype`
 
-## 15. Codex starting instruction
+## 15. Starting instruction history
 
-Use this instruction when starting the first coding session. It intentionally supersedes any earlier prompt that requested uninterrupted implementation through every phase.
-
-```text
-Read RATLAS_IMPLEMENTATION_SPEC.md in full and inspect this folder’s
-AGENTS.md, Git state, and existing work. Implement ratlas using the fixed
-stack in that specification, on NixOS through the nix develop shell.
-
-Initialize the folder as a local Git repository on main if it is a new
-standalone project; otherwise preserve the existing ratlas repository,
-branch, history, and user changes. Follow section 0.6 for the repository
-boundary, Git identity, bootstrap, ignore rules, and staged-file safety.
-Create the initial bootstrap commit and make small local commits as
-coherent pieces are completed and checked. Do not wait until the end
-to commit everything. Do not create or change remotes, push, or publish.
-
-Start Stage A and work through R1 only. Create the real Nix/dependency
-locks, checkpoint records, domain foundation, and minimal database-backed
-React screen. Verify the Nix-native SQLite and Firefox-only test setup.
-Use only Firefox for automated browser checks and screenshots. Do not
-install or use Chromium/Chrome, including headless shells or debugging
-tools that require them. Do not access or change my Firefox profile.
-
-Do not reopen settled framework choices. Do not modify my system flake,
-Home Manager, personal Radicle identity, SSH setup, or unrelated files.
-Do not clone/seed repositories, start a Radicle node, push, or deploy.
-
-Before R1, commit the tested implementation, then commit the review
-documents pointing to that implementation SHA. Show the working result,
-provide exact nix develop run commands and actual screenshots/reports,
-report both commit SHAs and worktree status, ask me to inspect it, and
-stop. Wait for my explicit approval before Stage B. Apply the same
-local-commit and approval rules at R2 through R6, preserving checkpoint
-state across sessions. Commit review corrections as new commits rather
-than rewriting history. No checkpoint approval authorizes a push.
-```
+The original Stage A starting instruction and R1–R6 pause protocol were used
+for R1–R5. They are superseded for remaining work by the user's 2026-09-25
+autonomous-completion instruction recorded in sections 0 and 12. The fixed
+stack, safety boundaries, local Git history, and genuine approval records
+remain in force.

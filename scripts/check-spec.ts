@@ -47,6 +47,7 @@ const statuses = [
   'awaiting_review',
   'changes_requested',
   'approved',
+  'completed',
   'blocked',
 ];
 assert.ok(rows.every((row) => statuses.includes(row[1]!)));
@@ -56,7 +57,7 @@ assert.ok(
   ).length <= 1,
 );
 for (const row of rows)
-  if (['awaiting_review', 'approved', 'changes_requested'].includes(row[1]!)) {
+  if (['awaiting_review', 'approved', 'changes_requested', 'completed'].includes(row[1]!)) {
     const sha = row[2]!.replaceAll('`', '');
     assert.match(sha, /^[0-9a-f]{40}$/u);
     git('cat-file', '-e', `${sha}^{commit}`);

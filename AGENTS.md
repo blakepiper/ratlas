@@ -7,8 +7,9 @@ Read `RATLAS_IMPLEMENTATION_SPEC.md` and the current `docs/IMPLEMENTATION_STATUS
 - Follow the fixed stack and defaults in the specification. Do not substitute dependencies.
 - Firefox only for browser automation. Never install or launch Chromium/Chrome,
   browser installers, or tools that require them. Never access the user's Firefox profile.
-- Follow sections 0.1–0.3 and 12: initially only Stage A through R1 is authorized.
-  Stop at each review checkpoint and await explicit user approval for the next stage.
+- Follow sections 0.1–0.3 and 12. On 2026-09-25 the user explicitly authorized
+  autonomous work through completion, so R1–R6 are progress milestones rather
+  than approval gates. Preserve genuine historical approvals; do not invent new ones.
 - Follow section 0.6: incremental local commits, explicit staging, reviewed diffs,
   existing author/signing policy, and separate implementation/review-document commits.
 - Never create or modify remotes, push, publish, or rewrite history.

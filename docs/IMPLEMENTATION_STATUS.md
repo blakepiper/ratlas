@@ -1,6 +1,8 @@
 # ratlas implementation status
 
-Current stage: Stage F authorized by explicit R5 approval on 2026-09-25.
+Current stage: Stage F in progress after explicit R5 approval. The user then
+authorized autonomous work through completion; R6 no longer requires a review
+pause or approval. Live-source and WebGL verification remain separate gaps.
 The tested R5 implementation is `e39924bd7f1510600802a16f29995daaed0407f8`;
 see [R5](reviews/R5.md) for commands, screenshots, and review points.
 

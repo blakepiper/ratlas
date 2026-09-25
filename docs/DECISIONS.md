@@ -47,3 +47,9 @@ selection, view/hub filters, and the accessible entity list remain. More than
 10000 returned edges continue to display only selected/hovered neighborhoods,
 with a separate disclosure. Specification section 8 and the Stage D/R5
 completion wording reflect this direction.
+
+User-directed execution revision (2026-09-25): after explicit R5 approval, the
+user authorized autonomous work through completion without further check-ins.
+R6 is a progress/completion milestone, not an approval gate. Existing R1–R5
+approval records remain factual, and neither this authorization nor completion
+permits pushing, publishing, service activation, or unconfigured live access.
