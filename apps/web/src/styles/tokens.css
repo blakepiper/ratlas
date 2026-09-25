@@ -13,17 +13,6 @@
   background: var(--background);
   color: var(--text);
 }
-:root[data-theme='light'] {
-  color-scheme: light;
-  --background: #f5f6f8;
-  --surface: #ffffff;
-  --text: #18212b;
-  --muted: #536271;
-  --repo: #865613;
-  --node: #176687;
-  --border: #d7dfe6;
-  --raised: #e9eef3;
-}
 * {
   box-sizing: border-box;
 }

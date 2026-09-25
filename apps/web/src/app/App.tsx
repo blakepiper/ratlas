@@ -32,14 +32,6 @@ async function getJson(path: string, signal?: AbortSignal): Promise<unknown> {
   return response.json();
 }
 
-function initialTheme() {
-  try {
-    return localStorage.getItem('ratlas.theme') === 'light' ? 'light' : 'dark';
-  } catch {
-    return 'dark';
-  }
-}
-
 function sourceState(info: Summary | undefined) {
   if (!info) return 'Checking sources…';
   if (info.coverage.collectionStatus === 'unconfigured') return 'No source configured';
@@ -402,7 +394,6 @@ function Pagination({
 export function App() {
   const [params, setParams] = useSearchParams();
   const state = readExploreState(params);
-  const [theme, setTheme] = useState(initialTheme);
   const [searchInput, setSearchInput] = useState(state.q);
   const [mobileTab, setMobileTab] = useState<'list' | 'map' | 'details'>('list');
   const [listCollapsed, setListCollapsed] = useState(false);
@@ -411,14 +402,6 @@ export function App() {
   const [randomError, setRandomError] = useState<string | null>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
 
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem('ratlas.theme', theme);
-    } catch {
-      /* Session theme still works. */
-    }
-  }, [theme]);
   useEffect(() => {
     setSearchInput(state.q);
   }, [state.q]);
@@ -576,7 +559,7 @@ export function App() {
           <section className={styles.headerStats} aria-label="Dataset summary">
             {(
               [
-                ['repositories', info?.repositories],
+                ['repos', info?.repositories],
                 ['nodes', info?.nodeIdentities],
                 ['relationships', info?.hostingRelationships],
                 ['sources', info?.evidenceSources],
@@ -589,40 +572,26 @@ export function App() {
           </section>
         </div>
         <label className={styles.searchLabel}>
-          Search public repositories
+          <span className={styles.searchHeading}>
+            <span>Search public repositories</span>
+            <strong className={styles.datasetMode}>
+              {info?.mode === 'demo'
+                ? 'Synthetic demo data'
+                : info?.mode === 'live'
+                  ? 'Live dataset'
+                  : 'Checking dataset mode…'}
+            </strong>
+          </span>
           <input
             type="search"
+            aria-label="Search public repositories"
             value={searchInput}
             maxLength={200}
             placeholder="Name, description, or exact RID"
             onChange={(event) => setSearchInput(event.target.value)}
           />
         </label>
-        <div className={styles.headerActions}>
-          <span className={styles.sourceStatus}>{sourceState(info)}</span>
-          <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-            {theme === 'dark' ? 'Light theme' : 'Dark theme'}
-          </button>
-        </div>
       </header>
-      <div className={styles.modeBar}>
-        <strong>
-          {info?.mode === 'demo'
-            ? 'Synthetic demo data'
-            : info?.mode === 'live'
-              ? 'Live dataset'
-              : 'Checking dataset mode…'}
-        </strong>
-        <span>
-          {info?.mode === 'demo'
-            ? 'Deterministic fixtures · no live collection'
-            : 'Read-only public observations'}
-        </span>
-        <span>
-          {sourceOptions.length} evidence sources · {sourceState(info)} ·{' '}
-          {state.window === 'all' ? 'all retained observations' : `last ${state.window}`}
-        </span>
-      </div>
       <nav className={styles.viewBar} aria-label="Primary views">
         <strong>Explore</strong>
         <span>Map · Stage D</span>
@@ -990,13 +959,6 @@ export function App() {
           </aside>
         </div>
       </main>
-      <footer className={styles.footer}>
-        <span>ratlas · read-only observation browser</span>
-        <span>
-          {info?.mode === 'demo' ? 'Synthetic identities and observations' : 'Public evidence only'}{' '}
-          · no replication commands
-        </span>
-      </footer>
     </div>
   );
 }

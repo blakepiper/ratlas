@@ -7,7 +7,7 @@ async function showTab(page: import('@playwright/test').Page, tab: 'List' | 'Det
   if (await tabs.isVisible()) await tabs.getByRole('button', { name: tab }).click();
 }
 
-test('catalog, details, relationships, URL restoration, and theme in the real demo', async ({
+test('catalog, details, relationships, and URL restoration in the real demo', async ({
   page,
 }, info) => {
   const errors: string[] = [];
@@ -16,6 +16,14 @@ test('catalog, details, relationships, URL restoration, and theme in the real de
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'ratlas', exact: true })).toBeVisible();
   await expect(page.getByText('Synthetic demo data', { exact: true })).toBeVisible();
+  const metrics = page.getByRole('region', { name: 'Dataset summary' }).locator('span');
+  await expect(metrics).toHaveCount(4);
+  const firstMetric = await metrics.first().boundingBox();
+  const lastMetric = await metrics.last().boundingBox();
+  expect(firstMetric?.y).toBe(lastMetric?.y);
+  await expect(page.getByRole('button', { name: /theme/iu })).toHaveCount(0);
+  await expect(page.getByRole('contentinfo')).toHaveCount(0);
+  await expect(page.getByText('Source observations cached', { exact: true })).toHaveCount(0);
   const response = await page.request.get('/api/v1/summary');
   expect(await response.json()).toMatchObject({
     mode: 'demo',
@@ -96,16 +104,6 @@ test('catalog, details, relationships, URL restoration, and theme in the real de
   }
   await page.screenshot({
     path: `.ratlas/reviews/R3/${info.project.name}-dark.png`,
-    fullPage: !narrow,
-  });
-  await page.getByRole('button', { name: 'Light theme' }).click();
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await showTab(page, 'Details');
-  await expect(page.getByRole('button', { name: 'Dark theme' })).toBeVisible();
-  await expect(details.getByText('Observed repositories')).toBeVisible();
-  expect(await page.locator('html').getAttribute('data-theme')).toBe('light');
-  await page.screenshot({
-    path: `.ratlas/reviews/R3/${info.project.name}-light.png`,
     fullPage: !narrow,
   });
   expect(errors).toEqual([]);
