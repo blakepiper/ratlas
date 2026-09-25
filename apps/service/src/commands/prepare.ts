@@ -18,10 +18,13 @@ export function prepareDatabase(config: Config, root = projectRoot) {
   while (!existsSync(existing)) existing = dirname(existing);
   const canonical = resolve(realpathSync(existing), relative(existing, path));
   if (canonical.startsWith('/nix/store/')) throw new Error('Database resolves into /nix/store');
+  const smallDemoPath = resolve(root, '.ratlas/demo/ratlas.sqlite');
+  const targetDemoPath = resolve(root, '.ratlas/demo/target.sqlite');
   if (config.mode === 'demo') {
-    const expected = resolve(root, '.ratlas/demo/ratlas.sqlite');
-    if (path !== expected || canonical !== expected)
+    if ((path !== smallDemoPath && path !== targetDemoPath) || canonical !== path)
       throw new Error('Demo requires its dedicated canonical database path');
+    if (path === targetDemoPath && !existsSync(path))
+      throw new Error('Generate the target demo first with pnpm data:target');
   }
   if (existsSync(path)) {
     const reader = openReader(path, { allowMigration: true });
@@ -29,7 +32,7 @@ export function prepareDatabase(config: Config, root = projectRoot) {
       const meta = dataset(reader);
       if (meta.kind !== config.mode)
         throw new Error('Existing database kind does not match configuration');
-      if (meta.kind === 'demo' && meta.generator_version !== 1)
+      if (meta.kind === 'demo' && meta.generator_version !== (path === targetDemoPath ? 2 : 1))
         throw new Error('Demo generator version mismatch; explicit reset required');
       if (schemaCurrent(reader)) return;
     } finally {

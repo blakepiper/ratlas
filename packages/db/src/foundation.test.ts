@@ -6,7 +6,7 @@ import { once } from 'node:events';
 import { resolve } from 'node:path';
 import { sourceSchema } from '@ratlas/core';
 import { openWriter, openReader, migrate, schemaCurrent, type Db } from './connection.js';
-import { observe, registerSource, storeMetadata } from './observations.js';
+import { observe, publishDeferredDemo, registerSource, storeMetadata } from './observations.js';
 import {
   beginSnapshot,
   stageSnapshot,
@@ -92,6 +92,42 @@ describe('source-specific evidence', () => {
   });
 });
 describe('publication and metadata', () => {
+  it('publishes deferred synthetic observations and metadata with searchable provenance', () => {
+    observe(db, event('present', 'a'), null, 300000, true);
+    observe(db, event('present', 'b'), null, 300000, true);
+    storeMetadata(
+      db,
+      {
+        sourceId: 'a',
+        rid,
+        name: 'deferred project',
+        description: 'searchable',
+        visibility: 'public',
+        retrievedAt: at,
+      },
+      true,
+    );
+    expect(
+      (
+        db.prepare('SELECT publication_state FROM repositories WHERE rid=?').get(rid) as {
+          publication_state: string;
+        }
+      ).publication_state,
+    ).toBe('quarantine');
+    publishDeferredDemo(db);
+    expect(summary(db)).toMatchObject({
+      repositories: 1,
+      nodeIdentities: 1,
+      hostingRelationships: 1,
+      evidenceSources: 2,
+    });
+    expect(
+      db.prepare('SELECT publication_provenance FROM repositories WHERE rid=?').get(rid),
+    ).toEqual({ publication_provenance: '[{"source_id":"a"},{"source_id":"b"}]' });
+    expect(
+      db.prepare("SELECT rid FROM repositories_fts WHERE repositories_fts MATCH 'deferred'").all(),
+    ).toEqual([{ rid }]);
+  });
   it('excludes quarantined IDs, metadata and relationships even when joined to a public RID', () => {
     const publicBefore = summary(db);
     observe(db, event('present', 'private'));

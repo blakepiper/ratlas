@@ -1,0 +1,14 @@
+{
+  "mode": "demo",
+  "storage": {
+    "databasePath": ".ratlas/demo/target.sqlite"
+  },
+  "radicle": {
+    "enabled": false,
+    "executablePath": null,
+    "homePath": null,
+    "socketPath": null
+  },
+  "localObserverPublication": "quarantine",
+  "httpSources": []
+}

@@ -2,6 +2,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import { checkToolchain } from './check-toolchain.mjs';
 
 checkToolchain();
@@ -9,11 +10,17 @@ process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const demo = process.argv[2] === 'demo';
 const { values } = parseArgs({
   args: process.argv.slice(3),
-  options: demo ? {} : { config: { type: 'string' } },
+  options: demo ? { dataset: { type: 'string' } } : { config: { type: 'string' } },
   strict: true,
   allowPositionals: false,
 });
-const configPath = demo ? 'config/ratlas.demo.json' : values.config;
+if (demo && values.dataset && !['small', 'target'].includes(values.dataset))
+  throw new Error('Demo dataset must be small or target');
+const configPath = demo
+  ? values.dataset === 'target'
+    ? 'config/ratlas.target.json'
+    : 'config/ratlas.demo.json'
+  : values.config;
 const configArgs = configPath ? ['--config', configPath] : [];
 execFileSync('pnpm', ['exec', 'tsc', '-b'], { stdio: 'inherit' });
 const { loadConfig } = await import('../apps/service/dist/commands/config.js');
@@ -31,6 +38,8 @@ for (const port of [3000, 5173]) {
     server.listen(port, '127.0.0.1', () => server.close(resolve));
   });
 }
+if (demo && values.dataset === 'target' && !existsSync('.ratlas/demo/target.sqlite'))
+  execFileSync('pnpm', ['data:target'], { stdio: 'inherit' });
 execFileSync('pnpm', ['exec', 'tsx', 'scripts/prepare.ts', ...configArgs], { stdio: 'inherit' });
 const children = [];
 let stopping = false;

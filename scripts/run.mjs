@@ -7,6 +7,8 @@ process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const [command, ...args] = process.argv.slice(2);
 const pnpm = (...values) => execFileSync('pnpm', values, { stdio: 'inherit' });
 const tsx = (file, ...values) => pnpm('exec', 'tsx', file, ...values);
+const tsxWithGc = (file) =>
+  execFileSync('node', ['--expose-gc', '--import', 'tsx', file], { stdio: 'inherit' });
 const buildBackend = () => pnpm('exec', 'tsc', '-b');
 const buildWeb = () => pnpm('--filter', '@ratlas/web', 'exec', 'vite', 'build');
 const commands = {
@@ -48,6 +50,10 @@ const commands = {
   'data:review': () => {
     buildBackend();
     tsx('scripts/data-review.ts', ...args);
+  },
+  'data:target': () => {
+    buildBackend();
+    tsxWithGc('scripts/target-demo.ts');
   },
   collect: () => {
     buildBackend();
