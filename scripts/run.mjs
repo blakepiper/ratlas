@@ -59,6 +59,10 @@ const commands = {
     buildBackend();
     tsxWithGc('scripts/target-demo.ts');
   },
+  benchmark: () => {
+    buildBackend();
+    tsx('scripts/benchmark.ts', ...args);
+  },
   'demo:scenario': () => {
     buildBackend();
     tsx('scripts/demo-scenario.ts', ...args);
@@ -96,6 +100,7 @@ if (
     'collect:once',
     'test:live',
     'data:review',
+    'benchmark',
     'demo:scenario',
     'demo:reset',
   ].includes(command)

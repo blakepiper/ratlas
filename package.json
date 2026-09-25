@@ -28,6 +28,7 @@
     "start:collector": "NODE_ENV=production node apps/service/dist/main-collector.js",
     "data:review": "node scripts/run.mjs data:review",
     "data:target": "node scripts/run.mjs data:target",
+    "benchmark": "node scripts/run.mjs benchmark",
     "demo:scenario": "node scripts/run.mjs demo:scenario",
     "demo:reset": "node scripts/run.mjs demo:reset"
   },
