@@ -84,3 +84,72 @@ it('starts its subscriber and completes the initial one-shot snapshot without ov
   const pid = Number(readFileSync(dir + '/subscriber.pid', 'utf8'));
   expect(() => process.kill(pid, 0)).toThrow();
 });
+it('records EOF, reconnects a quiet subscriber and reconciles the gap without orphan children', async () => {
+  const dir = resolve(mkdtempSync('.ratlas/tests/reconnect-'));
+  const rid = syntheticRid(new Uint8Array(20).fill(10)),
+    nid = syntheticNid(new Uint8Array(32).fill(10));
+  const executable = resolve(dir, 'fixture.mjs');
+  writeFileSync(
+    executable,
+    '#!' +
+      process.execPath +
+      '\n' +
+      `
+ import {appendFileSync,existsSync,writeFileSync} from 'node:fs';
+ const args=process.argv.slice(2).join(' '),base=process.env.RAD_HOME;
+ if(args==='--version')console.log('rad fixture');
+ else if(args==='self --help')console.log('--home');
+ else if(args==='node --help')console.log('events routing status');
+ else if(args==='node status --help')console.log('--only nid');
+ else if(args==='node routing --help')console.log('--json');
+ else if(args==='node events --help')console.log('events');
+ else if(args==='self --home')console.log(base);
+ else if(args==='node status --only nid')console.log(${JSON.stringify(nid)});
+ else if(args==='node routing --json'){console.log(${JSON.stringify(JSON.stringify({ rid, nid }))});setTimeout(()=>{},150);}
+ else if(args==='node events'){
+  appendFileSync(base+'/pids',String(process.pid)+'\\n');
+  if(!existsSync(base+'/first')){writeFileSync(base+'/first','yes');console.log('{"type":"futureEvent"}');setTimeout(()=>{},30);}
+  else setInterval(()=>{},1000);
+ }else process.exitCode=9;
+ `,
+    { mode: 0o700 },
+  );
+  const config = configSchema.parse({
+    mode: 'live',
+    storage: { databasePath: dir + '/ratlas.sqlite' },
+    radicle: { enabled: true, executablePath: executable, homePath: dir },
+    localObserverPublication: 'public-only-observer',
+    collection: { reconnectDebounceMs: 1000 },
+  });
+  const writer = openWriter(config.storage.databasePath);
+  migrate(writer.db, 'live', Date.now());
+  const controller = new AbortController(),
+    collector = new Collector(writer.db, config, controller.signal, { random: () => 0 });
+  const timer = setTimeout(() => controller.abort(), 3200);
+  try {
+    await collector.run(false);
+    await collector.close();
+    expect(summary(writer.db).hostingRelationships).toBe(1);
+    expect(writer.db.prepare('SELECT reason,ended_at FROM coverage_gaps').get()).toMatchObject({
+      reason: 'event-stream-eof',
+      ended_at: expect.any(Number),
+    });
+    expect(writer.db.prepare('SELECT unknown_event_count FROM source_health').get()).toEqual({
+      unknown_event_count: 1,
+    });
+    expect(
+      (writer.db.prepare('SELECT COUNT(*) n FROM collector_runs').get() as { n: number }).n,
+    ).toBeGreaterThanOrEqual(2);
+  } finally {
+    clearTimeout(timer);
+    controller.abort();
+    await collector.close();
+    writer.close();
+  }
+  const pids = readFileSync(dir + '/pids', 'utf8')
+    .trim()
+    .split('\n')
+    .map(Number);
+  expect(pids).toHaveLength(2);
+  for (const pid of pids) expect(() => process.kill(pid, 0)).toThrow();
+}, 10000);

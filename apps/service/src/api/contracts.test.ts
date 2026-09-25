@@ -19,6 +19,7 @@ import {
   observe,
   storeMetadata,
   recordGap,
+  sourceSuccess,
   sampleSummary,
 } from '@ratlas/db';
 import { createApi } from './server.js';
@@ -61,6 +62,8 @@ beforeAll(async () => {
     });
     recordGap(writer.db, 'secret', DEMO_REFERENCE, 'SECRET PATH');
     recordGap(writer.db, 'demo-a', DEMO_REFERENCE, 'snapshot-failure');
+    // A successful probe does not itself reconcile an open collection gap.
+    sourceSuccess(writer.db, 'demo-a', DEMO_REFERENCE);
   } finally {
     writer.close();
   }
@@ -185,6 +188,7 @@ it('excludes quarantine from every public endpoint, even exact and random select
 });
 it('keeps all public GETs cache-aware and distinguishes route disagreement from global removal', async () => {
   expect((await app.inject('/api/v1/repos/' + rids[1])).json().sourcesDisagree).toBe(true);
+  expect((await app.inject('/api/v1/summary')).json().coverage.collectionStatus).toBe('degraded');
   for (const path of [
     'repos?limit=5',
     'nodes',

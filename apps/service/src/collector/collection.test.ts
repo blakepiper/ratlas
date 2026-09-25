@@ -208,3 +208,38 @@ it('never schedules or requests quarantine-only RID enrichment', async () => {
     await collector.close();
   }
 });
+it('releases an aborted HTTP job for immediate restart without negative caching shutdown', async () => {
+  const controller = new AbortController();
+  let started!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  const collector = new Collector(writer.db, config, controller.signal, {
+    now: () => at,
+    transport: () => ({
+      get: async (_path, signal) => {
+        started();
+        return new Promise((_resolve, reject) =>
+          signal.addEventListener('abort', () => reject(new AdapterError('aborted')), {
+            once: true,
+          }),
+        );
+      },
+    }),
+  });
+  const running = collector.run(false);
+  await ready;
+  controller.abort();
+  await running;
+  await collector.close();
+  const jobs = pendingJobs(writer.db, at);
+  expect(jobs).toHaveLength(1);
+  expect(health(writer.db, 'fixture')).toMatchObject({
+    consecutive_failures: 0,
+    retry_at: null,
+    breaker_state: 'closed',
+  });
+  expect(writer.db.prepare('SELECT last_error FROM metadata_jobs').get()).toEqual({
+    last_error: 'collector-stopped',
+  });
+});

@@ -147,6 +147,7 @@ export class Collector {
             .prepare('UPDATE source_health SET event_stream_status=? WHERE source_id=?')
             .run('snapshot-only', 'local-observer');
       } catch (error) {
+        this.capabilities = null;
         recordGap(this.db, 'local-observer', this.now(), failureKind(error));
       }
     }
@@ -237,6 +238,8 @@ export class Collector {
     }
   }
   async cliSnapshot() {
+    // Consume the current request; preserve any reconnect request arriving during this run.
+    this.nextSnapshot = Infinity;
     const runId = randomUUID();
     beginSnapshot(this.db, runId, 'local-observer', this.now());
     this.db
@@ -259,12 +262,21 @@ export class Collector {
       const raced = this.db
         .prepare('SELECT 1 FROM observations WHERE source_id=? AND sequence>? AND run_id IS NULL')
         .get('local-observer', run.start_sequence);
-      this.nextSnapshot =
+      const requestedDuringSnapshot = Number.isFinite(this.nextSnapshot);
+      const connected =
+        (
+          this.db
+            .prepare('SELECT event_stream_status FROM source_health WHERE source_id=?')
+            .get('local-observer') as { event_stream_status: string }
+        ).event_stream_status === 'connected';
+      this.nextSnapshot = Math.min(
+        this.nextSnapshot,
         this.now() +
-        (raced
-          ? this.config.collection.reconnectDebounceMs
-          : this.config.collection.routingSnapshotIntervalMs);
-      if (raced)
+          (raced
+            ? this.config.collection.reconnectDebounceMs
+            : this.config.collection.routingSnapshotIntervalMs),
+      );
+      if (raced || requestedDuringSnapshot || (this.capabilities?.events && !connected))
         this.db
           .prepare('UPDATE collector_runs SET reconciliation_status=? WHERE id=?')
           .run('required', runId);
@@ -272,7 +284,10 @@ export class Collector {
     } catch (error) {
       finishSnapshot(this.db, runId, this.now(), 'failure');
       recordGap(this.db, 'local-observer', this.now(), failureKind(error));
-      this.nextSnapshot = this.now() + this.config.collection.routingSnapshotIntervalMs;
+      this.nextSnapshot = Math.min(
+        this.nextSnapshot,
+        this.now() + this.config.collection.routingSnapshotIntervalMs,
+      );
     }
   }
   private enqueueDiscovery(sourceId: string) {
@@ -449,6 +464,15 @@ export class Collector {
       finishJob(this.db, job.key, this.owner, this.now() + interval, this.now(), null);
       this.enqueueDiscovery(job.source_id);
     } catch (error) {
+      if (this.signal.aborted) {
+        this.db
+          .prepare(
+            "UPDATE source_health SET breaker_state=CASE WHEN breaker_state='half-open' THEN 'open' ELSE breaker_state END,retry_at=CASE WHEN breaker_state='half-open' THEN ? ELSE retry_at END WHERE source_id=?",
+          )
+          .run(this.now(), job.source_id);
+        finishJob(this.db, job.key, this.owner, this.now(), null, 'collector-stopped');
+        return;
+      }
       if (error instanceof Deferred) {
         this.db
           .prepare(

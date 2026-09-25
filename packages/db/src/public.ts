@@ -108,6 +108,7 @@ export function sources(db: Db) {
   const rows = db
     .prepare(
       `SELECT s.id,s.label,s.adapter,s.observer_nid,s.enabled,s.capabilities,h.*,
+ (SELECT COUNT(*) FROM coverage_gaps g WHERE g.source_id=s.id AND g.ended_at IS NULL) open_gaps,
  (SELECT COUNT(*) FROM metadata_jobs j WHERE j.source_id=s.id) queue_depth,
  (SELECT COUNT(*) FROM metadata_jobs j WHERE j.source_id=s.id AND j.last_error='budget-deferred') deferred_jobs,
  (SELECT COUNT(*) FROM collector_runs r WHERE r.source_id=s.id AND r.status IN ('partial','failure','interrupted')) partial_runs
@@ -127,7 +128,7 @@ export function sources(db: Db) {
       lastCompleteSnapshot: iso(row.last_complete_snapshot as number | null),
       heartbeat: iso(row.heartbeat as number | null),
       lastEvent: iso(row.last_event as number | null),
-      error: row.current_error,
+      error: row.current_error ?? (row.open_gaps ? 'reconciliation-required' : null),
       retryAt: iso(row.retry_at as number | null),
       eventStreamStatus: row.event_stream_status,
       requestCount: row.request_count,
