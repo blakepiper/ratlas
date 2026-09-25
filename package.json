@@ -26,7 +26,8 @@
     "test:live": "node scripts/run.mjs test:live",
     "start:collector": "NODE_ENV=production node apps/service/dist/main-collector.js",
     "data:review": "node scripts/run.mjs data:review",
-    "data:target": "node scripts/run.mjs data:target"
+    "data:target": "node scripts/run.mjs data:target",
+    "demo:scenario": "node scripts/run.mjs demo:scenario"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -140,6 +140,14 @@
 .warning {
   background: var(--raised);
 }
+.warning button {
+  margin-left: 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  background: var(--surface);
+  padding: 4px 7px;
+}
 .error {
   display: flex;
   justify-content: space-between;

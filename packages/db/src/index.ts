@@ -12,3 +12,4 @@ export * from './public.js';
 
 export * from './graph.js';
 export * from './history.js';
+export * from './scenario.js';

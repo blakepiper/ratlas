@@ -55,6 +55,10 @@ const commands = {
     buildBackend();
     tsxWithGc('scripts/target-demo.ts');
   },
+  'demo:scenario': () => {
+    buildBackend();
+    tsx('scripts/demo-scenario.ts', ...args);
+  },
   collect: () => {
     buildBackend();
     tsx('apps/service/src/main-collector.ts', ...args);
@@ -75,7 +79,15 @@ const commands = {
 if (!(command in commands)) throw new Error(`Unknown development command: ${command}`);
 if (
   args.length &&
-  !['doctor', 'db:migrate', 'collect', 'collect:once', 'test:live', 'data:review'].includes(command)
+  ![
+    'doctor',
+    'db:migrate',
+    'collect',
+    'collect:once',
+    'test:live',
+    'data:review',
+    'demo:scenario',
+  ].includes(command)
 )
   throw new Error(`Unexpected arguments for ${command}`);
 try {

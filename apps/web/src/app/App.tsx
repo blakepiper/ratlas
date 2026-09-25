@@ -652,7 +652,16 @@ export function App() {
                       .sort()
                       .at(-1),
                   )}.`
-                : 'No public observations are available.'}
+                : sourceOptions.some((source) => source.lastSuccess)
+                  ? `No observations within the ${state.window} window. Older records may be available in All retained.`
+                  : 'No public observations are available.'}
+              {info.repositories === 0 &&
+                state.window !== 'all' &&
+                sourceOptions.some((source) => source.lastSuccess) && (
+                  <button type="button" onClick={() => setParam('window', 'all')}>
+                    View all retained
+                  </button>
+                )}
             </div>
           )}
         {primaryView === 'activity' ? (
@@ -862,7 +871,9 @@ export function App() {
                     {catalog.data?.items.length === 0 && (
                       <p className={styles.empty}>
                         {info?.repositories === 0
-                          ? 'No public repositories observed yet.'
+                          ? sourceOptions.some((source) => source.lastSuccess)
+                            ? 'No repositories observed within this window. Select All retained to inspect older records.'
+                            : 'No public repositories observed yet.'
                           : noFilters
                             ? 'No repositories in this observation window.'
                             : 'No repositories match these filters.'}

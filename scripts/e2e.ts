@@ -11,6 +11,7 @@ import {
   registerSource,
   storeMetadata,
   demoIdentities,
+  runDemoScenario,
   type Db,
 } from '../packages/db/dist/index.js';
 import { createApi } from '../apps/service/dist/api/server.js';
@@ -69,6 +70,19 @@ const unsupportedApp = await variant('unsupported', (db) => {
     "UPDATE source_health SET current_error='unsupported-schema' WHERE source_id='demo-a'",
   ).run();
 });
+const syntheticLimits = configSchema.parse({
+  mode: 'demo',
+  storage: { databasePath: path },
+}).collection;
+const outageApp = await variant('outage', (db) => {
+  generateSmallDemo(db);
+  runDemoScenario(db, 'source-outage', syntheticLimits);
+});
+const recoveryApp = await variant('recovery', (db) => {
+  generateSmallDemo(db);
+  runDemoScenario(db, 'source-outage', syntheticLimits);
+  runDemoScenario(db, 'source-recovery', syntheticLimits);
+});
 const limitedApp = await variant('limited', generateSmallDemo, { vertices: 10, edges: 10 });
 const browsePath = resolve(directory, 'browse.sqlite');
 const browseWriter = openWriter(browsePath);
@@ -124,6 +138,8 @@ try {
   const url = await app.listen({ host: '127.0.0.1', port: 0 });
   const emptyUrl = await emptyApp.listen({ host: '127.0.0.1', port: 0 });
   const unsupportedUrl = await unsupportedApp.listen({ host: '127.0.0.1', port: 0 });
+  const outageUrl = await outageApp.listen({ host: '127.0.0.1', port: 0 });
+  const recoveryUrl = await recoveryApp.listen({ host: '127.0.0.1', port: 0 });
   const limitedUrl = await limitedApp.listen({ host: '127.0.0.1', port: 0 });
   const browseUrl = await browseApp.listen({ host: '127.0.0.1', port: 0 });
   const child = spawn(
@@ -136,6 +152,8 @@ try {
         RATLAS_TEST_BASE_URL: url,
         RATLAS_TEST_EMPTY_URL: emptyUrl,
         RATLAS_TEST_UNSUPPORTED_URL: unsupportedUrl,
+        RATLAS_TEST_OUTAGE_URL: outageUrl,
+        RATLAS_TEST_RECOVERY_URL: recoveryUrl,
         RATLAS_TEST_LIMITED_URL: limitedUrl,
         RATLAS_TEST_BROWSE_URL: browseUrl,
       },
@@ -156,6 +174,8 @@ try {
 } finally {
   await browseApp.close();
   await unsupportedApp.close();
+  await outageApp.close();
+  await recoveryApp.close();
   await limitedApp.close();
   await emptyApp.close();
   await app.close();
