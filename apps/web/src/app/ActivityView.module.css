@@ -167,6 +167,14 @@
   border-top: 1px solid var(--border);
   padding-top: 12px;
 }
+.diagnostics {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.diagnostics summary {
+  cursor: pointer;
+}
 @media (max-width: 1023px) {
   .view {
     padding: 16px;

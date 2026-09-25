@@ -32,6 +32,11 @@ test('activity view shows stored count series, source coverage, and navigable ob
   );
   mkdirSync('.ratlas/reviews/R5', { recursive: true, mode: 0o700 });
   await page.screenshot({ path: `.ratlas/reviews/R5/${info.project.name}-normal.png` });
+  await coverage
+    .getByRole('region', { name: 'Synthetic observer A' })
+    .getByText('Collection diagnostics')
+    .click();
+  await expect(coverage).toContainText('Collector heartbeat');
   await feed.getByRole('combobox', { name: 'Source' }).selectOption('demo-a');
   await expect(feed.getByRole('listitem').first()).toContainText('demo-a');
   await feed

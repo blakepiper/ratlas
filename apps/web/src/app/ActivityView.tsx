@@ -335,6 +335,41 @@ export function ActivityView({
                   </dd>
                 </div>
               </dl>
+              <details className={styles.diagnostics}>
+                <summary>Collection diagnostics</summary>
+                <dl>
+                  <div>
+                    <dt>Collector heartbeat</dt>
+                    <dd>{dateLabel(item.heartbeat)}</dd>
+                  </div>
+                  <div>
+                    <dt>Last event</dt>
+                    <dd>{dateLabel(item.lastEvent)}</dd>
+                  </div>
+                  <div>
+                    <dt>Event stream</dt>
+                    <dd>{item.eventStreamStatus}</dd>
+                  </div>
+                  <div>
+                    <dt>Observer identity</dt>
+                    <dd>{item.observerNid ?? 'Not recorded'}</dd>
+                  </div>
+                  <div>
+                    <dt>Parse / unknown events</dt>
+                    <dd>
+                      {item.parseErrors} / {item.unknownEvents}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Decoded body bytes</dt>
+                    <dd>{item.decodedBodyBytes}</dd>
+                  </div>
+                  <div>
+                    <dt>Budget-deferred jobs</dt>
+                    <dd>{item.deferredJobs}</dd>
+                  </div>
+                </dl>
+              </details>
             </section>
           ))}
           {coverage?.sources.length === 0 && <p>No publishable sources are configured.</p>}
