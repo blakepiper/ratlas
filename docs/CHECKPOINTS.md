@@ -1,15 +1,15 @@
 # ratlas checkpoints
 
-Only Stage A is authorized. No checkpoint approvals have been received.
+R1 approved on 2026-09-25. Stage B through R2 is authorized; later stages remain pending.
 
-| Checkpoint | Status          | Presented revision                         | User approval | Review artifact     |
-| ---------- | --------------- | ------------------------------------------ | ------------- | ------------------- |
-| R1         | awaiting_review | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | Not received  | [R1](reviews/R1.md) |
-| R2         | pending         | —                                          | Not received  | —                   |
-| R3         | pending         | —                                          | Not received  | —                   |
-| R4         | pending         | —                                          | Not received  | —                   |
-| R5         | pending         | —                                          | Not received  | —                   |
-| R6         | pending         | —                                          | Not received  | —                   |
+| Checkpoint | Status      | Presented revision                         | User approval                 | Review artifact     |
+| ---------- | ----------- | ------------------------------------------ | ----------------------------- | ------------------- |
+| R1         | approved    | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval | [R1](reviews/R1.md) |
+| R2         | in_progress | —                                          | Not received                  | —                   |
+| R3         | pending     | —                                          | Not received                  | —                   |
+| R4         | pending     | —                                          | Not received                  | —                   |
+| R5         | pending     | —                                          | Not received                  | —                   |
+| R6         | pending     | —                                          | Not received                  | —                   |
 
 User feedback: none yet.
 
@@ -30,3 +30,5 @@ R1 work resumed; no checkpoint approval has been received.
 2026-09-25: Stage A completed and presented at `ae6fc59e71c97241ee1a8add1b92648aca8b39a2`.
 R1 awaits review; dependency approvals remain distinct from checkpoint approval.
 Synthetic desktop/narrow images and actual validation results are linked in R1.md.
+
+2026-09-25: user inspected the latest changes and explicitly approved continuing: “Ok I've inspected the latest changes and approve you to continue working.” This approves R1 and authorizes Stage B through R2. The user also requested simple completion checkboxes in the implementation specification, updated as work progresses. Live source configuration has not been supplied.

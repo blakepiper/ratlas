@@ -1153,97 +1153,99 @@ Treat these as targets to test and optimize, not results to assert. Do not creat
 
 Implement the phases in order. Only the initial stage, through R1, is authorized at the start. Initialize or reuse the local repository in Stage A and make small local commits throughout every stage under section 0.6. Each review stop requires a tested implementation commit and a separate review-documentation commit before the handoff. Automated acceptance checks, local commits, and human approval are separate requirements; none authorizes a push.
 
+Completion tracking: `[x]` means the line item is implemented and checked; `[ ]` means work or validation remains. Human approvals are recorded separately in `docs/CHECKPOINTS.md`.
+
 ### Stage A: Nix environment, domain foundation, and first visible screen
 
 **Phases 0 and 1. Stop at R1.**
 
-First inspect the target folder and preserve unrelated work. Initialize it with `git init -b main` if it is a new standalone folder, or reuse the existing ratlas repository without altering its branch/history. Verify the repository boundary and commit identity. Create `.gitignore` before generating local data. Create the local flake, its real lockfile, the workspace, the exact dependency lock, `AGENTS.md` additions, and checkpoint tracking. Implement toolchain checks, the native SQLite/FTS smoke test, and the actual Nix Firefox smoke test and Firefox-only bundle check. Record versions in `docs/TOOLCHAIN.md` and the Nix and local-Git workflow instructions in `docs/NIX_DEVELOPMENT.md`. Make the initial bootstrap commit under section 0.6 before substantial domain or interface implementation, then continue with scoped commits as those pieces are completed.
+- [x] First inspect the target folder and preserve unrelated work. Initialize it with `git init -b main` if it is a new standalone folder, or reuse the existing ratlas repository without altering its branch/history. Verify the repository boundary and commit identity. Create `.gitignore` before generating local data. Create the local flake, its real lockfile, the workspace, the exact dependency lock, `AGENTS.md` additions, and checkpoint tracking. Implement toolchain checks, the native SQLite/FTS smoke test, and the actual Nix Firefox smoke test and Firefox-only bundle check. Record versions in `docs/TOOLCHAIN.md` and the Nix and local-Git workflow instructions in `docs/NIX_DEVELOPMENT.md`. Make the initial bootstrap commit under section 0.6 before substantial domain or interface implementation, then continue with scoped commits as those pieces are completed.
 
-Read the Radicle security notice and versioned interface references. Implement the doctor command’s offline checks and supported CLI help probes only against an explicitly configured executable. Do not crawl public sources at this stage. List the source/profile configuration needed for the later live stage; do not invent it.
+- [x] Read the Radicle security notice and versioned interface references. Implement the doctor command’s offline checks and supported CLI help probes only against an explicitly configured executable. Do not crawl public sources at this stage. List the source/profile configuration needed for the later live stage; do not invent it.
 
-Create SQL migrations, Zod domain schemas, ID normalization, source/provenance records, public-versus-quarantined projections, and deterministic scenario generation. Test duplicate observations, source-specific removal, timestamp separation, snapshot completeness, and persistence after reopening.
+- [x] Create SQL migrations, Zod domain schemas, ID normalization, source/provenance records, public-versus-quarantined projections, and deterministic scenario generation. Test duplicate observations, source-specific removal, timestamp separation, snapshot completeness, and persistence after reopening.
 
-Build a minimal React shell at `http://127.0.0.1:5173`: the **ratlas** header, theme toggle, persistent synthetic label, first real database-backed summary, and a simple list of the small synthetic dataset’s repositories. Graph, activity, and incomplete navigation items must state that they are not implemented; no fake working controls. Use the real database/query path for this screen, not a hardcoded response that later must be replaced. The minimal summary/list API is a vertical slice, not an instruction to implement all of Phase 3 early.
+- [x] Build a minimal React shell at `http://127.0.0.1:5173`: the **ratlas** header, theme toggle, persistent synthetic label, first real database-backed summary, and a simple list of the small synthetic dataset’s repositories. Graph, activity, and incomplete navigation items must state that they are not implemented; no fake working controls. Use the real database/query path for this screen, not a hardcoded response that later must be replaced. The minimal summary/list API is a vertical slice, not an instruction to implement all of Phase 3 early.
 
-**Automated acceptance:** the Git repository is rooted in the intended folder, required project files and lockfiles are tracked, and completed work is saved in local commits; ignore rules exclude runtime/private/generated data; locked shell evaluates; frozen install works; native binding and FTS/WAL tests pass; Firefox launches from the Firefox-only bundle; domain tests pass; the demo screen reads actual generated SQLite rows; lint/typecheck/build checks applicable to this stage pass. No push or project-remote change has been performed.
+- [x] **Automated acceptance:** the Git repository is rooted in the intended folder, required project files and lockfiles are tracked, and completed work is saved in local commits; ignore rules exclude runtime/private/generated data; locked shell evaluates; frozen install works; native binding and FTS/WAL tests pass; Firefox launches from the Firefox-only bundle; domain tests pass; the demo screen reads actual generated SQLite rows; lint/typecheck/build checks applicable to this stage pass. No push or project-remote change has been performed.
 
 **R1: Stop and ask the user to inspect the foundation.**
 
-Provide `nix develop --command pnpm demo`, the actual localhost URL, desktop/narrow screenshots, and the toolchain report. Ask the user to check the name/theme/readability, basic screen layout, and clarity of the synthetic-data label. Explain that the graph is not built yet. Identify any missing approved live source/profile needed for Stage B. Do not implement collectors or the full API until R1 is approved.
+- [x] Provide `nix develop --command pnpm demo`, the actual localhost URL, desktop/narrow screenshots, and the toolchain report. Ask the user to check the name/theme/readability, basic screen layout, and clarity of the synthetic-data label. Explain that the graph is not built yet. Identify any missing approved live source/profile needed for Stage B. Do not implement collectors or the full API until R1 is approved.
 
 ### Stage B: Collection, recovery, metadata, and the read-only API
 
 **Phases 2 and 3. Begin only after R1 approval. Stop at R2.**
 
-Implement the CLI NDJSON adapter and HTTP schema adapter, atomic staged snapshots, event ordering, complete-snapshot absence rules, reconnect/backoff, coverage gaps, graceful child cleanup, queue leases, and source budgets. Keep local Radicle use read-only; do not start a node or execute replication commands.
+- [ ] Implement the CLI NDJSON adapter and HTTP schema adapter, atomic staged snapshots, event ordering, complete-snapshot absence rules, reconnect/backoff, coverage gaps, graceful child cleanup, queue leases, and source budgets. Keep local Radicle use read-only; do not start a node or execute replication commands.
 
-Implement metadata variants/selection, FTS/exact-ID search, every specified API route, publication checks, stable pagination, graph projection, normalized activity/summary queries, security headers, and cache/window revision behavior. Server code must not invoke `rad` or fetch upstream URLs in response to browser requests.
+- [ ] Implement metadata variants/selection, FTS/exact-ID search, every specified API route, publication checks, stable pagination, graph projection, normalized activity/summary queries, security headers, and cache/window revision behavior. Server code must not invoke `rad` or fetch upstream URLs in response to browser requests.
 
-With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture. Request explicit user acceptance of the gap at R2.
+- [ ] With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture. Request explicit user acceptance of the gap at R2.
 
-Add `pnpm data:review` and connect the existing minimal demo screen to the full API. Its report must demonstrate one RID on three NIDs seen through two sources, no duplicate aggregate edges, source-specific disagreement, a missing metadata record, and a collection failure preserving cached data.
+- [ ] Add `pnpm data:review` and connect the existing minimal demo screen to the full API. Its report must demonstrate one RID on three NIDs seen through two sources, no duplicate aggregate edges, source-specific disagreement, a missing metadata record, and a collection failure preserving cached data.
 
-**Automated acceptance:** all adapter/scenario tests pass; restarting/replaying preserves counts; failed snapshots cannot erase state; every public endpoint excludes quarantined data; API tests complete repo → seeder → other repo navigation; live results are distinguished from fixtures.
+- [ ] **Automated acceptance:** all adapter/scenario tests pass; restarting/replaying preserves counts; failed snapshots cannot erase state; every public endpoint excludes quarantined data; API tests complete repo → seeder → other repo navigation; live results are distinguished from fixtures.
 
 **R2: Stop and ask the user to inspect the data behavior.**
 
-Provide the data-review command, readable saved report, the localhost summary/coverage view, and a representative real-source result only if one actually succeeded. Ask the user to check whether source provenance, missing names, deduplicated counts, and data-freshness wording make sense. Stop live collection before waiting. Do not proceed to full interface work until R2 is approved.
+- [ ] Provide the data-review command, readable saved report, the localhost summary/coverage view, and a representative real-source result only if one actually succeeded. Ask the user to check whether source provenance, missing names, deduplicated counts, and data-freshness wording make sense. Stop live collection before waiting. Do not proceed to full interface work until R2 is approved.
 
 ### Stage C: Complete catalog, search, filters, and details
 
 **Phase 4. Begin only after R2 approval. Stop at R3.**
 
-Build the complete React layout, search/list, source/window/metadata/seeder filters, sorting, pagination, random selection, URL state, repository/node detail panels, clone-command copying, and safe configured external links. Use the exact desktop and narrow layout rules. The graph region remains a clearly labeled forthcoming view until Stage D.
+- [ ] Build the complete React layout, search/list, source/window/metadata/seeder filters, sorting, pagination, random selection, URL state, repository/node detail panels, clone-command copying, and safe configured external links. Use the exact desktop and narrow layout rules. The graph region remains a clearly labeled forthcoming view until Stage D.
 
-Implement loading, empty, no-match, missing metadata, unsupported source, cached-outage, source-conflict, and quarantine-safe error states. Add keyboard navigation, focus management, theme persistence, and browser back/forward restoration. Tests use real application APIs over synthetic database fixtures, not a separate mock frontend implementation.
+- [ ] Implement loading, empty, no-match, missing metadata, unsupported source, cached-outage, source-conflict, and quarantine-safe error states. Add keyboard navigation, focus management, theme persistence, and browser back/forward restoration. Tests use real application APIs over synthetic database fixtures, not a separate mock frontend implementation.
 
-**Automated acceptance:** catalog/detail workflows and failure states pass deterministic E2E tests at both viewports; exact RID search works without names; no control requires the graph; refresh/back/forward preserve state; copy and browse actions are safe.
+- [ ] **Automated acceptance:** catalog/detail workflows and failure states pass deterministic E2E tests at both viewports; exact RID search works without names; no control requires the graph; refresh/back/forward preserve state; copy and browse actions are safe.
 
 **R3: Stop and ask the user to inspect the browsing interface.**
 
-Start or provide the labeled demo and screenshots. Ask the user to search a named and unnamed project, change filters, open a seeder’s repositories, test back/forward, and inspect narrow-screen details. Ask for layout/interaction feedback now, before adding the graph. Do not begin Sigma work until R3 is approved.
+- [ ] Start or provide the labeled demo and screenshots. Ask the user to search a named and unnamed project, change filters, open a seeder’s repositories, test back/forward, and inspect narrow-screen details. Ask for layout/interaction feedback now, before adding the graph. Do not begin Sigma work until R3 is approved.
 
 ### Stage D: Interactive graph and exploration
 
 **Phase 5. Begin only after R3 approval. Stop at R4.**
 
-Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, graph interaction controls, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
+- [ ] Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, graph interaction controls, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
 
-Generate the target-scale dataset. Exercise a real Sigma canvas in Nix-provided Firefox. Distinguish hardware rendering, software WebGL, and fallback tests. Inspect actual images at both viewport sizes and check that large hosting nodes do not obscure basic exploration.
+- [ ] Generate the target-scale dataset. Exercise a real Sigma canvas in Nix-provided Firefox. Distinguish hardware rendering, software WebGL, and fallback tests. Inspect actual images at both viewport sizes and check that large hosting nodes do not obscure basic exploration.
 
-**Automated acceptance:** repo → seeders → other repos works through both list and graph; API limits have no dangling edges; the full-mode failure explains its limits; repeated navigation does not leak workers; the graph remains cancellable and catalog access survives WebGL loss.
+- [ ] **Automated acceptance:** repo → seeders → other repos works through both list and graph; API limits have no dangling edges; the full-mode failure explains its limits; repeated navigation does not leak workers; the graph remains cancellable and catalog access survives WebGL loss.
 
 **R4: Stop and ask the user to inspect the map.**
 
-Provide demo/target-scale startup instructions, screenshots, and initial performance measurements with the rendering mode recorded. Ask the user to select a repository and hosting node, hide large hosts, inspect the “X of Y” counts, switch to a full or bounded view, and judge pan/zoom/readability. Do not add final history/operations work until R4 is approved.
+- [ ] Provide demo/target-scale startup instructions, screenshots, and initial performance measurements with the rendering mode recorded. Ask the user to select a repository and hosting node, hide large hosts, inspect the “X of Y” counts, switch to a full or bounded view, and judge pan/zoom/readability. Do not add final history/operations work until R4 is approved.
 
 ### Stage E: Activity, coverage, retained history, and failure recovery
 
 **Phase 6. Begin only after R4 approval. Stop at R5.**
 
-Finish the observation feed, three-series SVG summary chart, complete source-evidence UI, gap labels, history boundary, privacy-conflict display, retention jobs, circuit-breaker status, source budgets, disk/queue guards, and maintenance behavior. Preserve the existing view’s usable data through simulated source outages and restart/reconnect sequences.
+- [ ] Finish the observation feed, three-series SVG summary chart, complete source-evidence UI, gap labels, history boundary, privacy-conflict display, retention jobs, circuit-breaker status, source budgets, disk/queue guards, and maintenance behavior. Preserve the existing view’s usable data through simulated source outages and restart/reconnect sequences.
 
-Add a reproducible demo scenario command for outage/recovery that modifies only the demo dataset through the normal observation pipeline. It must never disconnect, block, or modify a real Radicle node to simulate failure. Record the scenario clock and which source events were injected.
+- [ ] Add a reproducible demo scenario command for outage/recovery that modifies only the demo dataset through the normal observation pipeline. It must never disconnect, block, or modify a real Radicle node to simulate failure. Record the scenario clock and which source events were injected.
 
-**Automated acceptance:** outage, reconnect, no-data, stale-data, and privacy scenarios pass; source failure never produces a global-deletion claim; count-series timestamps and retention boundaries are labeled correctly; diagnostic paths and quarantined IDs cannot leak.
+- [ ] **Automated acceptance:** outage, reconnect, no-data, stale-data, and privacy scenarios pass; source failure never produces a global-deletion claim; count-series timestamps and retention boundaries are labeled correctly; diagnostic paths and quarantined IDs cannot leak.
 
 **R5: Stop and ask the user to inspect the complete feature set.**
 
-Provide the demo and outage/recovery scenario commands plus screenshots of normal, stale, and gap states. Ask the user to inspect the activity wording, provenance panel, coverage limits, chart, and behavior when one source fails. Do not begin final hardening/handoff work until R5 is approved.
+- [ ] Provide the demo and outage/recovery scenario commands plus screenshots of normal, stale, and gap states. Ask the user to inspect the activity wording, provenance panel, coverage limits, chart, and behavior when one source fails. Do not begin final hardening/handoff work until R5 is approved.
 
 ### Stage F: Validation, operations, documentation, and release candidate
 
 **Phase 7. Begin only after R5 approval. Stop at R6.**
 
-Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, backup/restore tests, and separately approved live smoke tests. Fix failures without weakening assertions or replacing live tests with fixtures. Validate the unactivated NixOS module’s structure and document activation as untested unless explicitly performed under separate approval.
+- [ ] Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, backup/restore tests, and separately approved live smoke tests. Fix failures without weakening assertions or replacing live tests with fixtures. Validate the unactivated NixOS module’s structure and document activation as untested unless explicitly performed under separate approval.
 
-Write the first-run README, architecture/semantics reports, compatibility report, NixOS runbook, backup/restore procedure, safe dedicated-observer instructions, 24-hour experiment command, and final validation/performance reports. Check all examples against implemented command names and config paths. Include a complete list of observed limitations and user-accepted gaps.
+- [ ] Write the first-run README, architecture/semantics reports, compatibility report, NixOS runbook, backup/restore procedure, safe dedicated-observer instructions, 24-hour experiment command, and final validation/performance reports. Check all examples against implemented command names and config paths. Include a complete list of observed limitations and user-accepted gaps.
 
-**Automated acceptance:** all applicable release checks in section 13 pass; clean frozen install, native SQLite, browser render, production startup, backup restore, and process cleanup have actual results; measurements identify their hardware/runtime/rendering context.
+- [ ] **Automated acceptance:** all applicable release checks in section 13 pass; clean frozen install, native SQLite, browser render, production startup, backup restore, and process cleanup have actual results; measurements identify their hardware/runtime/rendering context.
 
 **R6: Stop and ask the user to review the release candidate.**
 
-Provide exact demo and live startup commands, a short whole-product walkthrough, report/screenshot locations, both review commit SHAs, the local commit summary, final worktree status, and any remaining gaps. Mark the release candidate `awaiting_review`, not “user accepted.” R6 approval permits recording the first version as accepted in a local documentation commit only. It does not authorize a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
+- [ ] Provide exact demo and live startup commands, a short whole-product walkthrough, report/screenshot locations, both review commit SHAs, the local commit summary, final worktree status, and any remaining gaps. Mark the release candidate `awaiting_review`, not “user accepted.” R6 approval permits recording the first version as accepted in a local documentation commit only. It does not authorize a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
 
 ### Checkpoint map
 
@@ -1262,20 +1264,20 @@ No checkpoint is a background task or automatic approval. After presenting it, s
 
 Present the first release candidate at R6 only when the following are satisfied or a specific external-prerequisite gap has been explicitly accepted by the user:
 
-1. The product is named **ratlas** throughout, the required React stack is implemented, and no unapproved alternative frameworks or storage systems were introduced.
-2. A clean NixOS checkout enters `nix develop`, installs with both committed locks, runs the offline demo, and builds production artifacts using documented commands. No system rebuild or global dependency is required.
-3. Actual native SQLite/FTS/WAL checks and a Firefox launch using the version-matched Nix Firefox-only bundle have results. Browser dependencies and commands contain no Chrome/Chromium browser requirement; manual review remains in the user’s ordinary Firefox. A plain `nix flake check` is not presented as an application test.
-4. The CLI adapter and the specified HTTP-schema adapter are implemented and fixture-tested. Every approved configured live integration has a recorded result, including explicit blocked/unavailable status when applicable.
-5. Collection is resumable and read-only with respect to Radicle operations. No unrelated Git cloning or seeding is required; no browser request starts a crawl.
-6. Search, details, graph neighborhoods, explicit full-mode limits, source health, activity, summary chart, and missing metadata work together.
-7. Catalog/graph counts deduplicate IDs and relationships, and source/window/truncation limits remain visible. “Observed” never silently becomes “online,” “newly created,” or “all repositories.”
-8. Private/quarantined data cannot escape through APIs, enrichment, logs, fixtures, search, graph, history, or exports.
-9. Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests.
-10. Performance reports contain real measurements and distinguish software from hardware WebGL. No untested throughput, capacity, or security property is claimed.
-11. NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
-12. R1–R5 have genuine approval records. R6 is explicitly marked awaiting user review until the user approves it. Pending feedback is not silently cleared.
-13. No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
-14. The intended folder has a local Git repository with the bootstrap and incremental implementation history. Every presented checkpoint has a tested implementation SHA and committed review documents; completed agent-owned work is committed, unrelated user changes are preserved, and required ignore rules keep local data and generated artifacts out of history.
+- [ ] The product is named **ratlas** throughout, the required React stack is implemented, and no unapproved alternative frameworks or storage systems were introduced.
+- [ ] A clean NixOS checkout enters `nix develop`, installs with both committed locks, runs the offline demo, and builds production artifacts using documented commands. No system rebuild or global dependency is required.
+- [ ] Actual native SQLite/FTS/WAL checks and a Firefox launch using the version-matched Nix Firefox-only bundle have results. Browser dependencies and commands contain no Chrome/Chromium browser requirement; manual review remains in the user’s ordinary Firefox. A plain `nix flake check` is not presented as an application test.
+- [ ] The CLI adapter and the specified HTTP-schema adapter are implemented and fixture-tested. Every approved configured live integration has a recorded result, including explicit blocked/unavailable status when applicable.
+- [ ] Collection is resumable and read-only with respect to Radicle operations. No unrelated Git cloning or seeding is required; no browser request starts a crawl.
+- [ ] Search, details, graph neighborhoods, explicit full-mode limits, source health, activity, summary chart, and missing metadata work together.
+- [ ] Catalog/graph counts deduplicate IDs and relationships, and source/window/truncation limits remain visible. “Observed” never silently becomes “online,” “newly created,” or “all repositories.”
+- [ ] Private/quarantined data cannot escape through APIs, enrichment, logs, fixtures, search, graph, history, or exports.
+- [ ] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests.
+- [ ] Performance reports contain real measurements and distinguish software from hardware WebGL. No untested throughput, capacity, or security property is claimed.
+- [ ] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
+- [ ] R1–R5 have genuine approval records. R6 is explicitly marked awaiting user review until the user approves it. Pending feedback is not silently cleared.
+- [ ] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
+- [ ] The intended folder has a local Git repository with the bootstrap and incremental implementation history. Every presented checkpoint has a tested implementation SHA and committed review documents; completed agent-owned work is committed, unrelated user changes are preserved, and required ignore rules keep local data and generated artifacts out of history.
 
 The R6 handoff states what was built, how to start the demo and live configuration, which sources/interfaces were actually tested, exact check results, screenshot/report locations, tested implementation and review-documentation SHAs, a local commit summary, worktree status, user-approved deviations, and remaining limitations. State that nothing was pushed. Keep implemented, fixture-tested, live-tested, locally committed, and user-approved statuses distinct.
 
