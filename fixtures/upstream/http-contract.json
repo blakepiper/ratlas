@@ -1,0 +1,21 @@
+{
+  "reference": "radicle-explorer/00f079d0d9fb4828e570bc568ffde1dcd43ebb25",
+  "kind": "synthetic contract fixture, not a live capture",
+  "node": { "id": "z6MkiTBz1yHzEeKfRJbuA8mXgvhHmNgpWQRGqn6UZD3YGpbi", "state": "running" },
+  "inventory": ["rad:z4FucBZHZMCsxTyQE1dfE2YR59Qbp"],
+  "repo": {
+    "rid": "rad:z4FucBZHZMCsxTyQE1dfE2YR59Qbp",
+    "payloads": {
+      "xyz.radicle.project": {
+        "data": {
+          "name": "synthetic-project",
+          "description": "Synthetic contract example",
+          "defaultBranch": "main"
+        }
+      }
+    },
+    "delegates": [],
+    "visibility": { "type": "public" },
+    "seeding": 3
+  }
+}

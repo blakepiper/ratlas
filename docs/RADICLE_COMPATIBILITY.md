@@ -22,3 +22,20 @@ unauthenticated public HTTPS API or absolute executable/home paths for an existi
 dedicated public-only observer (and an explicit socket if needed). A personal or
 unspecified observer defaults to quarantine. Do not infer a default profile,
 initialize identities, start a daemon, or replicate repositories.
+
+Stage B adapters pin CLI serialization to `341982110` and HTTP serialization to
+[`00f079d0d9fb4828e570bc568ffde1dcd43ebb25`](https://github.com/radicle-dev/radicle-explorer/tree/00f079d0d9fb4828e570bc568ffde1dcd43ebb25/crates/radicle-httpd/src/api),
+resolved from the upstream GitHub API on 2026-09-25. No project Git remote was used.
+`fixtures/upstream/http-contract.json` is a small synthetic schema example, not a
+capture from a deployed service. The adapter uses the `rid`, explicit visibility,
+delegates and nested project payload contract; missing project data stays unresolved.
+Inventory is an array of RIDs, attributed to its requested subject NID. Numeric
+seeding counts never create relationships. Catalog requests specify `show=all`,
+zero-based pages and `perPage=100`; an extra empty page establishes termination.
+Repeated pages and page-budget exhaustion are partial runs. Deployment compatibility
+and live endpoint availability remain unverified without configured approved sources.
+
+NDJSON limits apply to bytes before UTF-8 decoding; the default line cap is 8 MiB,
+configurable through `collection.eventLineMaxBytes` up to 16 MiB. A limit violation
+fails the snapshot or reconnects the subscriber; it never commits snapshot absence.
+CLI subprocess environments contain only locale and the configured Radicle paths.
