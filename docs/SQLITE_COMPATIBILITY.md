@@ -39,10 +39,18 @@ the necessary dependency lock entries, compile from source inside Nix, and rerun
 native smoke, all database regressions, and the UI checks. Keep Node, pnpm, SQLite
 binding choice, database architecture, and all review stops unchanged.
 
-User approval was requested under specification §0.5; it has not been received.
-Version 13 has not been installed or tested here, so the proposed fix remains
-unverified. Do not change this family based on silence or ESLint-only approval.
+User approval was received on 2026-09-25 (“yes I approve”) for this exact
+13.0.3 deviation and its necessary lock entries. Source compilation and regression
+verification are now in progress. This approval is not approval of R1.
 
-R1 is blocked, not presented. No application review screenshot or working demo
-claim is made. The schema, database pipeline, API slice and React screen remain
-unfinished integration work pending this prerequisite.
+## Approved change verified
+
+The Nix source build of 13.0.3 passes the full 16-test core/database suite,
+including generation of the real 100-repository demo. Native FTS5/WAL/read-only/
+reopen checks pass with SQLite 3.53.4, and isolated Firefox smoke passes.
+
+Version 13 requires GYP `force_build=1`; `scripts/build-native.mjs` runs on each
+installation. All application connections explicitly select the resulting
+`build/Release/better_sqlite3.node`, because the upstream default loader prefers
+its bundled prebuild. The family-12 failure is retained above as historical evidence.
+Remaining R1 application integration and review checks are still in progress.

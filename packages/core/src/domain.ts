@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from './validation.js';
 import { nidSchema, ridSchema } from './ids.js';
 
 export const instantSchema = z.number().int().min(0).max(8_640_000_000_000_000);
@@ -77,3 +77,13 @@ export const repoListSchema = z.strictObject({
 });
 export type Summary = z.infer<typeof summarySchema>;
 export type RepoList = z.infer<typeof repoListSchema>;
+const decimalParameter = z
+  .string()
+  .regex(/^\d{1,6}$/u)
+  .transform(Number);
+export const repoQuerySchema = z
+  .strictObject({
+    page: decimalParameter.pipe(z.number().int().nonnegative()).default(0),
+    limit: decimalParameter.pipe(z.number().int().min(1).max(200)).default(50),
+  })
+  .refine((query) => query.page * query.limit <= 100000, 'Pagination exceeds limit');

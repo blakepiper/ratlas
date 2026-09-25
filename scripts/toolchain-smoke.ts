@@ -12,13 +12,13 @@ import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { firefox } from '@playwright/test';
 import type Database from 'better-sqlite3';
+import { nativeDatabase, nativeBinding } from '../packages/db/src/native.js';
 import { checkToolchain } from './check-toolchain.mjs';
 
 export async function toolchainSmoke() {
   process.umask(0o077);
   const versions = checkToolchain();
   const requireRoot = createRequire(new URL('../package.json', import.meta.url));
-  const requireDb = createRequire(new URL('../packages/db/package.json', import.meta.url));
   const requireService = createRequire(new URL('../apps/service/package.json', import.meta.url));
   const requireFastify = createRequire(requireService.resolve('fastify'));
   assert.equal(
@@ -55,9 +55,8 @@ export async function toolchainSmoke() {
   mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });
   mkdirSync('.ratlas/tests/toolchain', { recursive: true, mode: 0o700 });
   writeFileSync('.ratlas/reports/firefox-runtime-closure.txt', closure, { mode: 0o600 });
-  const Sqlite = requireDb('better-sqlite3') as typeof Database;
   const database = resolve(`.ratlas/tests/toolchain/smoke-${process.pid}-${Date.now()}.sqlite`);
-  const writer = new Sqlite(database);
+  const writer = nativeDatabase(database);
   let reader: Database.Database | undefined;
   let sqliteVersion: string;
   try {
@@ -72,7 +71,7 @@ export async function toolchainSmoke() {
     sqliteVersion = (
       writer.prepare('SELECT sqlite_version() AS version').get() as { version: string }
     ).version;
-    reader = new Sqlite(database, { readonly: true, fileMustExist: true });
+    reader = nativeDatabase(database, { readonly: true, fileMustExist: true });
     reader.pragma('foreign_keys=ON');
     reader.pragma('busy_timeout=5000');
     reader.pragma('query_only=ON');
@@ -94,7 +93,7 @@ export async function toolchainSmoke() {
     reader?.close();
     writer.close();
   }
-  const reopened = new Sqlite(database, { readonly: true, fileMustExist: true });
+  const reopened = nativeDatabase(database, { readonly: true, fileMustExist: true });
   try {
     assert.equal(
       (reopened.prepare('SELECT count(*) AS count FROM smoke').get() as { count: number }).count,
@@ -124,6 +123,7 @@ export async function toolchainSmoke() {
   assert.equal(readFileSync('.ratlas/reports/firefox-smoke.png').subarray(1, 4).toString(), 'PNG');
   const report = {
     ...versions,
+    nativeBinding,
     sqlite: sqliteVersion,
     firefox: browserVersion,
     executable,

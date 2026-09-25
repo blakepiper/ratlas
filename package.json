@@ -7,6 +7,7 @@
   },
   "scripts": {
     "preinstall": "node scripts/check-toolchain.mjs",
+    "postinstall": "node scripts/build-native.mjs",
     "toolchain:check": "node scripts/check-toolchain.mjs"
   },
   "devDependencies": {

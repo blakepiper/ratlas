@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from './validation.js';
 import { nidSchema } from './ids.js';
 import { windowSchema } from './domain.js';
 

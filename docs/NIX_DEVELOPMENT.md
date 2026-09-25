@@ -29,6 +29,14 @@ SQLite, and an explicitly selected Playwright Firefox-only bundle. Browser
 downloads are disabled. Automation uses its own temporary profiles; manual
 review uses the user's ordinary Firefox. Never run a browser installer.
 
+`pnpm doctor` is dispatched to `pnpm run doctor` by a Nix-supplied wrapper because
+pnpm 10 reserves that name for its own diagnostic command. Both use the same pinned
+package-manager executable. Every other invocation is passed through unchanged.
+
+Frozen installs run `scripts/build-native.mjs`, using pinned node-gyp and the Nix
+compiler, Python and Node headers. better-sqlite3 13 requires `force_build=1`;
+application connections explicitly load the resulting local Release addon.
+
 The development environment is pinned in `flake.lock`; exact JavaScript packages
 are pinned in manifests and `pnpm-lock.yaml`. Keep both locks unchanged after R1
 unless the user explicitly approves an update.

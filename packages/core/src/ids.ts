@@ -1,5 +1,5 @@
 import { base58btc } from 'multiformats/bases/base58';
-import { z } from 'zod';
+import { z } from './validation.js';
 
 function validEncoding(input: string, kind: 'repo' | 'node'): boolean {
   try {

@@ -19,3 +19,14 @@ Implementation clarification: the two exported packages are grouped in one
 `packages.${system}` attribute set. Repeating that dynamic attribute path in the
 specification's example fails Nix evaluation; grouping preserves both required
 exports and does not change the development environment.
+
+User-approved deviation (2026-09-25): better-sqlite3 13.0.3 replaces family 12
+after the reproduced native cleanup-hook abort. The user replied “yes I approve”
+to this specific proposal. Compile from source in Nix and rerun the real workload.
+This approval does not approve R1 or authorize Stage B.
+
+Command compatibility: locked pnpm 10 has its own built-in `doctor`, which takes
+precedence over package scripts. The Nix shell supplies a tiny `pnpm` dispatcher
+that maps only `pnpm doctor ...` to the same locked pnpm's `run doctor ...`.
+All other arguments go unchanged to `pkgs.pnpm_10`. This preserves the required
+project command without a package-manager version change or shell-entry effects.

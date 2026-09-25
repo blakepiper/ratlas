@@ -86,6 +86,7 @@ const manifests = {
     engines: { node: versions.node, pnpm: versions.pnpm },
     scripts: {
       preinstall: 'node scripts/check-toolchain.mjs',
+      postinstall: 'node scripts/build-native.mjs',
       'toolchain:check': 'node scripts/check-toolchain.mjs',
     },
     devDependencies: {
@@ -143,7 +144,7 @@ const manifests = {
   },
   'packages/db': {
     name: '@ratlas/db',
-    dependencies: { '@ratlas/core': 'workspace:*', ...(await deps({ 'better-sqlite3': '12' })) },
+    dependencies: { '@ratlas/core': 'workspace:*', 'better-sqlite3': '13.0.3' },
   },
   'packages/radicle': {
     name: '@ratlas/radicle',
