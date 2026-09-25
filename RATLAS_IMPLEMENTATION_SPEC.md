@@ -1228,7 +1228,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 **R4: Stop and ask the user to inspect the map.**
 
 - [x] Provide demo/target-scale startup instructions, actual fallback screenshots, and initial performance measurements with rendering mode recorded. Ask the user to select a repository and hosting node, hide large hosts, inspect the “X of Y” counts, switch to a full or bounded view, and judge pan/zoom/readability.
-- [ ] Obtain R4 approval (including an explicit decision on the blocked WebGL check) before final history/operations work.
+- [x] Obtain R4 approval (including an explicit decision on the blocked WebGL check) before final history/operations work. The user authorized Stage E after the label fix, with the Nix Firefox WebGL check still open.
 
 ### Stage E: Activity, coverage, retained history, and failure recovery
 

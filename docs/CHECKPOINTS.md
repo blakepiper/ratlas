@@ -1,19 +1,17 @@
 # ratlas checkpoints
 
-R1, R2, and R3 approved on 2026-09-25. Stage D stopped at R4 awaiting review,
-with the Nix Firefox WebGL check blocked. A user screenshot confirms canvas
-rendering in ordinary Firefox; revised selected-label contrast awaits review.
-Stage E is not authorized.
+R1–R4 approved on 2026-09-25. The user authorized Stage E after the selected-label
+fix, with the Nix Firefox WebGL check still open. Stage E is in progress toward R5.
 Live integration is blocked by missing approved sources; R2 approved proceeding with that gap open.
 
-| Checkpoint | Status          | Presented revision                         | User approval                                                | Review artifact     |
-| ---------- | --------------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
-| R1         | approved        | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
-| R2         | approved        | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
-| R3         | approved        | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
-| R4         | awaiting_review | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | Not received; Nix WebGL check remains blocked                | [R4](reviews/R4.md) |
-| R5         | pending         | —                                          | Not received                                                 | —                   |
-| R6         | pending         | —                                          | Not received                                                 | —                   |
+| Checkpoint | Status      | Presented revision                         | User approval                                                | Review artifact     |
+| ---------- | ----------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| R1         | approved    | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
+| R2         | approved    | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
+| R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
+| R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
+| R5         | in_progress | —                                          | Not received                                                 | —                   |
+| R6         | pending     | —                                          | Not received                                                 | —                   |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -61,3 +59,10 @@ feedback, not approval. Sigma's default white hover background had inherited
 the map's light label text. The correction was tested at
 `4469b636a552d1afe5e0a670f67243e63edc2b9d`; the user still needs to
 inspect the revised label and decide on the blocked Nix WebGL check.
+
+2026-09-25: after the agent explained the Nix Firefox WebGL gap and said it
+would present the revised R4 build, the user instructed, “And when you are done
+with this fix, move on to the next step in the plan and start working it.”
+This explicitly authorizes Stage E through R5 with the automated WebGL check
+open. It does not mean the revised canvas contrast was visually verified, and
+it does not authorize Stage F.

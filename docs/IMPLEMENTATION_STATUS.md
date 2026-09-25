@@ -1,13 +1,13 @@
 # ratlas implementation status
 
-Current stage: D stopped at R4 awaiting review. The automated graph-rendering
-check is blocked because Nix-supplied Firefox 148.0.2 creates no WebGL context
-in either the available headless or headed session. A user screenshot shows
-the real canvas in ordinary Firefox; selected-label contrast was corrected,
-but the revised canvas has not yet been inspected there. R3 was approved on
-2026-09-25; R4 approval has not been received. Tested implementation:
-`4469b636a552d1afe5e0a670f67243e63edc2b9d`.
-Review: [R4](reviews/R4.md). Stage E is not authorized.
+Current stage: E in progress toward R5. The user authorized moving on after
+the R4 selected-label fix, with the automated WebGL check still open. Stage F
+is not authorized. The R4 implementation was tested at
+`4469b636a552d1afe5e0a670f67243e63edc2b9d`; its review is in
+[R4](reviews/R4.md). A user screenshot shows real canvas rendering in ordinary
+Firefox, though the corrected label has not been visually rechecked there.
+Nix-supplied Firefox 148.0.2 still creates no WebGL context in the available
+headless or headed sessions.
 
 Implemented in Stage D: a bounded relationship map backed by the filtered graph
 API, deterministic Graphology positions, Sigma rendering code, a ForceAtlas2
@@ -46,13 +46,13 @@ Firefox canvas. The revised build fixes the white-on-white combination and
 awaits their visual check. The earlier live-integration gap remains open: no
 approved real source, observer executable, or profile is configured. No Radicle
 node, replication, personal profile, remote, push, or publication was used.
-Existing demo processes on ports 3000 and 5173 were left untouched. The R4
-review needs the user to inspect selected and hovered labels and map
-interactions in their ordinary Firefox, then decide whether to proceed with
-the Nix WebGL check still blocked.
+Existing demo processes on ports 3000 and 5173 were left untouched. The
+corrected labels and map interactions still need visual review in ordinary
+Firefox; the Nix WebGL automation check remains blocked.
 
 After the existing demo processes are stopped by their owner, start either
 fixture with `env -u TMPDIR nix develop --command pnpm demo` or
 `env -u TMPDIR nix develop --command pnpm demo --dataset target`, then open
 http://127.0.0.1:5173 in Firefox. The target command generates its dedicated
-database when missing. Stage E remains on hold until R4 approval.
+database when missing. Stage E is authorized through R5; Stage F remains on
+hold until R5 approval.
