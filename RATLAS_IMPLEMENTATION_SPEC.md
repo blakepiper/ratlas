@@ -1206,7 +1206,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 **R3: Stop and ask the user to inspect the browsing interface.**
 
-- [ ] Start or provide the labeled demo and screenshots. Ask the user to search a named and unnamed project, change filters, open a seeder’s repositories, test back/forward, and inspect narrow-screen details. Ask for layout/interaction feedback now, before adding the graph. Do not begin Sigma work until R3 is approved.
+- [x] Start or provide the labeled demo and screenshots. Ask the user to search a named and unnamed project, change filters, open a seeder’s repositories, test back/forward, and inspect narrow-screen details. Ask for layout/interaction feedback now, before adding the graph. Do not begin Sigma work until R3 is approved.
 
 ### Stage D: Interactive graph and exploration
 
