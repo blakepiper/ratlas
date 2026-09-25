@@ -1184,7 +1184,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 - [ ] With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. **Blocked: no approved live source or observer is configured.**
 - [x] Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture.
-- [x] Request explicit user acceptance of the live-integration gap at R2. **Acceptance is pending; no approval is implied.**
+- [x] Request explicit user acceptance of the live-integration gap at R2. **On 2026-09-25, the user approved continuing from the R2 handoff with this disclosed gap still open. The live smoke test above remains unperformed.**
 
 - [x] Add `pnpm data:review` and connect the existing minimal demo screen to the full API. Its report must demonstrate one RID on three NIDs seen through two sources, no duplicate aggregate edges, source-specific disagreement, a missing metadata record, and a collection failure preserving cached data.
 

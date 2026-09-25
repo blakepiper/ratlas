@@ -1,18 +1,18 @@
 # ratlas checkpoints
 
-R1 approved on 2026-09-25. Stage B is presented at R2; await review before Stage C.
-Live integration is blocked by missing approved sources; acceptance of that gap is pending.
+R1 and R2 approved on 2026-09-25. Stage C is in progress through R3.
+Live integration is blocked by missing approved sources; R2 approved proceeding with that gap open.
 
-| Checkpoint | Status          | Presented revision                         | User approval                       | Review artifact     |
-| ---------- | --------------- | ------------------------------------------ | ----------------------------------- | ------------------- |
-| R1         | approved        | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval       | [R1](reviews/R1.md) |
-| R2         | awaiting_review | `0729293d1d76761b75255eee77c8dae6038242df` | Not received; live gap not accepted | [R2](reviews/R2.md) |
-| R3         | pending         | —                                          | Not received                        | —                   |
-| R4         | pending         | —                                          | Not received                        | —                   |
-| R5         | pending         | —                                          | Not received                        | —                   |
-| R6         | pending         | —                                          | Not received                        | —                   |
+| Checkpoint | Status      | Presented revision                         | User approval                                                | Review artifact     |
+| ---------- | ----------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| R1         | approved    | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
+| R2         | approved    | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
+| R3         | in_progress | —                                          | Not received                                                 | —                   |
+| R4         | pending     | —                                          | Not received                                                 | —                   |
+| R5         | pending     | —                                          | Not received                                                 | —                   |
+| R6         | pending     | —                                          | Not received                                                 | —                   |
 
-User feedback: R1 approved; completion checkboxes requested and implemented. No R2 feedback yet.
+User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
 2026-09-25: dependency bootstrap cannot meet both ESLint 9 and the prohibition
 on deprecated releases. Narrow family-change approval requested; not received.
@@ -35,3 +35,5 @@ Synthetic desktop/narrow images and actual validation results are linked in R1.m
 2026-09-25: user inspected the latest changes and explicitly approved continuing: “Ok I've inspected the latest changes and approve you to continue working.” This approves R1 and authorizes Stage B through R2. The user also requested simple completion checkboxes in the implementation specification, updated as work progresses. Live source configuration has not been supplied.
 
 2026-09-25: Stage B presented at `0729293d1d76761b75255eee77c8dae6038242df`. Final offline checks pass (51 deterministic tests and both Firefox viewports). No approved live source exists; live integration remains blocked, with explicit gap acceptance requested at R2. No collector or server remains running. Stage C has not started.
+
+2026-09-25: in direct response to the R2 handoff requesting approval including acceptance of the untested live-source gap, the user replied, “Ok I think it looks good, let's continue with the next step.” Under specification section 0.1, this approves R2 and authorizes Stage C through R3. It accepts proceeding with the disclosed gap; it does not claim live compatibility was tested. The bounded live smoke test remains unchecked.

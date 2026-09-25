@@ -1,10 +1,11 @@
 # ratlas implementation status
 
-Current stage: B complete for offline/fixture validation, through R2.
-R2 is **awaiting_review**; live integration is **blocked** by absent approved sources.
+Current stage: C in progress, authorized through R3.
+R2 was **approved** on 2026-09-25; live integration remains **blocked** by absent approved sources.
 Tested implementation: `0729293d1d76761b75255eee77c8dae6038242df`.
-Review: [R2](reviews/R2.md). R1 was approved on 2026-09-25; R2 approval and explicit
-acceptance of the live-integration gap have not been received. Do not start Stage C.
+Review: [R2](reviews/R2.md). The user replied to the R2 handoff, “Ok I think it looks
+good, let's continue with the next step.” This authorizes Stage C through R3 with
+the disclosed live-integration gap still open; it is not a live-test result.
 
 Implemented: bounded CLI/HTTP adapters, durable jobs/budgets, atomic snapshots,
 event ordering/replay, reconnect/gaps/child cleanup, public metadata/FTS, all read-only
@@ -24,9 +25,9 @@ pass. No local live config exists; no personal Radicle profile/daemon was access
 No dependency changes were made in Stage B. Existing approved ESLint 10 and
 better-sqlite3 13.0.3 deviations remain in `DECISIONS.md`.
 
-Next action: human R2 review and approval before Stage C catalog/detail controls.
-The user must either provide approved sources for live checks or explicitly accept
-that gap. Graph UI and final history/maintenance/operations remain later stages.
+Next action: build and verify Stage C catalog/detail controls, then present R3 for
+human review. Approved source configuration is still needed for live checks.
+Graph UI and final history/maintenance/operations remain later stages.
 All application/test/collector processes are stopped. No unrelated changes were
 present at resumption. No remote changes and nothing pushed.
 
