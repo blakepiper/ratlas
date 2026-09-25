@@ -1177,7 +1177,8 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 **Phases 2 and 3. Begin only after R1 approval. Stop at R2.**
 
-- [ ] Implement the CLI NDJSON adapter and HTTP schema adapter, atomic staged snapshots, event ordering, complete-snapshot absence rules, reconnect/backoff, coverage gaps, graceful child cleanup, queue leases, and source budgets. Keep local Radicle use read-only; do not start a node or execute replication commands.
+- [x] Implement the CLI NDJSON adapter and HTTP schema adapter.
+- [x] Implement atomic staged snapshots, event ordering, complete-snapshot absence rules, reconnect/backoff, coverage gaps, graceful child cleanup, queue leases, and source budgets. Keep local Radicle use read-only; do not start a node or execute replication commands.
 
 - [ ] Implement metadata variants/selection, FTS/exact-ID search, every specified API route, publication checks, stable pagination, graph projection, normalized activity/summary queries, security headers, and cache/window revision behavior. Server code must not invoke `rad` or fetch upstream URLs in response to browser requests.
 

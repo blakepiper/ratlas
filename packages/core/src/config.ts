@@ -115,6 +115,8 @@ export const configSchema = z
       issue('Enabled Radicle requires explicit absolute executable and home paths');
     if (new Set(config.httpSources.map((source) => source.id)).size !== config.httpSources.length)
       issue('Source IDs must be unique');
+    if (config.httpSources.some((source) => source.id === 'local-observer'))
+      issue('Source ID local-observer is reserved');
     if (config.collection.perOriginConcurrency > config.collection.globalConcurrency)
       issue('Per-origin concurrency exceeds global concurrency');
     if (config.collection.jobRenewMs >= config.collection.jobLeaseMs)

@@ -5,3 +5,5 @@ export * from './snapshots.js';
 export * from './queries.js';
 export * from './demo.js';
 export * from './native.js';
+
+export * from './collection.js';

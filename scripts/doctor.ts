@@ -1,8 +1,14 @@
-import { spawnSync } from 'node:child_process';
-import { accessSync, constants, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { configPath, loadConfig } from '../apps/service/src/commands/config.js';
 import { dataset, openReader } from '../packages/db/dist/index.js';
+import {
+  cliCapabilities,
+  routingSnapshot,
+  HttpAdapter,
+  HttpTransport,
+  failureKind,
+} from '../packages/radicle/dist/index.js';
 import { toolchainSmoke } from './toolchain-smoke.js';
 
 const { values } = parseArgs({
@@ -10,61 +16,74 @@ const { values } = parseArgs({
   strict: true,
   allowPositionals: false,
 });
-if (values['check-sources']) {
-  console.error(
-    'Source probing is not implemented in Stage A; R1 approval is required before Stage B. No source was contacted.',
+await toolchainSmoke();
+if (!values.config && !process.env.RATLAS_CONFIG && !existsSync(configPath())) {
+  console.log(
+    'Live configuration: unconfigured. Copy and edit config/ratlas.example.json when ready.',
   );
-  process.exitCode = 2;
+  if (values['check-sources']) process.exitCode = 2;
 } else {
-  await toolchainSmoke();
-  if (!values.config && !process.env.RATLAS_CONFIG && !existsSync(configPath())) {
-    console.log(
-      'Live configuration: unconfigured (offline checks passed). Copy and edit config/ratlas.example.json when ready.',
-    );
-  } else {
-    const config = loadConfig(values.config);
-    console.log(
-      `Configuration valid: mode=${config.mode}; local observer policy=${config.localObserverPublication}; live collection not started`,
-    );
-    if (existsSync(config.storage.databasePath)) {
-      const db = openReader(config.storage.databasePath);
-      try {
-        if (dataset(db).kind !== config.mode) throw new Error('Configured database mode mismatch');
-        console.log('Application database: readable, schema current, mode matches');
-      } finally {
-        db.close();
-      }
-    } else console.log('Application database: not initialized; doctor did not create it');
-    if (config.radicle.enabled) {
-      const executable = config.radicle.executablePath!;
-      accessSync(executable, constants.X_OK);
-      const env: NodeJS.ProcessEnv = { ...process.env, RAD_HOME: config.radicle.homePath! };
-      delete env.RAD_SOCKET;
-      if (config.radicle.socketPath) env.RAD_SOCKET = config.radicle.socketPath;
-      for (const args of [
-        ['--version'],
-        ['self', '--help'],
-        ['node', '--help'],
-        ['node', 'status', '--help'],
-        ['node', 'routing', '--help'],
-      ]) {
-        const result = spawnSync(executable, args, {
-          env,
-          encoding: 'utf8',
-          timeout: 5000,
-          maxBuffer: 1048576,
-        });
-        if (result.error || result.status !== 0)
-          throw new Error(`Configured rad does not support ${args.join(' ')}`, {
-            cause: result.error,
-          });
-        // Help only: never infer permission to query a personal profile or node.
-        console.log(`Configured rad ${args.join(' ')}: supported`);
-        if (args[0] === '--version') console.log(result.stdout.trim().slice(0, 200));
-      }
+  const config = loadConfig(values.config);
+  console.log(
+    `Configuration valid: mode=${config.mode}; local observer policy=${config.localObserverPublication}; collection not started`,
+  );
+  if (existsSync(config.storage.databasePath)) {
+    const db = openReader(config.storage.databasePath);
+    try {
+      if (dataset(db).kind !== config.mode) throw new Error('Configured database mode mismatch');
+      console.log('Database: readable, schema current, mode matches');
+    } finally {
+      db.close();
+    }
+  } else console.log('Database: not initialized; doctor did not create it');
+  const signal = AbortSignal.timeout(60000);
+  let configured = 0;
+  if (config.radicle.enabled) {
+    configured++;
+    try {
+      const capabilities = await cliCapabilities(config.radicle, signal, values['check-sources']);
       console.log(
-        'Explicit observer paths configured. Identity/routing checks deferred to Stage B source probing.',
+        JSON.stringify({
+          adapter: 'cli',
+          ...capabilities,
+          publication: config.localObserverPublication,
+        }),
       );
-    } else console.log('Radicle executable/profile: disabled; no personal profile accessed');
-  }
+      if (values['check-sources']) {
+        let rows = 0;
+        for await (const row of routingSnapshot(config, signal)) if (row.rid) rows++;
+        console.log(`Configured CLI bounded snapshot: ${rows} rows; no data persisted`);
+      }
+    } catch (error) {
+      console.log('Configured CLI check: ' + failureKind(error));
+      process.exitCode = 1;
+    }
+  } else console.log('Local observer disabled; no personal profile accessed');
+  if (values['check-sources']) {
+    for (const source of config.httpSources.filter((s) => s.enabled)) {
+      configured++;
+      try {
+        const adapter = new HttpAdapter(new HttpTransport(source.apiBaseUrl, config.collection));
+        const node = await adapter.node(signal, source.expectedNid);
+        console.log(
+          JSON.stringify({
+            source: source.id,
+            adapter: 'http',
+            observerNid: node.id,
+            nodeSchema: 'recognized',
+            inventory: 'not-probed',
+            catalog: 'not-probed',
+            publication: 'public-http',
+          }),
+        );
+      } catch (error) {
+        console.log(JSON.stringify({ source: source.id, status: failureKind(error) }));
+        process.exitCode = 1;
+      }
+    }
+    if (!configured) {
+      console.log('Source checks not run: no enabled configured sources');
+      process.exitCode = 2;
+    }
+  } else console.log('Offline doctor: HTTP sources were not contacted');
 }

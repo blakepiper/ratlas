@@ -47,3 +47,9 @@ NORMAL. NORMAL trades durability of the latest transactions on power loss for
 less synchronization overhead; it does not justify copying only a live database
 file without its WAL. The API opens query-only, read-only connections and never
 migrates. A process-identity/nonce directory lease owns writer preparation.
+
+Stage B collection persists normalized event intake before applying it and deletes
+applied inventory payloads after their route observations are durable. A restart
+replays pending intake idempotently and marks interrupted snapshots as gaps. The
+CLI subscriber starts before the initial snapshot; event-touched keys win races,
+then a debounced snapshot reconciles again. There is no upstream atomic cursor.

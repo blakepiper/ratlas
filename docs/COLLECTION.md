@@ -1,0 +1,37 @@
+# ratlas collection
+
+Run commands inside `nix develop`. The demo and deterministic checks remain offline.
+Configure an existing approved observer and/or unauthenticated HTTPS API in the
+ignored `config/ratlas.local.json`; the committed example enables neither.
+API base URLs include the upstream API prefix (normally `/api/v1/`).
+
+- `pnpm doctor --check-sources --config config/ratlas.local.json` checks configured CLI help/identity/routing and one HTTP node response per source, without persisting observations.
+- `pnpm collect:once --config config/ratlas.local.json` performs one bounded collection round and reports cached public counts and failed sources.
+- `pnpm collect --config config/ratlas.local.json` runs the explicit collector until SIGINT/SIGTERM.
+- `pnpm test:live --config config/ratlas.local.json` runs a bounded 60-second live check. This requires approved source configuration; absent sources return exit 2.
+- `pnpm start:collector --config config/ratlas.local.json` runs the built collector without requiring a development-shell marker.
+
+The collector holds the application writer lease. It never starts a node or issues
+replication commands. It owns only its subscriber/snapshot children. Shutdown stops
+these children and closes the writer. The API and dev supervisor never collect.
+
+HTTP jobs persist with stable source/task/entity keys, 60-second leases renewed every
+20 seconds, and a one-second scheduler tick. Requests share rolling one-hour source
+budgets and origin spacing, including multiple source configurations at one origin.
+Discovery considers only independently public IDs; the queue is capped at 10,000
+jobs. Deferred work records `budget-deferred`; metadata-only listings never remove
+routes. A catalog interrupted by a budget or repeated page preserves validated
+metadata and records a partial run. Re-running starts its pages again idempotently.
+
+Five consecutive retryable failures open the breaker for five minutes. One probe
+is admitted after that interval. Retry-After is honored up to 24 hours; a longer
+value pauses that source for operator review. Restart/configuration changes do not
+silently clear the pause. HTTP 404 responses receive negative caching; successful
+metadata receives the configured 24-hour TTL. All diagnostics use bounded categories.
+
+CLI input limits and HTTP decoded-body limits are checked before publication.
+Raw stderr, arbitrary addresses and arbitrary upstream payload fields are discarded.
+Logs and databases remain in private application directories. Pending normalized
+intake can contain quarantined observations and is never a public API response.
+
+Live integration is not verified until the operator supplies approved working sources.

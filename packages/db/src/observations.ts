@@ -32,7 +32,7 @@ export function registerSource(db: Db, input: Source) {
     const previous = db.prepare('SELECT publication_policy FROM sources WHERE id=?').get(s.id) as
       { publication_policy: string } | undefined;
     db.prepare(
-      'INSERT INTO sources(id,adapter,label,origin,observer_nid,publication_policy,metadata_priority,enabled) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET label=excluded.label,publication_policy=excluded.publication_policy,metadata_priority=excluded.metadata_priority,enabled=excluded.enabled,observer_nid=excluded.observer_nid',
+      'INSERT INTO sources(id,adapter,label,origin,observer_nid,publication_policy,metadata_priority,enabled) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET label=excluded.label,origin=excluded.origin,publication_policy=excluded.publication_policy,metadata_priority=excluded.metadata_priority,enabled=excluded.enabled,observer_nid=excluded.observer_nid',
     ).run(
       s.id,
       s.adapter,
@@ -65,7 +65,12 @@ interface RouteState {
   last_observed_at: number;
   last_sequence: number;
 }
-export function observe(db: Db, input: ObservationInput, runId: string | null = null): boolean {
+export function observe(
+  db: Db,
+  input: ObservationInput,
+  runId: string | null = null,
+  clockSkewMs = 300000,
+): boolean {
   const event = observationSchema.parse(input);
   return db.transaction(() => {
     if (db.prepare('SELECT 1 FROM observations WHERE id=?').get(event.id)) return false;
@@ -77,7 +82,7 @@ export function observe(db: Db, input: ObservationInput, runId: string | null = 
     const previous = db
       .prepare('SELECT * FROM source_route_state WHERE source_id=? AND rid=? AND nid=?')
       .get(event.sourceId, event.rid, event.nid) as RouteState | undefined;
-    const announcement = announcementTime(event.announcedAt, event.observedAt);
+    const announcement = announcementTime(event.announcedAt, event.observedAt, clockSkewMs);
     const payloadHash = createHash('sha256')
       .update(JSON.stringify([event.rid, event.nid, event.kind]))
       .digest('hex');
@@ -184,6 +189,7 @@ export function storeMetadata(db: Db, input: unknown) {
       createHash('sha256').update(JSON.stringify(metadata)).digest('hex'),
       'success',
     );
+    if (metadata.visibility === 'private') db.exec('DELETE FROM stats_samples');
     refreshPublication(db, metadata.rid);
     if (source.publication_policy !== 'quarantine') incrementRevision(db);
   })();
