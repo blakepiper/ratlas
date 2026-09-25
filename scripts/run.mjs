@@ -84,6 +84,10 @@ const commands = {
     buildBackend();
     tsx('apps/service/src/main-collector.ts', '--duration-ms', '60000', ...args);
   },
+  experiment: () => {
+    buildBackend();
+    tsx('scripts/experiment.ts', ...args);
+  },
   check: () => {
     for (const name of ['format:check', 'lint', 'typecheck', 'test', 'test:e2e', 'build'])
       commands[name]();
@@ -99,6 +103,7 @@ if (
     'collect',
     'collect:once',
     'test:live',
+    'experiment',
     'data:review',
     'benchmark',
     'demo:scenario',

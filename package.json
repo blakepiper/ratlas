@@ -25,6 +25,7 @@
     "collect": "node scripts/run.mjs collect",
     "collect:once": "node scripts/run.mjs collect:once",
     "test:live": "node scripts/run.mjs test:live",
+    "experiment": "node scripts/run.mjs experiment",
     "start:collector": "NODE_ENV=production node apps/service/dist/main-collector.js",
     "data:review": "node scripts/run.mjs data:review",
     "data:target": "node scripts/run.mjs data:target",
