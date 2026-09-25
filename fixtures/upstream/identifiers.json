@@ -1,0 +1,11 @@
+{
+  "referenceCommit": "341982110",
+  "repositoryEncoding": "rad: + base58btc multibase of exactly 20 raw Git OID bytes; no multihash envelope",
+  "nodeEncoding": "base58btc multibase of ed 01 (Ed25519 multicodec) followed by 32 bytes",
+  "rid": "rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5",
+  "nid": "z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7",
+  "sources": [
+    "https://raw.githubusercontent.com/radicle-dev/heartwood/341982110/crates/radicle-core/src/repo.rs",
+    "https://raw.githubusercontent.com/radicle-dev/heartwood/341982110/crates/radicle-crypto/src/lib.rs"
+  ]
+}
