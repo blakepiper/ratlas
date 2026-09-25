@@ -11,7 +11,12 @@ import { projectRoot } from '../commands/config.js';
 
 export async function createApi(
   config: Config,
-  options: { production?: boolean; logger?: boolean; now?: () => number } = {},
+  options: {
+    production?: boolean;
+    logger?: boolean;
+    now?: () => number;
+    rateLimitMax?: number;
+  } = {},
 ) {
   configSchema.parse(config);
   const staticRoot = resolve(projectRoot, 'apps/web/dist');
@@ -54,7 +59,7 @@ export async function createApi(
     },
     crossOriginEmbedderPolicy: false,
   });
-  await app.register(rateLimit, { max: 120, timeWindow: 60000 });
+  await app.register(rateLimit, { max: options.rateLimitMax ?? 120, timeWindow: 60000 });
   app.setErrorHandler((error, request, reply) => {
     const status = (error as { statusCode?: number }).statusCode;
     request.log.error({ requestId: request.id }, 'ratlas request failed');

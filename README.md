@@ -1,7 +1,8 @@
 # ratlas
 
-A local browser of public Radicle repository observations. Stage B is implemented: bounded collection, recovery, metadata and the complete
-read-only API. R2 reviews data semantics before the full browsing interface.
+A local browser of public Radicle repository observations. Stage C adds the
+catalog, filters, and repository/node details to the existing read-only API.
+The interactive map awaits R3 browsing review.
 
 From this checkout on NixOS:
 
@@ -19,8 +20,11 @@ uses a fixed demo clock and never contacts upstream sources. Ctrl-C stops the
 supervisor and its own API, Vite and TypeScript watchers. Ports 3000 and 5173 must
 be free; startup refuses conflicts. Later starts reuse the demo database.
 
-The theme toggle persists locally. Map, activity, search, filters and detail
-navigation are explicitly unfinished. Automated screenshots show synthetic data.
+Search names, descriptions, or an exact RID. Filters, sorting, pagination,
+selection, and the observation window are saved in the URL. Repository details
+show source evidence and a copyable clone command; node details list observed
+repositories. The theme toggle persists locally. The map and activity view are
+clearly marked as forthcoming. Automated screenshots show synthetic data.
 
 ```sh
 nix develop --command pnpm check
@@ -56,8 +60,8 @@ Review the data without starting a collector:
 nix develop --command pnpm data:review --config config/ratlas.demo.json
 ```
 
-The saved report is `.ratlas/reviews/R2/data-review.md`. The right-hand coverage
-readout shows source provenance and successful snapshot times. Both adapters are
+The saved report is `.ratlas/reviews/R2/data-review.md`. The details pane's coverage
+view shows source provenance and successful snapshot times. Both adapters are
 fixture-tested; live source compatibility remains unverified without approved
 configuration. See [collection commands](docs/COLLECTION.md) and [API contracts](docs/API.md).
 Target datasets, demo reset/scenarios, backups and benchmarks remain later-stage work.

@@ -1198,11 +1198,11 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 **Phase 4. Begin only after R2 approval. Stop at R3.**
 
-- [ ] Build the complete React layout, search/list, source/window/metadata/seeder filters, sorting, pagination, random selection, URL state, repository/node detail panels, clone-command copying, and safe configured external links. Use the exact desktop and narrow layout rules. The graph region remains a clearly labeled forthcoming view until Stage D.
+- [x] Build the complete React layout, search/list, source/window/metadata/seeder filters, sorting, pagination, random selection, URL state, repository/node detail panels, clone-command copying, and safe configured external links. Use the exact desktop and narrow layout rules. The graph region remains a clearly labeled forthcoming view until Stage D.
 
-- [ ] Implement loading, empty, no-match, missing metadata, unsupported source, cached-outage, source-conflict, and quarantine-safe error states. Add keyboard navigation, focus management, theme persistence, and browser back/forward restoration. Tests use real application APIs over synthetic database fixtures, not a separate mock frontend implementation.
+- [x] Implement loading, empty, no-match, missing metadata, unsupported source, cached-outage, source-conflict, and quarantine-safe error states. Add keyboard navigation, focus management, theme persistence, and browser back/forward restoration. Tests use real application APIs over synthetic database fixtures, not a separate mock frontend implementation.
 
-- [ ] **Automated acceptance:** catalog/detail workflows and failure states pass deterministic E2E tests at both viewports; exact RID search works without names; no control requires the graph; refresh/back/forward preserve state; copy and browse actions are safe.
+- [x] **Automated acceptance:** catalog/detail workflows and failure states pass deterministic E2E tests at both viewports; exact RID search works without names; no control requires the graph; refresh/back/forward preserve state; copy and browse actions are safe.
 
 **R3: Stop and ask the user to inspect the browsing interface.**
 
