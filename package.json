@@ -17,6 +17,7 @@
     "build": "node scripts/run.mjs build",
     "doctor": "node scripts/run.mjs doctor",
     "db:migrate": "node scripts/run.mjs db:migrate",
+    "db:backup": "node scripts/run.mjs db:backup",
     "check": "node scripts/run.mjs check",
     "dev": "node scripts/dev.mjs dev",
     "demo": "node scripts/dev.mjs demo",

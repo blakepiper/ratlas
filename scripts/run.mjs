@@ -47,6 +47,10 @@ const commands = {
     buildBackend();
     tsx('scripts/prepare.ts', ...args);
   },
+  'db:backup': () => {
+    buildBackend();
+    tsx('scripts/db-backup.ts', ...args);
+  },
   'data:review': () => {
     buildBackend();
     tsx('scripts/data-review.ts', ...args);
@@ -87,6 +91,7 @@ if (
   ![
     'doctor',
     'db:migrate',
+    'db:backup',
     'collect',
     'collect:once',
     'test:live',

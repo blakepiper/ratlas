@@ -16,3 +16,4 @@ export * from './scenario.js';
 export * from './maintenance.js';
 export * from './errors.js';
 export * from './demo-reset.js';
+export * from './backup.js';
