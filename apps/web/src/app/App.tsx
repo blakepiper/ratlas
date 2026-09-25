@@ -453,9 +453,9 @@ export function App() {
   const relatedQuery = catalogParams(state, relatedPage, false).toString();
   const detailQuery = filterParams(state, false).toString();
   const summary = useQuery({
-    queryKey: ['summary'],
+    queryKey: ['summary', state.window],
     queryFn: async ({ signal }) =>
-      fullSummarySchema.parse(await getJson('/api/v1/summary', signal)),
+      fullSummarySchema.parse(await getJson(`/api/v1/summary?window=${state.window}`, signal)),
     refetchInterval: 15_000,
   });
   const catalog = useQuery({
@@ -653,7 +653,9 @@ export function App() {
                       .at(-1),
                   )}.`
                 : sourceOptions.some((source) => source.lastSuccess)
-                  ? `No observations within the ${state.window} window. Older records may be available in All retained.`
+                  ? info.observationWindow === 'all'
+                    ? 'No retained public observations are available.'
+                    : `No observations within the ${info.observationWindow} window. Older records may be available in All retained.`
                   : 'No public observations are available.'}
               {info.repositories === 0 &&
                 state.window !== 'all' &&

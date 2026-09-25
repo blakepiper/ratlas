@@ -76,6 +76,10 @@ test('synthetic source outage retains older data and recovery closes the coverag
     .click();
   await page.getByRole('button', { name: 'View all retained' }).click();
   await expect(page.getByRole('region', { name: 'Repository list' })).toContainText('100 results');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Cached observations remain available' }),
+  ).toBeVisible();
+  await page.screenshot({ path: `.ratlas/reviews/R5/${info.project.name}-stale-cached.png` });
 
   await page.goto(recoveryUrl);
   await page
