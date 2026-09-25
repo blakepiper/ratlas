@@ -15,6 +15,8 @@ for (const path of [
   'pnpm-lock.yaml',
   'package.json',
   'docs/CHECKPOINTS.md',
+  'deploy/nixos/ratlas.nix',
+  'deploy/nixos/README.md',
 ])
   git('ls-files', '--error-unmatch', path);
 for (const path of [

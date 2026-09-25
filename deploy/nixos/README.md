@@ -101,6 +101,18 @@ startup nor activates any system changes by itself. A reverse proxy, public
 domain, TLS, firewall change, or service activation is a separate operator
 decision.
 
+If an operator later activates the module, these commands stop both services
+for restore or updates, restart them in collector-first order, and show logs:
+
+```sh
+systemctl stop ratlas-api ratlas-collector
+systemctl start ratlas-collector ratlas-api
+journalctl -u ratlas-collector -u ratlas-api
+```
+
+Inspect the private collector log directory too. These are operator
+instructions, not actions performed during development.
+
 ## Back up, restore, and update
 
 Create a new, private SQLite online backup while the collector is running:
@@ -125,6 +137,27 @@ and inspect counts and source health before restarting the collector. Do not
 overwrite an open database or discard a WAL from an unclean shutdown.
 Restore validation has been exercised against the offline synthetic dataset;
 live recovery remains untested without an approved source.
+
+For example, after the operator has stopped both processes, from the checkout
+inside `nix develop`:
+
+```sh
+mkdir -p .ratlas/backups/pre-restore
+for suffix in '' '-wal' '-shm'; do
+  if test -e ".ratlas/live/ratlas.sqlite${suffix}"; then
+    mv ".ratlas/live/ratlas.sqlite${suffix}" .ratlas/backups/pre-restore/
+  fi
+done
+cp .ratlas/backups/ratlas-2026-09-25.sqlite .ratlas/live/restored.sqlite
+chmod 600 .ratlas/live/restored.sqlite
+sqlite3 .ratlas/live/restored.sqlite 'PRAGMA quick_check; SELECT COUNT(*) FROM repositories;'
+```
+
+Use the service account for these operations, or restore ownership to it
+before restart. Edit the copied local config so `storage.databasePath` points
+to `.ratlas/live/restored.sqlite`, then run `pnpm doctor --config` with that
+copied config. The old database and companions stay archived until the
+restored installation has been checked.
 
 For application updates, preserve both lockfiles, stop the services, take an
 online backup, enter the locked shell, run `pnpm install --frozen-lockfile`,

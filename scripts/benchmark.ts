@@ -8,10 +8,12 @@ import { createApi } from '../apps/service/src/api/server.js';
 import { checkToolchain } from './check-toolchain.mjs';
 
 checkToolchain();
+const freeMemoryBytesAtStart = freemem();
 const { values } = parseArgs({
   options: {
     samples: { type: 'string', default: '200' },
     warmup: { type: 'string', default: '20' },
+    case: { type: 'string' },
   },
   strict: true,
   allowPositionals: false,
@@ -29,7 +31,12 @@ if (
   throw new Error('Benchmark samples must be 1–1000 and warmup 0–100');
 const databasePath = resolve('.ratlas/demo/target.sqlite');
 const reader = openReader(databasePath);
-let details: { summary: ReturnType<typeof summary>; bytes: number; sqliteVersion: string };
+let details: {
+  summary: ReturnType<typeof summary>;
+  bytes: number;
+  sqliteVersion: string;
+  firstRid: string;
+};
 try {
   if (dataset(reader).kind !== 'demo' || dataset(reader).generator_version !== 2)
     throw new Error('Generate the deterministic target workload with pnpm data:target first');
@@ -39,6 +46,11 @@ try {
     sqliteVersion: (
       reader.prepare('SELECT sqlite_version() AS version').get() as { version: string }
     ).version,
+    firstRid: (
+      reader.prepare('SELECT rid FROM public_repositories ORDER BY rid LIMIT 1').get() as {
+        rid: string;
+      }
+    ).rid,
   };
 } finally {
   reader.close();
@@ -54,7 +66,13 @@ const cases = [
     name: 'bounded-graph',
     path: '/api/v1/graph?window=all&mode=overview&vertices=2000&edges=10000',
   },
+  {
+    name: 'repo-neighborhood',
+    path: `/api/v1/graph?window=all&mode=neighborhood&selected=${encodeURIComponent(`repo:${details.firstRid}`)}&vertices=2000&edges=10000`,
+  },
 ];
+if (values.case && !cases.some((entry) => entry.name === values.case))
+  throw new Error(`Unknown benchmark case: ${values.case}`);
 function distribution(values: number[]) {
   const ordered = values.toSorted((a, b) => a - b);
   return {
@@ -73,7 +91,7 @@ async function request(path: string) {
 }
 const measurements = [];
 try {
-  for (const entry of cases) {
+  for (const entry of cases.filter((candidate) => !values.case || candidate.name === values.case)) {
     for (let i = 0; i < warmup; i++) await request(entry.path);
     for (const concurrency of [1, 4]) {
       const durations: number[] = [];
@@ -110,7 +128,7 @@ const report = {
     cpu: cpus()[0]?.model,
     cores: cpus().length,
     totalMemoryBytes: totalmem(),
-    freeMemoryBytesAtStart: freemem(),
+    freeMemoryBytesAtStart,
   },
   runtime: { node: process.version, sqlite: details.sqliteVersion, platform: process.platform },
   workload: { seed: 20260925, databasePath: '.ratlas/demo/target.sqlite', ...details },
@@ -118,7 +136,10 @@ const report = {
   measurements,
 };
 mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });
-writeFileSync('.ratlas/reports/benchmark.json', JSON.stringify(report, null, 2) + '\n', {
+const reportPath = values.case
+  ? `.ratlas/reports/benchmark-${values.case}.json`
+  : '.ratlas/reports/benchmark.json';
+writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n', {
   mode: 0o600,
 });
-console.log('Saved .ratlas/reports/benchmark.json');
+console.log(`Saved ${reportPath}`);

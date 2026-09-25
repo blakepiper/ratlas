@@ -91,6 +91,9 @@ Target datasets are available through `pnpm data:target` and
 database. `pnpm benchmark` measures the target dataset with 20 warm-up and
 200 measured requests per query at concurrency one and four, saving an ignored
 report under `.ratlas/reports/`. Generate or migrate the target dataset first.
+`pnpm benchmark:browser` measures first and warm map navigation in isolated
+Nix-supplied Firefox, records the actual renderer mode, and saves local R6
+screenshots. A fallback timing is not a canvas frame-rate result.
 Create a verified online backup at a new path:
 
 ```sh

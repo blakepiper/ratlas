@@ -65,6 +65,11 @@ const commands = {
     buildBackend();
     tsx('scripts/benchmark.ts', ...args);
   },
+  'benchmark:browser': () => {
+    buildBackend();
+    buildWeb();
+    tsx('scripts/browser-benchmark.ts');
+  },
   'demo:scenario': () => {
     buildBackend();
     tsx('scripts/demo-scenario.ts', ...args);
