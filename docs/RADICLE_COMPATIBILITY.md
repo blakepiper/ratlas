@@ -39,3 +39,10 @@ NDJSON limits apply to bytes before UTF-8 decoding; the default line cap is 8 Mi
 configurable through `collection.eventLineMaxBytes` up to 16 MiB. A limit violation
 fails the snapshot or reconnects the subscriber; it never commits snapshot absence.
 CLI subprocess environments contain only locale and the configured Radicle paths.
+
+R2 result (2026-09-25): both adapters and recovery paths passed deterministic tests,
+including owned synthetic CLI subprocesses and an injected loopback HTTP fixture.
+No deployed source schema or installed Radicle version was measured. The disabled
+example produces exit 2 for `collect:once` and `test:live`, correctly reporting a
+missing prerequisite. Live validation remains blocked and requires explicit source
+configuration plus a fresh security-notice check, or an explicit R2 gap acceptance.

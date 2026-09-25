@@ -1184,7 +1184,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 - [ ] With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. **Blocked: no approved live source or observer is configured.**
 - [x] Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture.
-- [ ] Request explicit user acceptance of the live-integration gap at R2.
+- [x] Request explicit user acceptance of the live-integration gap at R2. **Acceptance is pending; no approval is implied.**
 
 - [x] Add `pnpm data:review` and connect the existing minimal demo screen to the full API. Its report must demonstrate one RID on three NIDs seen through two sources, no duplicate aggregate edges, source-specific disagreement, a missing metadata record, and a collection failure preserving cached data.
 
@@ -1192,7 +1192,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 **R2: Stop and ask the user to inspect the data behavior.**
 
-- [ ] Provide the data-review command, readable saved report, the localhost summary/coverage view, and a representative real-source result only if one actually succeeded. Ask the user to check whether source provenance, missing names, deduplicated counts, and data-freshness wording make sense. Stop live collection before waiting. Do not proceed to full interface work until R2 is approved.
+- [x] Provide the data-review command, readable saved report, the localhost summary/coverage view, and a representative real-source result only if one actually succeeded. Ask the user to check whether source provenance, missing names, deduplicated counts, and data-freshness wording make sense. Stop live collection before waiting. Do not proceed to full interface work until R2 is approved.
 
 ### Stage C: Complete catalog, search, filters, and details
 
