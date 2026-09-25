@@ -660,9 +660,9 @@ Return generic public errors with request IDs; keep stack traces and detailed lo
 
 Build a desktop-first application that remains usable on narrow screens.
 
-Use a compact top bar with project name, search, primary view controls, dataset mode, and collector/source status. The main exploration layout has a repository-results pane, a large central map, and a contextual detail panel. At widths below `1024px`, use explicit List, Map, and Details tabs. At desktop widths, use a 320px results pane, a flexible center, and a 360px detail pane; allow the two side panes to collapse. Do not implement pane resizing in v1.
+Use a compact top bar with project name, search, primary view controls, and dataset mode. Show collector/source problems in the main status message and source coverage details without a persistent cached-status label in the header. The main exploration layout has a repository-results pane, a large central map, and a contextual detail panel. At widths below `1024px`, use explicit List, Map, and Details tabs. At desktop widths, use a 320px results pane, a flexible center, and a 360px detail pane; allow the two side panes to collapse. Do not implement pane resizing in v1.
 
-Ship both dark and light themes, with dark as the initial preference and the selected theme stored under `ratlas.theme` in localStorage. Use readable text, visible focus rings, and text labels identifying node types. Avoid a landing-page hero, excessive cards, decorative motion, or a neon “hacker dashboard.” Put space and contrast into the map and its controls.
+Use the dark theme for the current interface. At R3, the user requested removal of the theme control and deferred light-theme support. Use readable text, visible focus rings, and text labels identifying node types. Avoid a landing-page hero, excessive cards, decorative motion, or a neon “hacker dashboard.” Put space and contrast into the map and its controls.
 
 Persist useful filters and selected entity in the URL so a repository or neighborhood can be linked and restored on refresh. Encode parameters safely. Preserve browser back/forward behavior.
 
@@ -1165,13 +1165,13 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 - [x] Create SQL migrations, Zod domain schemas, ID normalization, source/provenance records, public-versus-quarantined projections, and deterministic scenario generation. Test duplicate observations, source-specific removal, timestamp separation, snapshot completeness, and persistence after reopening.
 
-- [x] Build a minimal React shell at `http://127.0.0.1:5173`: the **ratlas** header, theme toggle, persistent synthetic label, first real database-backed summary, and a simple list of the small synthetic dataset’s repositories. Graph, activity, and incomplete navigation items must state that they are not implemented; no fake working controls. Use the real database/query path for this screen, not a hardcoded response that later must be replaced. The minimal summary/list API is a vertical slice, not an instruction to implement all of Phase 3 early.
+- [x] Build a minimal React shell at `http://127.0.0.1:5173`: the **ratlas** header, persistent synthetic label, first real database-backed summary, and a simple list of the small synthetic dataset’s repositories. Graph, activity, and incomplete navigation items must state that they are not implemented; no fake working controls. Use the real database/query path for this screen, not a hardcoded response that later must be replaced. The minimal summary/list API is a vertical slice, not an instruction to implement all of Phase 3 early.
 
 - [x] **Automated acceptance:** the Git repository is rooted in the intended folder, required project files and lockfiles are tracked, and completed work is saved in local commits; ignore rules exclude runtime/private/generated data; locked shell evaluates; frozen install works; native binding and FTS/WAL tests pass; Firefox launches from the Firefox-only bundle; domain tests pass; the demo screen reads actual generated SQLite rows; lint/typecheck/build checks applicable to this stage pass. No push or project-remote change has been performed.
 
 **R1: Stop and ask the user to inspect the foundation.**
 
-- [x] Provide `nix develop --command pnpm demo`, the actual localhost URL, desktop/narrow screenshots, and the toolchain report. Ask the user to check the name/theme/readability, basic screen layout, and clarity of the synthetic-data label. Explain that the graph is not built yet. Identify any missing approved live source/profile needed for Stage B. Do not implement collectors or the full API until R1 is approved.
+- [x] Provide `nix develop --command pnpm demo`, the actual localhost URL, desktop/narrow screenshots, and the toolchain report. Ask the user to check the name/readability, basic screen layout, and clarity of the synthetic-data label. Explain that the graph is not built yet. Identify any missing approved live source/profile needed for Stage B. Do not implement collectors or the full API until R1 is approved.
 
 ### Stage B: Collection, recovery, metadata, and the read-only API
 
@@ -1200,9 +1200,14 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 - [x] Build the complete React layout, search/list, source/window/metadata/seeder filters, sorting, pagination, random selection, URL state, repository/node detail panels, clone-command copying, and safe configured external links. Use the exact desktop and narrow layout rules. The graph region remains a clearly labeled forthcoming view until Stage D.
 
-- [x] Implement loading, empty, no-match, missing metadata, unsupported source, cached-outage, source-conflict, and quarantine-safe error states. Add keyboard navigation, focus management, theme persistence, and browser back/forward restoration. Tests use real application APIs over synthetic database fixtures, not a separate mock frontend implementation.
+- [x] Implement loading, empty, no-match, missing metadata, unsupported source, cached-outage, source-conflict, and quarantine-safe error states. Add keyboard navigation, focus management, and browser back/forward restoration. Tests use real application APIs over synthetic database fixtures, not a separate mock frontend implementation.
 
 - [x] **Automated acceptance:** catalog/detail workflows and failure states pass deterministic E2E tests at both viewports; exact RID search works without names; no control requires the graph; refresh/back/forward preserve state; copy and browse actions are safe.
+
+- [x] R3 layout feedback: put all four dataset counts on one line beneath the ratlas logo and remove their separate strip.
+- [x] R3 layout feedback: remove the full-width demo-mode bar and footer while keeping the synthetic-data label beside search.
+- [x] R3 layout feedback: remove the cached-observation header text and theme control; keep source-problem messages in the main content and details.
+- [x] R3 layout feedback: remove the map placeholder's bottom note.
 
 **R3: Stop and ask the user to inspect the browsing interface.**
 

@@ -30,3 +30,12 @@ precedence over package scripts. The Nix shell supplies a tiny `pnpm` dispatcher
 that maps only `pnpm doctor ...` to the same locked pnpm's `run doctor ...`.
 All other arguments go unchanged to `pkgs.pnpm_10`. This preserves the required
 project command without a package-manager version change or shell-entry effects.
+
+User-directed R3 layout revision (2026-09-25): dataset counts move beneath the
+logo on one line; the separate count, demo-mode, and footer bars and the map
+placeholder's bottom note are removed.
+The synthetic-data label remains beside search. The user also requested removal
+of the cached-observation header text and theme control, saying themes are not
+needed now. The current interface is dark only; source problems still appear in
+the main status message and source coverage details. Specification section 8.1
+and its Stage A/C completion wording were updated to reflect this direction.
