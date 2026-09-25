@@ -686,9 +686,9 @@ Use deterministic selection, explain it in the UI, and always show “displaying
 
 Provide a display-only “Hide large hosting nodes” control, initially off, with default degree threshold `1000`. Hide nodes with degree greater than that threshold. Compute degree under the current data filters before graph truncation. Use graph edge weight `1` for every relationship; do not apply hidden layout reweighting. Hidden nodes and edges do not change catalog-wide counts unless the user explicitly applies a data filter.
 
-Initialize nonzero positions deterministically from IDs. Reuse positions for unchanged entities and do not reset the whole layout after every poll. Run ForceAtlas2 in its worker with `barnesHutOptimize=true`, `barnesHutTheta=0.5`, `linLogMode=true`, `scalingRatio=10`, `gravity=1`, `slowDown=5`, `edgeWeightInfluence=0`, and the package’s remaining defaults. Stop automatically after five seconds in default/neighborhood mode and ten seconds in large mode. A resume action runs one more bounded interval; it is not endless simulation. Graphology provides worker lifecycle methods and the documented ForceAtlas2 options. [S12]
+Initialize nonzero positions deterministically from IDs. Reuse positions for unchanged entities and do not reset the whole layout after every poll. Run ForceAtlas2 in its worker with `barnesHutOptimize=true`, `barnesHutTheta=0.5`, `linLogMode=true`, `scalingRatio=10`, `gravity=1`, `slowDown=5`, `edgeWeightInfluence=0`, and the package’s remaining defaults. Stop automatically after five seconds in default/neighborhood mode and ten seconds in large mode; do not run endless simulation. Graphology provides worker lifecycle methods and the documented ForceAtlas2 options. [S12]
 
-For very large views, prioritize a stable, responsive map over endless force simulation. In overview mode, label only selected and hovered entities; in a focused neighborhood of at most 200 vertices, enable all labels. Otherwise use the explicit Show labels toggle, initially off. For more than 10000 returned edges, render only selected/hovered-neighborhood edges until the user explicitly enables All returned edges. Disclose this display state separately from API truncation. Dispose of renderer, listeners, observers, and workers when changing views.
+For very large views, prioritize a stable, responsive map over endless force simulation. In overview mode, label only selected and hovered entities; in a focused neighborhood of at most 200 vertices, enable all labels. Otherwise label only selected and hovered entities. For more than 10000 returned edges, render only selected/hovered-neighborhood edges. Disclose this display state separately from API truncation. The map has no separate navigation, layout, or label toolbar following R5 user feedback; pointer pan/zoom and the accessible entity list remain. Dispose of renderer, listeners, observers, and workers when changing views.
 
 Clearly label repository nodes versus Radicle node identities. Do not rely exclusively on color. Tooltips and panels should expose full IDs for copying without cluttering every label.
 
@@ -1217,7 +1217,7 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 **Phase 5. Begin only after R3 approval. Stop at R4.**
 
-- [x] Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, graph interaction controls, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
+- [x] Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, pointer graph interactions, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
 
 - [x] Generate the target-scale dataset and inspect real fallback screenshots at both viewport sizes, including the large-host display control.
 - [ ] Exercise a real Sigma canvas in Nix-provided Firefox and classify hardware or software WebGL. Headless and headed Nix Firefox currently return no WebGL context. A user screenshot shows the canvas in ordinary Firefox and exposed a selected-label contrast bug; the corrected label still needs manual review.
@@ -1241,6 +1241,8 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 - [x] Add a reproducible demo scenario command for outage/recovery that modifies only the demo dataset through the normal observation pipeline. It must never disconnect, block, or modify a real Radicle node to simulate failure. Record the scenario clock and which source events were injected.
 
 - [x] **Automated acceptance:** outage, reconnect, no-data, stale-data, and privacy scenarios pass; source failure never produces a global-deletion claim; count-series timestamps and retention boundaries are labeled correctly; diagnostic paths and quarantined IDs cannot leak. The Nix Firefox WebGL-dependent R4 checks remain separately open.
+
+- [x] R5 UI feedback: remove the map's pan/zoom, fit/reset, layout, and label/edge control row. Keep pointer map interaction and the accessible entity list.
 
 **R5: Stop and ask the user to inspect the complete feature set.**
 

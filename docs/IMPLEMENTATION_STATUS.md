@@ -1,8 +1,14 @@
 # ratlas implementation status
 
 Current stage: E complete and awaiting R5 review. Stage F is not authorized.
-The tested Stage E implementation is `de58ad979e534dd4e67171c08182fe4a54a2ab4b`;
+The tested R5 implementation is `e39924bd7f1510600802a16f29995daaed0407f8`;
 see [R5](reviews/R5.md) for commands, screenshots, and review points.
+
+The map's separate navigation, layout, and label/edge toolbar was removed in
+response to R5 UI feedback. Pointer pan/zoom, click selection, view and hub
+filters, and the accessible entity list remain. The revised implementation
+passed the full Nix-shell check. The toolbar change has not been visually
+confirmed on an ordinary Firefox WebGL canvas.
 
 The Activity view now shows a source-filtered, paged observation feed, stored
 UTC-hour repository/node/hosting count series, the explicit retained-history
@@ -21,7 +27,7 @@ It records database/WAL size, queue and event-backlog peaks, source failures,
 last reconciliation, and collector heartbeat. SQLite storage failures stop
 collection rather than being reported as source outages.
 
-`pnpm check` passed on the Stage E implementation: formatting, lint, repository
+`pnpm check` passed on the revised R5 implementation: formatting, lint, repository
 and Firefox policy checks, types, 59 deterministic tests, 22 Firefox UI tests
 across desktop and narrow viewports, and the production build. Two WebGL
 context-loss tests still skip because Nix-supplied Firefox cannot create a

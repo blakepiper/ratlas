@@ -39,3 +39,11 @@ of the cached-observation header text and theme control, saying themes are not
 needed now. The current interface is dark only; source problems still appear in
 the main status message and source coverage details. Specification section 8.1
 and its Stage A/C completion wording were updated to reflect this direction.
+
+User-directed R5 map revision (2026-09-25): remove the entire canvas toolbar,
+including directional pan, zoom, fit/reset, layout pause/resume, Show labels,
+and the conditional All returned edges control. Pointer map navigation, click
+selection, view/hub filters, and the accessible entity list remain. More than
+10000 returned edges continue to display only selected/hovered neighborhoods,
+with a separate disclosure. Specification section 8 and the Stage D/R5
+completion wording reflect this direction.
