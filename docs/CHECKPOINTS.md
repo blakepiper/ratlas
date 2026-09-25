@@ -2,14 +2,14 @@
 
 Only Stage A is authorized. No checkpoint approvals have been received.
 
-| Checkpoint | Status      | Presented revision | User approval | Review artifact                                        |
-| ---------- | ----------- | ------------------ | ------------- | ------------------------------------------------------ |
-| R1         | in_progress | —                  | Not received  | docs/TOOLCHAIN.md (bootstrap blocker; no review build) |
-| R2         | pending     | —                  | Not received  | —                                                      |
-| R3         | pending     | —                  | Not received  | —                                                      |
-| R4         | pending     | —                  | Not received  | —                                                      |
-| R5         | pending     | —                  | Not received  | —                                                      |
-| R6         | pending     | —                  | Not received  | —                                                      |
+| Checkpoint | Status  | Presented revision | User approval | Review artifact                                                |
+| ---------- | ------- | ------------------ | ------------- | -------------------------------------------------------------- |
+| R1         | blocked | —                  | Not received  | docs/SQLITE_COMPATIBILITY.md (native blocker; no review build) |
+| R2         | pending | —                  | Not received  | —                                                              |
+| R3         | pending | —                  | Not received  | —                                                              |
+| R4         | pending | —                  | Not received  | —                                                              |
+| R5         | pending | —                  | Not received  | —                                                              |
+| R6         | pending | —                  | Not received  | —                                                              |
 
 User feedback: none yet.
 
@@ -19,3 +19,7 @@ No implementation SHA or R1 presentation exists yet. See `IMPLEMENTATION_STATUS.
 
 2026-09-25: user approved ESLint and @eslint/js family 10 (“Yes I approve bumping
 the version”). Bootstrap resumed. This is a dependency deviation, not R1 approval.
+
+2026-09-25: ESLint bootstrap completed and was committed. The real database workload
+revealed a Node 24.21.0 / better-sqlite3 12.11.1 native abort. R1 is blocked pending
+a requested better-sqlite3 13.0.3 deviation; no approval or presentation yet.

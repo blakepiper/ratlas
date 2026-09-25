@@ -74,3 +74,10 @@ not the ratlas application or a live-data screenshot.
 An inherited deleted TMPDIR in the agent environment was worked around with
 command-scoped env -u TMPDIR nix develop --command; no user settings changed.
 See NIX_DEVELOPMENT.md for normal commands and the workaround.
+
+## Subsequent workload failure
+
+The initial small smoke results above remain accurate, but the larger Stage A
+database workload aborts natively under better-sqlite3 12.11.1 and Node 24.21.0.
+The dependency combination is not accepted for R1. See SQLITE_COMPATIBILITY.md
+for reproduction, limits, and the pending family-change request.
