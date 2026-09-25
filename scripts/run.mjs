@@ -14,7 +14,9 @@ const buildWeb = () => pnpm('--filter', '@ratlas/web', 'exec', 'vite', 'build');
 const commands = {
   'format:check': () => {
     pnpm('exec', 'prettier', '--check', '.');
-    execFileSync('nixfmt', ['--check', 'flake.nix'], { stdio: 'inherit' });
+    execFileSync('nixfmt', ['--check', 'flake.nix', 'deploy/nixos/ratlas.nix'], {
+      stdio: 'inherit',
+    });
   },
   lint: () => {
     pnpm('exec', 'eslint', '.');

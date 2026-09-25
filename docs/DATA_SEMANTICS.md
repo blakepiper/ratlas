@@ -1,6 +1,6 @@
 # ratlas data semantics
 
-Stage E data behavior; Stage F validation and operations await R5 approval.
+Current data behavior. Stage F validation and operations are tracked separately.
 
 Identity uses exact case-sensitive IDs. The checked Heartwood `341982110` RID
 encoding is `rad:` plus base58btc multibase of a raw 20-byte Git OID. It is not a

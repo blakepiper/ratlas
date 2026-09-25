@@ -1251,6 +1251,8 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Add a resumable, operator-invoked 24-hour observation experiment command. Its no-source preflight exits incomplete; no day-long or live run was performed during implementation.
 
+- [x] Write the first-run, architecture, and NixOS operations documentation; provide and evaluate an unactivated two-service module. Live activation remains untested.
+
 - [ ] Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, backup/restore tests, and separately approved live smoke tests. Fix failures without weakening assertions or replacing live tests with fixtures. Validate the unactivated NixOS module’s structure and document activation as untested unless explicitly performed under separate approval.
 
 - [ ] Write the first-run README, architecture/semantics reports, compatibility report, NixOS runbook, backup/restore procedure, safe dedicated-observer instructions, 24-hour experiment command, and final validation/performance reports. Check all examples against implemented command names and config paths. Include a complete list of observed limitations and user-accepted gaps.

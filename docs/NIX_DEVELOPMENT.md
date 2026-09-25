@@ -41,12 +41,22 @@ The development environment is pinned in `flake.lock`; exact JavaScript packages
 are pinned in manifests and `pnpm-lock.yaml`. Keep both locks unchanged after R1
 unless the user explicitly approves an update.
 
-Use `nix develop --profile .ratlas/dev-profile` for a persistent development GC
-root when using the built native addon outside an interactive shell. This is a
-checkout-built application, not a sandbox-built distributable Nix package.
+For a persistent development GC root, create `.ratlas/` and enter the shell
+with a profile:
+
+```sh
+mkdir -p .ratlas
+nix develop --profile .ratlas/dev-profile
+```
+
+This preserves the native toolchain when using the built addon outside an
+interactive shell. This is a checkout-built application, not a sandbox-built
+distributable Nix package.
 
 Follow specification section 0.6 for Git: inspect the index and worktree, stage
 explicit paths, inspect cached diff/checks, and make incremental local commits.
 Preserve configured identity, signing and hooks. Never create/modify remotes,
 push, publish, or rewrite history. Checkpoint documents commit separately and
-refer to the already committed, tested implementation SHA. Stop for human review.
+refer to the already committed, tested implementation SHA. The user authorized
+autonomous completion after R5; R6 records the final build without another
+approval gate.

@@ -10,6 +10,7 @@ API base URLs include the upstream API prefix (normally `/api/v1/`).
 - `pnpm collect --config config/ratlas.local.json` runs the explicit collector until SIGINT/SIGTERM.
 - `pnpm test:live --config config/ratlas.local.json` runs a bounded 60-second live check. This requires approved source configuration; absent sources return exit 2.
 - `pnpm start:collector --config config/ratlas.local.json` runs the built collector without requiring a development-shell marker.
+- `pnpm experiment --config config/ratlas.local.json --duration 24h` runs an operator-invoked, resumable 24-hour observation experiment. It was not run during implementation.
 
 The collector holds the application writer lease. It never starts a node or issues
 replication commands. It owns only its subscriber/snapshot children. Shutdown stops
@@ -35,3 +36,5 @@ Logs and databases remain in private application directories. Pending normalized
 intake can contain quarantined observations and is never a public API response.
 
 Live integration is not verified until the operator supplies approved working sources.
+See the [NixOS runbook](../deploy/nixos/README.md) for dedicated observer,
+permission, backup, restore, shutdown, and update procedures.

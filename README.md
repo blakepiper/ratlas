@@ -1,8 +1,11 @@
 # ratlas
 
 A local browser of public Radicle repository observations. The catalog, map,
-Activity view, and source coverage are implemented through Stage E. The R5
-feature review is pending; final operations work awaits its approval.
+Activity view, and source coverage work with a deterministic offline demo.
+Live collection requires an explicitly configured and approved public source;
+the committed configuration starts none. The user authorized autonomous
+completion after R5, and [checkpoint status](docs/CHECKPOINTS.md) records
+validation progress.
 
 From this checkout on NixOS:
 
@@ -85,10 +88,21 @@ fixture-tested; live source compatibility remains unverified without approved
 configuration. See [collection commands](docs/COLLECTION.md) and [API contracts](docs/API.md).
 Target datasets are available through `pnpm data:target` and
 `pnpm demo --dataset target`; `pnpm demo:reset --dataset target` recreates only that separate demo
-database. Backup/restore validation and final benchmarks remain Stage F work.
+database. `pnpm benchmark` measures the target dataset with 20 warm-up and
+200 measured requests per query at concurrency one and four, saving an ignored
+report under `.ratlas/reports/`. Generate or migrate the target dataset first.
+Create a verified online backup at a new path:
+
+```sh
+pnpm db:backup --config config/ratlas.local.json --output .ratlas/backups/ratlas.sqlite
+```
+
+See the [NixOS runbook](deploy/nixos/README.md) for restore, service isolation,
+safe observer, update, and 24-hour experiment instructions. No day-long run or
+system service activation is part of development.
 
 See [development instructions](docs/NIX_DEVELOPMENT.md),
 [data semantics](docs/DATA_SEMANTICS.md), [toolchain results](docs/TOOLCHAIN.md),
 [dependency assessment](docs/DEPENDENCY_SECURITY.md) and
-[checkpoint status](docs/CHECKPOINTS.md). Both dependency-family deviations have
+[architecture](docs/ARCHITECTURE.md). Both dependency-family deviations have
 explicit user approval. Work is committed locally; nothing is pushed.
