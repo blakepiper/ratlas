@@ -1,6 +1,6 @@
 # ratlas data semantics
 
-Stage A foundation; live adapters and the complete read-only API await R1 approval.
+Stage E data behavior; Stage F validation and operations await R5 approval.
 
 Identity uses exact case-sensitive IDs. The checked Heartwood `341982110` RID
 encoding is `rad:` plus base58btc multibase of a raw 20-byte Git OID. It is not a
@@ -29,8 +29,9 @@ Snapshots stage rows separately, with transactions of at most 1000 rows. Only
 complete successful snapshots can merge or reconcile absences. Two comparable
 complete absences are required; failed/partial/interrupted runs preserve cached
 state. Scope limits negative transitions. Event-touched keys are protected during
-the snapshot interval. The collector's actual subscriber/reconnect machinery is
-not yet implemented and will not promise an atomic upstream cursor.
+the snapshot interval. The collector subscribes before its initial snapshot,
+reconnects after a stream interruption, and marks the intervening coverage gap.
+There is no atomic upstream cursor.
 
 The `24h` and `7d` windows describe positive source observations, not online status.
 `all` includes retained historical positives even when no source still reports a
@@ -53,3 +54,22 @@ applied inventory payloads after their route observations are durable. A restart
 replays pending intake idempotently and marks interrupted snapshots as gaps. The
 CLI subscriber starts before the initial snapshot; event-touched keys win races,
 then a debounced snapshot reconciles again. There is no upstream atomic cursor.
+
+The Activity feed lists source-specific route changes and collection gaps; a
+gap is evidence of incomplete collection, not evidence of global route deletion.
+An open gap that began before the displayed history range remains visible at
+the range boundary. Stored count samples have one row per UTC hour, public
+scope, and observation window. The three chart series count unique public
+RIDs, node identities, and RID/NID hosting pairs; they do not measure online
+availability. A private metadata response withholds that source's record,
+without removing independently public evidence or exposing private details.
+
+The collector prunes normalized observation details after seven days and route
+transitions, closed gaps, hourly samples, and unreferenced run diagnostics after
+90 days by default. It prunes once per day in 1000-row batches. A retained
+transition may lose its optional observation-detail pointer while keeping the
+transition itself. Canonical IDs, first-observed dates, and current per-source
+route state remain for the installation's lifetime. The public retained-history
+boundary advances only after a successful pass, so the feed and chart do not
+imply complete history before that point. Storage failures stop collection;
+they are not converted into source-failure evidence.

@@ -1234,15 +1234,17 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 **Phase 6. Begin only after R4 approval. Stop at R5.**
 
-- [ ] Finish the observation feed, three-series SVG summary chart, complete source-evidence UI, gap labels, history boundary, privacy-conflict display, retention jobs, circuit-breaker status, source budgets, disk/queue guards, and maintenance behavior. Preserve the existing view’s usable data through simulated source outages and restart/reconnect sequences.
+- [x] Finish the observation feed, three-series SVG summary chart, source-evidence UI, gap labels, history boundary, privacy-conflict wording, and circuit-breaker status. Preserve the existing view’s usable data through simulated source outages and restart/reconnect sequences.
 
-- [ ] Add a reproducible demo scenario command for outage/recovery that modifies only the demo dataset through the normal observation pipeline. It must never disconnect, block, or modify a real Radicle node to simulate failure. Record the scenario clock and which source events were injected.
+- [x] Finish retention jobs, source budgets, disk/queue guards, and maintenance behavior.
 
-- [ ] **Automated acceptance:** outage, reconnect, no-data, stale-data, and privacy scenarios pass; source failure never produces a global-deletion claim; count-series timestamps and retention boundaries are labeled correctly; diagnostic paths and quarantined IDs cannot leak.
+- [x] Add a reproducible demo scenario command for outage/recovery that modifies only the demo dataset through the normal observation pipeline. It must never disconnect, block, or modify a real Radicle node to simulate failure. Record the scenario clock and which source events were injected.
+
+- [x] **Automated acceptance:** outage, reconnect, no-data, stale-data, and privacy scenarios pass; source failure never produces a global-deletion claim; count-series timestamps and retention boundaries are labeled correctly; diagnostic paths and quarantined IDs cannot leak. The Nix Firefox WebGL-dependent R4 checks remain separately open.
 
 **R5: Stop and ask the user to inspect the complete feature set.**
 
-- [ ] Provide the demo and outage/recovery scenario commands plus screenshots of normal, stale, and gap states. Ask the user to inspect the activity wording, provenance panel, coverage limits, chart, and behavior when one source fails. Do not begin final hardening/handoff work until R5 is approved.
+- [x] Provide the demo and outage/recovery scenario commands plus screenshots of normal, stale, and gap states. Ask the user to inspect the activity wording, provenance panel, coverage limits, chart, and behavior when one source fails. Do not begin final hardening/handoff work until R5 is approved.
 
 ### Stage F: Validation, operations, documentation, and release candidate
 

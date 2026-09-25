@@ -1,8 +1,8 @@
 # ratlas
 
-A local browser of public Radicle repository observations. Stage C adds the
-catalog, filters, and repository/node details to the existing read-only API.
-The interactive map awaits R3 browsing review.
+A local browser of public Radicle repository observations. The catalog, map,
+Activity view, and source coverage are implemented through Stage E. The R5
+feature review is pending; final operations work awaits its approval.
 
 From this checkout on NixOS:
 
@@ -23,8 +23,27 @@ be free; startup refuses conflicts. Later starts reuse the demo database.
 Search names, descriptions, or an exact RID. Filters, sorting, pagination,
 selection, and the observation window are saved in the URL. Repository details
 show source evidence and a copyable clone command; node details list observed
-repositories. The theme toggle persists locally. The map and activity view are
-clearly marked as forthcoming. Automated screenshots show synthetic data.
+repositories. Explore includes a bounded relationship map and accessible entity
+list fallback when Firefox cannot create a WebGL context. Activity shows stored
+count history, source-specific changes, collection gaps, and coverage limits.
+
+To repeat the offline outage/recovery walkthrough, stop the demo supervisor,
+reset its dedicated database, and start `pnpm demo` again. Reset archives the
+previous demo database and refuses a live or in-use database. In another Nix
+shell, run the scenario commands while the demo UI is open:
+
+```sh
+pnpm demo:reset
+pnpm demo
+# In a second shell after opening the UI:
+pnpm demo:scenario --name source-outage
+pnpm demo:scenario --name source-recovery
+```
+
+Inspect Activity at each step. During the outage, 24-hour counts fall to zero
+while All retained still shows cached repositories. Recovery closes the gap and
+restores current counts. Each command prints its synthetic clock and injected
+events; scenario reports are saved under ignored `.ratlas/reviews/R5/`.
 
 ```sh
 nix develop --command pnpm check
@@ -64,7 +83,9 @@ The saved report is `.ratlas/reviews/R2/data-review.md`. The details pane's cove
 view shows source provenance and successful snapshot times. Both adapters are
 fixture-tested; live source compatibility remains unverified without approved
 configuration. See [collection commands](docs/COLLECTION.md) and [API contracts](docs/API.md).
-Target datasets, demo reset/scenarios, backups and benchmarks remain later-stage work.
+Target datasets are available through `pnpm data:target` and
+`pnpm demo --dataset target`; `pnpm demo:reset --dataset target` recreates only that separate demo
+database. Backup/restore validation and final benchmarks remain Stage F work.
 
 See [development instructions](docs/NIX_DEVELOPMENT.md),
 [data semantics](docs/DATA_SEMANTICS.md), [toolchain results](docs/TOOLCHAIN.md),
