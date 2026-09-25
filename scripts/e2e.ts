@@ -32,7 +32,11 @@ const app = await createApi(configSchema.parse({ mode: 'demo', storage: { databa
   production: true,
   rateLimitMax: 1000,
 });
-async function variant(name: string, populate: (db: Db) => void) {
+async function variant(
+  name: string,
+  populate: (db: Db) => void,
+  limits?: { vertices: number; edges: number },
+) {
   const databasePath = resolve(directory, `${name}.sqlite`);
   const fixture = openWriter(databasePath);
   try {
@@ -41,10 +45,22 @@ async function variant(name: string, populate: (db: Db) => void) {
   } finally {
     fixture.close();
   }
-  return createApi(configSchema.parse({ mode: 'demo', storage: { databasePath } }), {
-    production: true,
-    rateLimitMax: 1000,
-  });
+  return createApi(
+    configSchema.parse({
+      mode: 'demo',
+      storage: { databasePath },
+      ...(limits
+        ? {
+            presentation: {
+              overview: limits,
+              neighborhood: limits,
+              full: limits,
+            },
+          }
+        : {}),
+    }),
+    { production: true, rateLimitMax: 1000 },
+  );
 }
 const emptyApp = await variant('empty', () => {});
 const unsupportedApp = await variant('unsupported', (db) => {
@@ -53,6 +69,7 @@ const unsupportedApp = await variant('unsupported', (db) => {
     "UPDATE source_health SET current_error='unsupported-schema' WHERE source_id='demo-a'",
   ).run();
 });
+const limitedApp = await variant('limited', generateSmallDemo, { vertices: 10, edges: 10 });
 const browsePath = resolve(directory, 'browse.sqlite');
 const browseWriter = openWriter(browsePath);
 try {
@@ -107,6 +124,7 @@ try {
   const url = await app.listen({ host: '127.0.0.1', port: 0 });
   const emptyUrl = await emptyApp.listen({ host: '127.0.0.1', port: 0 });
   const unsupportedUrl = await unsupportedApp.listen({ host: '127.0.0.1', port: 0 });
+  const limitedUrl = await limitedApp.listen({ host: '127.0.0.1', port: 0 });
   const browseUrl = await browseApp.listen({ host: '127.0.0.1', port: 0 });
   const child = spawn(
     'pnpm',
@@ -118,6 +136,7 @@ try {
         RATLAS_TEST_BASE_URL: url,
         RATLAS_TEST_EMPTY_URL: emptyUrl,
         RATLAS_TEST_UNSUPPORTED_URL: unsupportedUrl,
+        RATLAS_TEST_LIMITED_URL: limitedUrl,
         RATLAS_TEST_BROWSE_URL: browseUrl,
       },
     },
@@ -137,6 +156,7 @@ try {
 } finally {
   await browseApp.close();
   await unsupportedApp.close();
+  await limitedApp.close();
   await emptyApp.close();
   await app.close();
 }

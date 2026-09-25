@@ -20,6 +20,7 @@ import {
   safeBrowseUrl,
   type Selection,
 } from './explore.js';
+import { GraphMap } from './GraphMap.js';
 import styles from './App.module.css';
 
 type Repo = z.infer<typeof repoDetailSchema>;
@@ -440,6 +441,7 @@ export function App() {
     setDetailsCollapsed(false);
   }
   const filters = filterParams(state);
+  const graphFilters = filters.toString();
   const catalogQuery = catalogParams(state).toString();
   const relatedQuery = catalogParams(state, relatedPage, false).toString();
   const detailQuery = filterParams(state, false).toString();
@@ -594,7 +596,7 @@ export function App() {
       </header>
       <nav className={styles.viewBar} aria-label="Primary views">
         <strong>Explore</strong>
-        <span>Map · Stage D</span>
+        <span>Map</span>
         <span>Activity · forthcoming</span>
       </nav>
       <main>
@@ -860,27 +862,15 @@ export function App() {
               </>
             )}
           </section>
-          <section
-            className={styles.map}
-            aria-labelledby="map-heading"
-            data-active={mobileTab === 'map'}
-          >
-            <div className={styles.paneHeading}>
-              <h2 id="map-heading">Relationship map</h2>
-              <span>Stage D</span>
-            </div>
-            <div className={styles.mapMessage}>
-              <span className={styles.mapSymbol} aria-hidden="true">
-                [repo] — [node]
-              </span>
-              <h3>The map is not implemented yet</h3>
-              <p>
-                Search, filter, and inspect real observation records in the list and details.
-                Interactive graph exploration follows browsing review.
-              </p>
-              <span className={styles.later}>No graph or layout simulation is running</span>
-            </div>
-          </section>
+          <GraphMap
+            filterQuery={graphFilters}
+            selected={state.selected}
+            datasetRevision={info?.datasetRevision}
+            windowBucket={info?.windowBucket}
+            active={mobileTab === 'map'}
+            onSelect={select}
+            onClearSelection={() => setParam('selected', '', false)}
+          />
           <aside
             className={styles.details}
             aria-label="Details"

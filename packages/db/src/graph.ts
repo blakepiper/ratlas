@@ -86,14 +86,16 @@ export function graphProjection(
     returned.push(...eligibleEdges);
   } else if (query.mode === 'neighborhood') {
     chosen.add(selected!.key);
+    const byNeighbor = new Map<string, (typeof edges)[number]>();
+    for (const edge of eligibleEdges)
+      byNeighbor.set(edge.source === selected!.key ? edge.target : edge.source, edge);
     const neighbors = candidates
       .filter((n) => n.key !== selected!.key)
       .sort((a, b) => b.degree - a.degree || binary(a.id, b.id));
     for (const node of neighbors) {
       if (chosen.size >= limit.vertices || returned.length >= limit.edges) break;
       chosen.add(node.key);
-      const edge = eligibleEdges.find((e) => e.source === node.key || e.target === node.key)!;
-      returned.push(edge);
+      returned.push(byNeighbor.get(node.key)!);
     }
   } else {
     const byRepo = new Map<string, typeof edges>();

@@ -96,17 +96,33 @@ test('catalog, details, relationships, and URL restoration in the real demo', as
   await expect(list.getByRole('listitem')).toHaveCount(4);
   await showTab(page, 'Details');
 
-  mkdirSync('.ratlas/reviews/R3', { recursive: true, mode: 0o700 });
+  mkdirSync('.ratlas/reviews/R4', { recursive: true, mode: 0o700 });
   const narrow = await page.getByRole('navigation', { name: 'Workspace tabs' }).isVisible();
+  await showTab(page, 'Map');
+  const map = page.getByRole('region', { name: 'Relationship map' });
+  await expect(map.getByText(/Displaying \d+ of \d+ eligible entities/u)).toBeVisible();
+  await expect(map.locator('[data-graph-renderer]')).toHaveAttribute(
+    'data-graph-renderer',
+    /^(webgl|fallback)$/u,
+  );
+  const rendererState = await map
+    .locator('[data-graph-renderer]')
+    .getAttribute('data-graph-renderer');
+  expect(['webgl', 'fallback']).toContain(rendererState);
+  if (rendererState === 'webgl')
+    await expect(map.locator('[data-graph-renderer="webgl"] canvas').first()).toBeVisible();
+  else await expect(map.getByText(/WebGL is unavailable/u)).toBeVisible();
   if (narrow) {
     await showTab(page, 'List');
-    await page.screenshot({ path: `.ratlas/reviews/R3/${info.project.name}-list.png` });
+    await page.screenshot({ path: `.ratlas/reviews/R4/${info.project.name}-list.png` });
     await showTab(page, 'Map');
-    await page.screenshot({ path: `.ratlas/reviews/R3/${info.project.name}-map.png` });
+    await page.screenshot({
+      path: `.ratlas/reviews/R4/${info.project.name}-map-${rendererState}.png`,
+    });
     await showTab(page, 'Details');
   }
   await page.screenshot({
-    path: `.ratlas/reviews/R3/${info.project.name}-dark.png`,
+    path: `.ratlas/reviews/R4/${info.project.name}-dark.png`,
     fullPage: !narrow,
   });
   expect(errors).toEqual([]);

@@ -341,39 +341,6 @@
 .pagination button:disabled {
   opacity: 0.4;
 }
-.map {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.mapMessage {
-  max-width: 390px;
-  margin: auto;
-  padding: 35px;
-  text-align: center;
-}
-.mapSymbol {
-  font:
-    18px ui-monospace,
-    monospace;
-  color: var(--muted);
-}
-.mapMessage h3 {
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.5;
-}
-.mapMessage p {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.8;
-}
-.later {
-  display: block;
-  margin-top: 20px;
-  color: var(--muted);
-  font-size: 11px;
-}
 .detailBody {
   padding: 8px 18px 22px;
 }
