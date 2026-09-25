@@ -113,7 +113,9 @@ export function generateSmallDemo(db: Db) {
     db.prepare(
       'UPDATE source_health SET last_attempt=?,last_success=?,last_complete_snapshot=?,event_stream_status=?',
     ).run(DEMO_REFERENCE - 600000, DEMO_REFERENCE - 600000, DEMO_REFERENCE - 3600000, 'synthetic');
-    db.prepare('UPDATE dataset_meta SET generator_version=1 WHERE id=1').run();
+    db.prepare(
+      'UPDATE dataset_meta SET generator_version=1,retention_boundary=(SELECT MIN(observed_at) FROM route_changes) WHERE id=1',
+    ).run();
     sampleSummary(db, DEMO_REFERENCE);
   })();
 }
@@ -252,7 +254,9 @@ export function generateTargetDemo(db: Db, onProgress?: (repositories: number) =
     db.prepare(
       'UPDATE source_health SET last_attempt=?,last_success=?,last_complete_snapshot=?,event_stream_status=?',
     ).run(DEMO_REFERENCE, DEMO_REFERENCE, DEMO_REFERENCE, 'synthetic');
-    db.prepare('UPDATE dataset_meta SET generator_version=2 WHERE id=1').run();
+    db.prepare(
+      'UPDATE dataset_meta SET generator_version=2,retention_boundary=(SELECT MIN(observed_at) FROM route_changes) WHERE id=1',
+    ).run();
     const counts = summary(db);
     if (
       counts.repositories !== 20_000 ||

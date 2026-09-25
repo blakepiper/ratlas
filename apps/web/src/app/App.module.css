@@ -119,8 +119,16 @@
   min-height: 39px;
   color: var(--muted);
 }
-.viewBar strong {
+.viewBar button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--muted);
+  font: inherit;
+}
+.viewBar button[aria-current='page'] {
   color: var(--text);
+  font-weight: 650;
 }
 .warning,
 .error {

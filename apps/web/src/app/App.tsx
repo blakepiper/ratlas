@@ -21,6 +21,7 @@ import {
   type Selection,
 } from './explore.js';
 import { GraphMap } from './GraphMap.js';
+import { ActivityView } from './ActivityView.js';
 import styles from './App.module.css';
 
 type Repo = z.infer<typeof repoDetailSchema>;
@@ -395,6 +396,7 @@ function Pagination({
 export function App() {
   const [params, setParams] = useSearchParams();
   const state = readExploreState(params);
+  const primaryView = params.get('view') === 'activity' ? 'activity' : 'explore';
   const [searchInput, setSearchInput] = useState(state.q);
   const [mobileTab, setMobileTab] = useState<'list' | 'map' | 'details'>('list');
   const [listCollapsed, setListCollapsed] = useState(false);
@@ -436,7 +438,12 @@ export function App() {
     });
   }
   function select(selection: Selection) {
-    setParam('selected', `${selection.kind}:${selection.id}`, false);
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('selected', `${selection.kind}:${selection.id}`);
+      next.delete('view');
+      return next;
+    });
     setMobileTab('details');
     setDetailsCollapsed(false);
   }
@@ -449,6 +456,7 @@ export function App() {
     queryKey: ['summary'],
     queryFn: async ({ signal }) =>
       fullSummarySchema.parse(await getJson('/api/v1/summary', signal)),
+    refetchInterval: 15_000,
   });
   const catalog = useQuery({
     queryKey: ['catalog', catalogQuery, summary.data?.datasetRevision, summary.data?.windowBucket],
@@ -547,8 +555,11 @@ export function App() {
     state.window === '24h';
   return (
     <div className={styles.app}>
-      <a className={styles.skip} href="#repository-list">
-        Skip to repositories
+      <a
+        className={styles.skip}
+        href={primaryView === 'activity' ? '#activity-view' : '#repository-list'}
+      >
+        Skip to {primaryView === 'activity' ? 'activity' : 'repositories'}
       </a>
       <header className={styles.header}>
         <div className={styles.brand}>
@@ -595,9 +606,20 @@ export function App() {
         </label>
       </header>
       <nav className={styles.viewBar} aria-label="Primary views">
-        <strong>Explore</strong>
-        <span>Map</span>
-        <span>Activity · forthcoming</span>
+        <button
+          type="button"
+          aria-current={primaryView === 'explore' ? 'page' : undefined}
+          onClick={() => setParam('view', '', false)}
+        >
+          Explore
+        </button>
+        <button
+          type="button"
+          aria-current={primaryView === 'activity' ? 'page' : undefined}
+          onClick={() => setParam('view', 'activity', false)}
+        >
+          Activity
+        </button>
       </nav>
       <main>
         {(summary.isError || catalog.isError) && (
@@ -633,318 +655,344 @@ export function App() {
                 : 'No public observations are available.'}
             </div>
           )}
-        <nav className={styles.mobileTabs} aria-label="Workspace tabs">
-          {(['list', 'map', 'details'] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              aria-current={mobileTab === tab ? 'page' : undefined}
-              onClick={() => setMobileTab(tab)}
+        {primaryView === 'activity' ? (
+          <ActivityView
+            summary={info}
+            window={state.window}
+            onWindowChange={(value) => setParam('window', value === '24h' ? '' : value)}
+            onSelect={select}
+          />
+        ) : (
+          <>
+            <nav className={styles.mobileTabs} aria-label="Workspace tabs">
+              {(['list', 'map', 'details'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  aria-current={mobileTab === tab ? 'page' : undefined}
+                  onClick={() => setMobileTab(tab)}
+                >
+                  {tab[0]!.toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </nav>
+            <div
+              className={styles.workspace}
+              style={{
+                gridTemplateColumns: `${listCollapsed ? 46 : 320}px minmax(0, 1fr) ${detailsCollapsed ? 46 : 360}px`,
+              }}
             >
-              {tab[0]!.toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </nav>
-        <div
-          className={styles.workspace}
-          style={{
-            gridTemplateColumns: `${listCollapsed ? 46 : 320}px minmax(0, 1fr) ${detailsCollapsed ? 46 : 360}px`,
-          }}
-        >
-          <section
-            className={styles.catalog}
-            id="repository-list"
-            tabIndex={-1}
-            aria-label="Repository list"
-            data-active={mobileTab === 'list'}
-            data-collapsed={listCollapsed}
-          >
-            <div className={styles.paneHeading}>
-              <h2>Repositories</h2>
-              <button
-                type="button"
-                className={styles.collapse}
-                aria-label={listCollapsed ? 'Expand repository list' : 'Collapse repository list'}
-                aria-expanded={!listCollapsed}
-                onClick={() => setListCollapsed(!listCollapsed)}
+              <section
+                className={styles.catalog}
+                id="repository-list"
+                tabIndex={-1}
+                aria-label="Repository list"
+                data-active={mobileTab === 'list'}
+                data-collapsed={listCollapsed}
               >
-                {listCollapsed ? '›' : '‹'}
-              </button>
-            </div>
-            {!listCollapsed && (
-              <>
-                <div className={styles.filters}>
-                  <label>
-                    Metadata
-                    <select
-                      value={state.metadata}
-                      onChange={(event) =>
-                        setParam('metadata', event.target.value === 'all' ? '' : event.target.value)
-                      }
-                    >
-                      <option value="all">All metadata</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="unresolved">Unresolved</option>
-                    </select>
-                  </label>
-                  <label>
-                    Observation window
-                    <select
-                      value={state.window}
-                      onChange={(event) =>
-                        setParam('window', event.target.value === '24h' ? '' : event.target.value)
-                      }
-                    >
-                      <option value="24h">Last 24 hours</option>
-                      <option value="7d">Last 7 days</option>
-                      <option value="all">All retained</option>
-                    </select>
-                  </label>
-                  <div className={styles.range}>
-                    <label>
-                      Minimum seeders
-                      <input
-                        type="number"
-                        min="0"
-                        max="2000000"
-                        value={state.minSeeders}
-                        onChange={(event) =>
-                          setParam(
-                            'minSeeders',
-                            event.target.value === '0' ? '' : event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label>
-                      Maximum seeders
-                      <input
-                        type="number"
-                        min="0"
-                        max="2000000"
-                        value={state.maxSeeders === 2_000_000 ? '' : state.maxSeeders}
-                        placeholder="Any"
-                        onChange={(event) => setParam('maxSeeders', event.target.value)}
-                      />
-                    </label>
-                  </div>
-                  <fieldset>
-                    <legend>Evidence sources</legend>
-                    {sourceOptions.length ? (
-                      sourceOptions.map((source) => (
-                        <label key={source.id} className={styles.check}>
+                <div className={styles.paneHeading}>
+                  <h2>Repositories</h2>
+                  <button
+                    type="button"
+                    className={styles.collapse}
+                    aria-label={
+                      listCollapsed ? 'Expand repository list' : 'Collapse repository list'
+                    }
+                    aria-expanded={!listCollapsed}
+                    onClick={() => setListCollapsed(!listCollapsed)}
+                  >
+                    {listCollapsed ? '›' : '‹'}
+                  </button>
+                </div>
+                {!listCollapsed && (
+                  <>
+                    <div className={styles.filters}>
+                      <label>
+                        Metadata
+                        <select
+                          value={state.metadata}
+                          onChange={(event) =>
+                            setParam(
+                              'metadata',
+                              event.target.value === 'all' ? '' : event.target.value,
+                            )
+                          }
+                        >
+                          <option value="all">All metadata</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="unresolved">Unresolved</option>
+                        </select>
+                      </label>
+                      <label>
+                        Observation window
+                        <select
+                          value={state.window}
+                          onChange={(event) =>
+                            setParam(
+                              'window',
+                              event.target.value === '24h' ? '' : event.target.value,
+                            )
+                          }
+                        >
+                          <option value="24h">Last 24 hours</option>
+                          <option value="7d">Last 7 days</option>
+                          <option value="all">All retained</option>
+                        </select>
+                      </label>
+                      <div className={styles.range}>
+                        <label>
+                          Minimum seeders
                           <input
-                            type="checkbox"
-                            checked={state.sources.includes(source.id)}
+                            type="number"
+                            min="0"
+                            max="2000000"
+                            value={state.minSeeders}
                             onChange={(event) =>
                               setParam(
-                                'source',
-                                (event.target.checked
-                                  ? [...state.sources, source.id]
-                                  : state.sources.filter((id) => id !== source.id)
-                                )
-                                  .sort()
-                                  .join(','),
+                                'minSeeders',
+                                event.target.value === '0' ? '' : event.target.value,
                               )
                             }
                           />
-                          {source.label}
                         </label>
-                      ))
-                    ) : (
-                      <span>No sources configured</span>
+                        <label>
+                          Maximum seeders
+                          <input
+                            type="number"
+                            min="0"
+                            max="2000000"
+                            value={state.maxSeeders === 2_000_000 ? '' : state.maxSeeders}
+                            placeholder="Any"
+                            onChange={(event) => setParam('maxSeeders', event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <fieldset>
+                        <legend>Evidence sources</legend>
+                        {sourceOptions.length ? (
+                          sourceOptions.map((source) => (
+                            <label key={source.id} className={styles.check}>
+                              <input
+                                type="checkbox"
+                                checked={state.sources.includes(source.id)}
+                                onChange={(event) =>
+                                  setParam(
+                                    'source',
+                                    (event.target.checked
+                                      ? [...state.sources, source.id]
+                                      : state.sources.filter((id) => id !== source.id)
+                                    )
+                                      .sort()
+                                      .join(','),
+                                  )
+                                }
+                              />
+                              {source.label}
+                            </label>
+                          ))
+                        ) : (
+                          <span>No sources configured</span>
+                        )}
+                      </fieldset>
+                      <div className={styles.range}>
+                        <label>
+                          Sort by
+                          <select
+                            value={state.sort}
+                            onChange={(event) =>
+                              setParam(
+                                'sort',
+                                event.target.value === 'name' ? '' : event.target.value,
+                              )
+                            }
+                          >
+                            <option value="name">Name</option>
+                            <option value="firstObserved">First observed</option>
+                            <option value="seeders">Observed seeders</option>
+                          </select>
+                        </label>
+                        <label>
+                          Order
+                          <select
+                            value={state.order}
+                            onChange={(event) =>
+                              setParam(
+                                'order',
+                                event.target.value === 'asc' ? '' : event.target.value,
+                              )
+                            }
+                          >
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div className={styles.filterActions}>
+                        <button type="button" onClick={() => void chooseRandom()}>
+                          Random repository
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setParams((current) => {
+                              const next = new URLSearchParams();
+                              const selected = current.get('selected');
+                              if (selected) next.set('selected', selected);
+                              return next;
+                            })
+                          }
+                        >
+                          Clear filters
+                        </button>
+                      </div>
+                      {randomError && <p role="status">{randomError}</p>}
+                    </div>
+                    <div className={styles.resultHeading}>
+                      <strong>
+                        {catalog.data?.total ?? '—'}{' '}
+                        {catalog.isPlaceholderData ? 'previous results' : 'results'}
+                      </strong>
+                      <span>{state.window} window</span>
+                    </div>
+                    {catalog.isPending && (
+                      <p role="status" className={styles.empty}>
+                        Loading repositories…
+                      </p>
                     )}
-                  </fieldset>
-                  <div className={styles.range}>
-                    <label>
-                      Sort by
-                      <select
-                        value={state.sort}
-                        onChange={(event) =>
-                          setParam('sort', event.target.value === 'name' ? '' : event.target.value)
-                        }
-                      >
-                        <option value="name">Name</option>
-                        <option value="firstObserved">First observed</option>
-                        <option value="seeders">Observed seeders</option>
-                      </select>
-                    </label>
-                    <label>
-                      Order
-                      <select
-                        value={state.order}
-                        onChange={(event) =>
-                          setParam('order', event.target.value === 'asc' ? '' : event.target.value)
-                        }
-                      >
-                        <option value="asc">Ascending</option>
-                        <option value="desc">Descending</option>
-                      </select>
-                    </label>
-                  </div>
-                  <div className={styles.filterActions}>
-                    <button type="button" onClick={() => void chooseRandom()}>
-                      Random repository
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setParams((current) => {
-                          const next = new URLSearchParams();
-                          const selected = current.get('selected');
-                          if (selected) next.set('selected', selected);
-                          return next;
-                        })
-                      }
-                    >
-                      Clear filters
-                    </button>
-                  </div>
-                  {randomError && <p role="status">{randomError}</p>}
-                </div>
-                <div className={styles.resultHeading}>
-                  <strong>
-                    {catalog.data?.total ?? '—'}{' '}
-                    {catalog.isPlaceholderData ? 'previous results' : 'results'}
-                  </strong>
-                  <span>{state.window} window</span>
-                </div>
-                {catalog.isPending && (
-                  <p role="status" className={styles.empty}>
-                    Loading repositories…
-                  </p>
+                    {catalog.data?.items.length === 0 && (
+                      <p className={styles.empty}>
+                        {info?.repositories === 0
+                          ? 'No public repositories observed yet.'
+                          : noFilters
+                            ? 'No repositories in this observation window.'
+                            : 'No repositories match these filters.'}
+                      </p>
+                    )}
+                    <ul className={styles.list}>
+                      {catalog.data?.items.map((item) => (
+                        <li key={item.rid}>
+                          <button
+                            type="button"
+                            className={styles.repoButton}
+                            aria-current={
+                              state.selected?.kind === 'repo' && state.selected.id === item.rid
+                                ? 'true'
+                                : undefined
+                            }
+                            onClick={() => select({ kind: 'repo', id: item.rid })}
+                          >
+                            <span className={styles.repoTop}>
+                              <span>[repo]</span>
+                              <span>{item.observedSeederCount} observed seeders</span>
+                            </span>
+                            <strong>{item.name ?? 'Name unresolved'}</strong>
+                            <code title={item.rid}>{conciseId(item.rid)}</code>
+                            <span>{item.description ?? 'No public description available.'}</span>
+                            <small>
+                              {item.metadataStatus === 'unresolved'
+                                ? 'Metadata unresolved'
+                                : `Metadata: ${item.metadataSource ?? 'unknown'}`}{' '}
+                              · Last observed {dateLabel(item.lastObservedAt)}
+                            </small>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <Pagination
+                      page={state.page}
+                      total={catalog.data?.total ?? 0}
+                      limit={25}
+                      onPage={(page) => setParam('page', page ? String(page) : '', false)}
+                    />
+                  </>
                 )}
-                {catalog.data?.items.length === 0 && (
-                  <p className={styles.empty}>
-                    {info?.repositories === 0
-                      ? 'No public repositories observed yet.'
-                      : noFilters
-                        ? 'No repositories in this observation window.'
-                        : 'No repositories match these filters.'}
-                  </p>
-                )}
-                <ul className={styles.list}>
-                  {catalog.data?.items.map((item) => (
-                    <li key={item.rid}>
-                      <button
-                        type="button"
-                        className={styles.repoButton}
-                        aria-current={
-                          state.selected?.kind === 'repo' && state.selected.id === item.rid
-                            ? 'true'
-                            : undefined
-                        }
-                        onClick={() => select({ kind: 'repo', id: item.rid })}
-                      >
-                        <span className={styles.repoTop}>
-                          <span>[repo]</span>
-                          <span>{item.observedSeederCount} observed seeders</span>
-                        </span>
-                        <strong>{item.name ?? 'Name unresolved'}</strong>
-                        <code title={item.rid}>{conciseId(item.rid)}</code>
-                        <span>{item.description ?? 'No public description available.'}</span>
-                        <small>
-                          {item.metadataStatus === 'unresolved'
-                            ? 'Metadata unresolved'
-                            : `Metadata: ${item.metadataSource ?? 'unknown'}`}{' '}
-                          · Last observed {dateLabel(item.lastObservedAt)}
-                        </small>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <Pagination
-                  page={state.page}
-                  total={catalog.data?.total ?? 0}
-                  limit={25}
-                  onPage={(page) => setParam('page', page ? String(page) : '', false)}
-                />
-              </>
-            )}
-          </section>
-          <GraphMap
-            filterQuery={graphFilters}
-            selected={state.selected}
-            datasetRevision={info?.datasetRevision}
-            windowBucket={info?.windowBucket}
-            active={mobileTab === 'map'}
-            onSelect={select}
-            onClearSelection={() => setParam('selected', '', false)}
-          />
-          <aside
-            className={styles.details}
-            aria-label="Details"
-            data-active={mobileTab === 'details'}
-            data-collapsed={detailsCollapsed}
-          >
-            <div className={styles.paneHeading}>
-              <h2 ref={detailHeading} tabIndex={-1}>
-                {state.selected
-                  ? state.selected.kind === 'repo'
-                    ? 'Repository details'
-                    : 'Node details'
-                  : 'About this dataset'}
-              </h2>
-              <button
-                type="button"
-                className={styles.collapse}
-                aria-label={detailsCollapsed ? 'Expand details' : 'Collapse details'}
-                aria-expanded={!detailsCollapsed}
-                onClick={() => setDetailsCollapsed(!detailsCollapsed)}
+              </section>
+              <GraphMap
+                filterQuery={graphFilters}
+                selected={state.selected}
+                datasetRevision={info?.datasetRevision}
+                windowBucket={info?.windowBucket}
+                active={mobileTab === 'map'}
+                onSelect={select}
+                onClearSelection={() => setParam('selected', '', false)}
+              />
+              <aside
+                className={styles.details}
+                aria-label="Details"
+                data-active={mobileTab === 'details'}
+                data-collapsed={detailsCollapsed}
               >
-                {detailsCollapsed ? '‹' : '›'}
-              </button>
+                <div className={styles.paneHeading}>
+                  <h2 ref={detailHeading} tabIndex={-1}>
+                    {state.selected
+                      ? state.selected.kind === 'repo'
+                        ? 'Repository details'
+                        : 'Node details'
+                      : 'About this dataset'}
+                  </h2>
+                  <button
+                    type="button"
+                    className={styles.collapse}
+                    aria-label={detailsCollapsed ? 'Expand details' : 'Collapse details'}
+                    aria-expanded={!detailsCollapsed}
+                    onClick={() => setDetailsCollapsed(!detailsCollapsed)}
+                  >
+                    {detailsCollapsed ? '‹' : '›'}
+                  </button>
+                </div>
+                {!detailsCollapsed &&
+                  (state.invalidSelection ? (
+                    <p role="alert" className={styles.empty}>
+                      Invalid selected ID in the URL. Choose an entity from the list.
+                    </p>
+                  ) : !state.selected ? (
+                    <EmptyDetail info={info} />
+                  ) : state.selected.kind === 'repo' ? (
+                    repo.isPending ? (
+                      <p role="status" className={styles.empty}>
+                        Loading repository details…
+                      </p>
+                    ) : repo.data ? (
+                      <RepoDetail
+                        key={repo.data.rid}
+                        repo={repo.data}
+                        seeders={seeders.data}
+                        seedersPending={seeders.isPending}
+                        seedersError={seeders.isError}
+                        page={relatedPage}
+                        onPage={setRelatedPage}
+                        onSelect={select}
+                      />
+                    ) : (
+                      <p role="alert" className={styles.empty}>
+                        Repository details are unavailable or outside the active filters. Choose
+                        another result.
+                      </p>
+                    )
+                  ) : node.isPending ? (
+                    <p role="status" className={styles.empty}>
+                      Loading node details…
+                    </p>
+                  ) : node.data ? (
+                    <NodeDetail
+                      node={node.data}
+                      repos={nodeRepos.data}
+                      reposPending={nodeRepos.isPending}
+                      reposError={nodeRepos.isError}
+                      page={relatedPage}
+                      onPage={setRelatedPage}
+                      onSelect={select}
+                    />
+                  ) : (
+                    <p role="alert" className={styles.empty}>
+                      Node details are unavailable or outside the active filters. Choose another
+                      result.
+                    </p>
+                  ))}
+              </aside>
             </div>
-            {!detailsCollapsed &&
-              (state.invalidSelection ? (
-                <p role="alert" className={styles.empty}>
-                  Invalid selected ID in the URL. Choose an entity from the list.
-                </p>
-              ) : !state.selected ? (
-                <EmptyDetail info={info} />
-              ) : state.selected.kind === 'repo' ? (
-                repo.isPending ? (
-                  <p role="status" className={styles.empty}>
-                    Loading repository details…
-                  </p>
-                ) : repo.data ? (
-                  <RepoDetail
-                    key={repo.data.rid}
-                    repo={repo.data}
-                    seeders={seeders.data}
-                    seedersPending={seeders.isPending}
-                    seedersError={seeders.isError}
-                    page={relatedPage}
-                    onPage={setRelatedPage}
-                    onSelect={select}
-                  />
-                ) : (
-                  <p role="alert" className={styles.empty}>
-                    Repository details are unavailable or outside the active filters. Choose another
-                    result.
-                  </p>
-                )
-              ) : node.isPending ? (
-                <p role="status" className={styles.empty}>
-                  Loading node details…
-                </p>
-              ) : node.data ? (
-                <NodeDetail
-                  node={node.data}
-                  repos={nodeRepos.data}
-                  reposPending={nodeRepos.isPending}
-                  reposError={nodeRepos.isError}
-                  page={relatedPage}
-                  onPage={setRelatedPage}
-                  onSelect={select}
-                />
-              ) : (
-                <p role="alert" className={styles.empty}>
-                  Node details are unavailable or outside the active filters. Choose another result.
-                </p>
-              ))}
-          </aside>
-        </div>
+          </>
+        )}
       </main>
     </div>
   );

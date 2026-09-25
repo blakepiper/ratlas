@@ -144,13 +144,20 @@ export function sources(db: Db) {
   );
 }
 export function retentionBoundary(db: Db) {
-  return iso(
-    (
-      db.prepare('SELECT retention_boundary FROM dataset_meta').get() as {
-        retention_boundary: number;
-      }
-    ).retention_boundary,
-  )!;
+  const meta = db.prepare('SELECT kind,created_at,retention_boundary FROM dataset_meta').get() as {
+    kind: string;
+    created_at: number;
+    retention_boundary: number;
+  };
+  // Older synthetic fixtures recorded their clock as the boundary even though
+  // their generated observations began earlier. Keep an advanced prune boundary.
+  if (meta.kind === 'demo' && meta.retention_boundary === meta.created_at) {
+    const first = db.prepare('SELECT MIN(observed_at) oldest FROM route_changes').get() as {
+      oldest: number | null;
+    };
+    if (first.oldest !== null) return iso(Math.min(meta.retention_boundary, first.oldest))!;
+  }
+  return iso(meta.retention_boundary)!;
 }
 export function coverage(db: Db) {
   const items = sources(db),
