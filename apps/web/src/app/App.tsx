@@ -567,10 +567,26 @@ export function App() {
       </a>
       <header className={styles.header}>
         <div className={styles.brand}>
-          <span className={styles.mark} aria-hidden="true">
-            r.
-          </span>
-          <h1>ratlas</h1>
+          <div className={styles.brandTitle}>
+            <span className={styles.mark} aria-hidden="true">
+              r.
+            </span>
+            <h1>ratlas</h1>
+          </div>
+          <section className={styles.headerStats} aria-label="Dataset summary">
+            {(
+              [
+                ['repositories', info?.repositories],
+                ['nodes', info?.nodeIdentities],
+                ['relationships', info?.hostingRelationships],
+                ['sources', info?.evidenceSources],
+              ] as const
+            ).map(([label, value]) => (
+              <span key={label}>
+                <strong>{value ?? '—'}</strong> {label}
+              </span>
+            ))}
+          </section>
         </div>
         <label className={styles.searchLabel}>
           Search public repositories
@@ -613,21 +629,6 @@ export function App() {
         <span>Activity · forthcoming</span>
       </nav>
       <main>
-        <section className={styles.summary} aria-label="Dataset summary">
-          {(
-            [
-              ['Repositories', info?.repositories],
-              ['Node identities', info?.nodeIdentities],
-              ['Hosting relationships', info?.hostingRelationships],
-              ['Evidence sources', info?.evidenceSources],
-            ] as const
-          ).map(([label, value]) => (
-            <div key={label}>
-              <span className={styles.metric}>{value ?? '—'}</span>
-              <span>{label}</span>
-            </div>
-          ))}
-        </section>
         {(summary.isError || catalog.isError) && (
           <div role="alert" className={styles.error}>
             {info || catalog.data
