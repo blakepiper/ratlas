@@ -24,7 +24,8 @@
     "collect": "node scripts/run.mjs collect",
     "collect:once": "node scripts/run.mjs collect:once",
     "test:live": "node scripts/run.mjs test:live",
-    "start:collector": "NODE_ENV=production node apps/service/dist/main-collector.js"
+    "start:collector": "NODE_ENV=production node apps/service/dist/main-collector.js",
+    "data:review": "node scripts/run.mjs data:review"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -1182,11 +1182,13 @@ Completion tracking: `[x]` means the line item is implemented and checked; `[ ]`
 
 - [x] Implement metadata variants/selection, FTS/exact-ID search, every specified API route, publication checks, stable pagination, graph projection, normalized activity/summary queries, security headers, and cache/window revision behavior. Server code must not invoke `rad` or fetch upstream URLs in response to browser requests.
 
-- [ ] With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture. Request explicit user acceptance of the gap at R2.
+- [ ] With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. **Blocked: no approved live source or observer is configured.**
+- [x] Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture.
+- [ ] Request explicit user acceptance of the live-integration gap at R2.
 
-- [ ] Add `pnpm data:review` and connect the existing minimal demo screen to the full API. Its report must demonstrate one RID on three NIDs seen through two sources, no duplicate aggregate edges, source-specific disagreement, a missing metadata record, and a collection failure preserving cached data.
+- [x] Add `pnpm data:review` and connect the existing minimal demo screen to the full API. Its report must demonstrate one RID on three NIDs seen through two sources, no duplicate aggregate edges, source-specific disagreement, a missing metadata record, and a collection failure preserving cached data.
 
-- [ ] **Automated acceptance:** all adapter/scenario tests pass; restarting/replaying preserves counts; failed snapshots cannot erase state; every public endpoint excludes quarantined data; API tests complete repo → seeder → other repo navigation; live results are distinguished from fixtures.
+- [x] **Automated acceptance:** all adapter/scenario tests pass; restarting/replaying preserves counts; failed snapshots cannot erase state; every public endpoint excludes quarantined data; API tests complete repo → seeder → other repo navigation; live results are distinguished from fixtures.
 
 **R2: Stop and ask the user to inspect the data behavior.**
 

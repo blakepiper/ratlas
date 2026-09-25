@@ -30,11 +30,20 @@ test('real SQLite demo, readable layout, reduced motion and persistent theme', a
     true,
   );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  mkdirSync('.ratlas/reviews/R1', { recursive: true, mode: 0o700 });
+  await expect(page.getByRole('region', { name: 'Source coverage' })).toContainText(
+    'Synthetic observer A',
+  );
+  await expect(page.getByRole('region', { name: 'Source coverage' })).toContainText(
+    'Last successful snapshot',
+  );
+  mkdirSync('.ratlas/reviews/R2', { recursive: true, mode: 0o700 });
   await page.screenshot({
-    path: `.ratlas/reviews/R1/${info.project.name}-dark.png`,
+    path: `.ratlas/reviews/R2/${info.project.name}-dark.png`,
     fullPage: true,
   });
+  await page
+    .getByRole('region', { name: 'Source coverage' })
+    .screenshot({ path: `.ratlas/reviews/R2/${info.project.name}-coverage.png` });
   await page.getByRole('button', { name: 'Light theme' }).click();
   await page.reload();
   await expect(page.getByRole('button', { name: 'Dark theme' })).toBeVisible();
@@ -42,7 +51,7 @@ test('real SQLite demo, readable layout, reduced motion and persistent theme', a
   await expect(rows).toHaveCount(100);
   expect(await page.locator('html').getAttribute('data-theme')).toBe('light');
   await page.screenshot({
-    path: `.ratlas/reviews/R1/${info.project.name}-light.png`,
+    path: `.ratlas/reviews/R2/${info.project.name}-light.png`,
     fullPage: true,
   });
   expect(errors).toEqual([]);

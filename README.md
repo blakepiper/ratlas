@@ -1,8 +1,7 @@
 # ratlas
 
-A local browser of public Radicle repository observations. Stage A is implemented:
-the database foundation and first React screen. R1 awaits human review before
-collectors and the complete API are built.
+A local browser of public Radicle repository observations. Stage B is implemented: bounded collection, recovery, metadata and the complete
+read-only API. R2 reviews data semantics before the full browsing interface.
 
 From this checkout on NixOS:
 
@@ -51,9 +50,17 @@ an interactive-shell marker, does not migrate, and does not collect. Production
 CSP uses same-origin assets without eval. Vite development separately permits its
 localhost module/HMR machinery; it is not the production security policy.
 
-Future commands for target datasets, demo reset/scenarios, source probing,
-collection, backups and benchmarks are not implemented in Stage A. Requested
-`doctor --check-sources` exits 2 with that limitation and makes no network probe.
+Review the data without starting a collector:
+
+```sh
+nix develop --command pnpm data:review --config config/ratlas.demo.json
+```
+
+The saved report is `.ratlas/reviews/R2/data-review.md`. The right-hand coverage
+readout shows source provenance and successful snapshot times. Both adapters are
+fixture-tested; live source compatibility remains unverified without approved
+configuration. See [collection commands](docs/COLLECTION.md) and [API contracts](docs/API.md).
+Target datasets, demo reset/scenarios, backups and benchmarks remain later-stage work.
 
 See [development instructions](docs/NIX_DEVELOPMENT.md),
 [data semantics](docs/DATA_SEMANTICS.md), [toolchain results](docs/TOOLCHAIN.md),

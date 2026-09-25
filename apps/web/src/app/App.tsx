@@ -50,7 +50,7 @@ export function App() {
           <span className={styles.subtitle}>public repository observations</span>
         </div>
         <div className={styles.headerActions}>
-          <span className={styles.stage}>Foundation · R1</span>
+          <span className={styles.stage}>Data review · R2</span>
           <button
             className={styles.theme}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -81,7 +81,13 @@ export function App() {
         <span>
           Activity <small>not implemented</small>
         </span>
-        <span className={styles.window}>Observed within 24 hours</span>
+        <span className={styles.window}>
+          {info?.observationWindow === 'all'
+            ? 'All retained observations'
+            : info?.observationWindow === '7d'
+              ? 'Observed within 7 days'
+              : 'Observed within 24 hours'}
+        </span>
       </div>
       <main>
         <section className={styles.summary} aria-label="Dataset summary">
@@ -191,7 +197,13 @@ export function App() {
                 </div>
                 <div>
                   <dt>Observation window</dt>
-                  <dd>24 hours of source observations</dd>
+                  <dd>
+                    {info?.observationWindow === 'all'
+                      ? 'All retained history'
+                      : info?.observationWindow === '7d'
+                        ? '7 days of source observations'
+                        : '24 hours of source observations'}
+                  </dd>
                 </div>
                 <div>
                   <dt>{info?.mode === 'demo' ? 'Demo reference clock' : 'Query reference time'}</dt>
@@ -209,10 +221,46 @@ export function App() {
                   <dd>Separate from source-read freshness</dd>
                 </div>
               </dl>
+              <section aria-label="Source coverage" className={styles.coverage}>
+                <h3>Evidence sources</h3>
+                {info?.coverage.sources.map((source) => (
+                  <div key={source.id}>
+                    <strong>{source.label}</strong>
+                    <p>
+                      {source.adapter === 'synthetic'
+                        ? 'Synthetic source'
+                        : source.adapter === 'http'
+                          ? 'Public HTTP source'
+                          : 'Configured observer'}{' '}
+                      ·{' '}
+                      {source.error
+                        ? 'Collection gap; cached data retained'
+                        : source.lastSuccess
+                          ? 'Cached observations available'
+                          : 'No successful collection yet'}
+                    </p>
+                    <p>
+                      Last successful snapshot:{' '}
+                      {source.lastCompleteSnapshot?.replace('T', ' ').replace('.000Z', ' UTC') ??
+                        'Not recorded'}
+                    </p>
+                    {source.observerNid && (
+                      <code title={source.observerNid}>{source.observerNid}</code>
+                    )}
+                  </div>
+                ))}
+                {info?.coverage.sources.length === 0 && (
+                  <p>No publishable sources are configured.</p>
+                )}
+                <p>
+                  Several sources can expose the same observer. Source reads do not prove that a
+                  hosting node is reachable.
+                </p>
+              </section>
               <div className={styles.scope}>
                 <strong>Next review stages</strong>
                 <p>
-                  Search, filters, repository details, source health, and activity are not
+                  Search, filters, interactive details, the map, and the activity view are not
                   implemented yet.
                 </p>
               </div>
