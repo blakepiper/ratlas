@@ -1,0 +1,10 @@
+{
+  "name": "@ratlas/db",
+  "dependencies": {
+    "@ratlas/core": "workspace:*",
+    "better-sqlite3": "12.11.1"
+  },
+  "private": true,
+  "version": "0.0.0",
+  "type": "module"
+}

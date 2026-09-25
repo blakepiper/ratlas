@@ -1,0 +1,32 @@
+{
+  "name": "ratlas",
+  "packageManager": "pnpm@10.34.0",
+  "engines": {
+    "node": "24.21.0",
+    "pnpm": "10.34.0"
+  },
+  "scripts": {
+    "preinstall": "node scripts/check-toolchain.mjs",
+    "toolchain:check": "node scripts/check-toolchain.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "tsx": "4.23.15",
+    "vitest": "3.2.7",
+    "eslint": "10.11.0",
+    "@eslint/js": "10.0.1",
+    "typescript-eslint": "8.70.1",
+    "prettier": "3.9.9",
+    "node-gyp": "11.5.0",
+    "@types/node": "24.13.6",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/dom": "10.4.2",
+    "@types/better-sqlite3": "7.6.13",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@playwright/test": "1.59.1"
+  },
+  "private": true,
+  "version": "0.0.0",
+  "type": "module"
+}

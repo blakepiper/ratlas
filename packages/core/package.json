@@ -1,0 +1,10 @@
+{
+  "name": "@ratlas/core",
+  "dependencies": {
+    "zod": "4.6.5",
+    "multiformats": "13.4.2"
+  },
+  "private": true,
+  "version": "0.0.0",
+  "type": "module"
+}

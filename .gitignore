@@ -1,0 +1,28 @@
+# Runtime data, captures, local reports, test profiles, and caches
+.ratlas/
+.cache/
+node_modules/
+.pnpm-store/
+playwright-report/
+test-results/
+coverage/
+dist/
+*.tsbuildinfo
+
+# Local source configuration and secrets
+config/*.local.json
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Databases, WAL/SHM companions, and logs
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+
+# Nix build result links
+/result
+/result-*

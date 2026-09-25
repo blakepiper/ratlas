@@ -1,0 +1,17 @@
+{
+  "name": "@ratlas/service",
+  "dependencies": {
+    "@ratlas/core": "workspace:*",
+    "@ratlas/db": "workspace:*",
+    "@ratlas/radicle": "workspace:*",
+    "fastify": "5.12.5",
+    "pino": "9.14.0",
+    "undici": "7.30.0",
+    "@fastify/helmet": "13.1.1",
+    "@fastify/rate-limit": "11.2.0",
+    "@fastify/static": "10.1.4"
+  },
+  "private": true,
+  "version": "0.0.0",
+  "type": "module"
+}
