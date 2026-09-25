@@ -153,16 +153,20 @@ export class Collector {
   }
   private async consumeEvents() {
     let attempts = 0;
+    let firstConnection = true;
     while (!this.signal.aborted) {
       const sessionId = randomUUID();
       let sequence = 0;
       this.db
         .prepare('UPDATE source_health SET event_stream_status=? WHERE source_id=?')
         .run('connected', 'local-observer');
-      this.nextSnapshot = Math.min(
-        this.nextSnapshot || Infinity,
-        this.now() + this.config.collection.reconnectDebounceMs,
-      );
+      this.nextSnapshot = firstConnection
+        ? this.now()
+        : Math.min(
+            this.nextSnapshot || Infinity,
+            this.now() + this.config.collection.reconnectDebounceMs,
+          );
+      firstConnection = false;
       try {
         for await (const incoming of eventStream(this.config, this.signal)) {
           if (incoming.malformed) {

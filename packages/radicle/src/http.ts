@@ -1,4 +1,5 @@
 import { Client } from 'undici';
+import type { Readable } from 'node:stream';
 import ipaddr from 'ipaddr.js';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
@@ -84,62 +85,7 @@ export class HttpTransport implements JsonTransport {
           'user-agent': 'ratlas/0.0.0',
         },
       });
-      try {
-        if (response.statusCode >= 300 && response.statusCode < 400)
-          throw new AdapterError('redirect');
-        const retry = response.headers['retry-after'];
-        if (response.statusCode === 429 || response.statusCode >= 500)
-          throw new AdapterError(
-            'http-retryable',
-            typeof retry === 'string' ? retry.slice(0, 128) : null,
-          );
-        if (response.statusCode === 404) throw new AdapterError('http-not-found');
-        if (response.statusCode !== 200) throw new AdapterError('http-error');
-        if (
-          !/^application\/(?:[a-z.+-]*\+)?json(?:;|$)/iu.test(
-            String(response.headers['content-type']),
-          )
-        )
-          throw new AdapterError('unsupported-schema');
-        const encoding = response.headers['content-encoding'];
-        const decoder =
-          encoding === 'gzip'
-            ? createGunzip()
-            : encoding === 'br'
-              ? createBrotliDecompress()
-              : encoding === 'deflate'
-                ? createInflate()
-                : null;
-        if (encoding && encoding !== 'identity' && !decoder)
-          throw new AdapterError('unsupported-schema');
-        const stream = decoder ? response.body.pipe(decoder) : response.body;
-        // pipe does not forward source errors automatically.
-        const sourceError = (error: Error) => decoder?.destroy(error);
-        response.body.on('error', sourceError);
-        try {
-          let size = 0;
-          const chunks: Buffer[] = [];
-          for await (const chunk of stream) {
-            const bytes = Buffer.from(chunk as Uint8Array);
-            size += bytes.length;
-            this.decodedBytes(bytes.length);
-            if (size > this.limits.responseMaxBytes) throw new AdapterError('body-limit');
-            chunks.push(bytes);
-          }
-          try {
-            return JSON.parse(
-              new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)),
-            );
-          } catch {
-            throw new AdapterError('invalid-json');
-          }
-        } finally {
-          response.body.off('error', sourceError);
-          decoder?.destroy();
-        }
-      } finally {
-        response.body.destroy();
-      }
+      return await readHttpJson(response, this.limits.responseMaxBytes, this.decodedBytes);
     } catch (error) {
       if (error instanceof AdapterError) throw error;
       if (bounded.aborted) throw new AdapterError(signal.aborted ? 'aborted' : 'timeout');
@@ -147,6 +93,69 @@ export class HttpTransport implements JsonTransport {
     } finally {
       await client.destroy();
     }
+  }
+}
+export async function readHttpJson(
+  response: {
+    statusCode: number;
+    headers: Record<string, string | string[] | undefined>;
+    body: Readable;
+  },
+  maxBytes: number,
+  decodedBytes: (count: number) => void = () => {},
+) {
+  // Status rejection destroys an unread Undici body, which emits an expected abort error.
+  response.body.once('error', () => {});
+  try {
+    if (response.statusCode >= 300 && response.statusCode < 400) throw new AdapterError('redirect');
+    const retry = response.headers['retry-after'];
+    if (response.statusCode === 429 || response.statusCode >= 500)
+      throw new AdapterError(
+        'http-retryable',
+        typeof retry === 'string' ? retry.slice(0, 128) : null,
+      );
+    if (response.statusCode === 404) throw new AdapterError('http-not-found');
+    if (response.statusCode !== 200) throw new AdapterError('http-error');
+    if (
+      !/^application\/(?:[a-z.+-]*\+)?json(?:;|$)/iu.test(String(response.headers['content-type']))
+    )
+      throw new AdapterError('unsupported-schema');
+    const encoding = response.headers['content-encoding'];
+    const decoder =
+      encoding === 'gzip'
+        ? createGunzip()
+        : encoding === 'br'
+          ? createBrotliDecompress()
+          : encoding === 'deflate'
+            ? createInflate()
+            : null;
+    if (encoding && encoding !== 'identity' && !decoder)
+      throw new AdapterError('unsupported-schema');
+    const stream = decoder ? response.body.pipe(decoder) : response.body;
+    // pipe does not forward source errors automatically.
+    const sourceError = (error: Error) => decoder?.destroy(error);
+    response.body.on('error', sourceError);
+    try {
+      let size = 0;
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) {
+        const bytes = Buffer.from(chunk as Uint8Array);
+        size += bytes.length;
+        decodedBytes(bytes.length);
+        if (size > maxBytes) throw new AdapterError('body-limit');
+        chunks.push(bytes);
+      }
+      try {
+        return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)));
+      } catch {
+        throw new AdapterError('invalid-json');
+      }
+    } finally {
+      response.body.off('error', sourceError);
+      decoder?.destroy();
+    }
+  } finally {
+    response.body.destroy();
   }
 }
 export class HttpAdapter {
