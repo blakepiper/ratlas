@@ -1,9 +1,9 @@
 # ratlas implementation status
 
-Current stage: Stage F/R6 reopened as `in_progress` after the user asked to
-continue remaining work. The latest tested implementation is
-`92977809c1a2227cf9241365c6420a5a3d8cffad`. R6 remains an autonomous
-milestone, not a claim of user acceptance or complete specification coverage.
+Current stage: Stage F/R6 `completed` as an autonomous implementation and
+validation milestone. The latest tested implementation is
+`92977809c1a2227cf9241365c6420a5a3d8cffad`. R6 does not claim user
+acceptance, publication, or verification of unrun operational exercises.
 See [R6](reviews/R6.md), [validation](VALIDATION.md), and
 [performance](PERFORMANCE.md) for actual checks and limitations.
 
@@ -53,15 +53,19 @@ The R4 selected-label contrast fix was committed at
 canvas rendering in ordinary Firefox before the fix, but the corrected label
 has now been visually rechecked in isolated Nix Firefox WebGL screenshots.
 Real canvas selection, pan/zoom, context loss, and worker cleanup pass at both
-viewports. No approved live source or observer executable is configured, so live
-compatibility remains untested. No Radicle node, replication, personal
-profile, remote, push, or publication was used. Earlier demo processes on
+viewports. An explicitly configured public HTTPS source at the Radicle team's
+seed passed a 60-second live smoke test: 14 public repositories, one node, 14
+relationships, five requests, no parse errors or failed source, and healthy
+read-only API response. The local CLI adapter remains fixture-tested only.
+No Radicle node, replication, personal profile, remote, push, or publication
+was used. Earlier demo processes on
 ports 3000 and 5173 had exited before the clean-checkout startup check.
 
 Use `env -u TMPDIR nix develop --command pnpm demo:reset` to start the small
 outage/recovery walkthrough from a fresh, archived baseline. Then run
 `env -u TMPDIR nix develop --command pnpm demo` and open
 http://127.0.0.1:5173 in Firefox. No earlier demo process was interrupted.
-Live compatibility remains an external-prerequisite gap. No remote,
-push, publication, Radicle node, replication, system activation, or personal
-profile change was performed.
+The public HTTP smoke test completed; broader network coverage, live CLI
+integration, a 24-hour experiment, and NixOS service activation were outside
+this bounded validation. No remote, push, publication, Radicle node,
+replication, system activation, or personal profile change was performed.

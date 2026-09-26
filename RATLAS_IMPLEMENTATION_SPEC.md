@@ -1177,9 +1177,9 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Implement metadata variants/selection, FTS/exact-ID search, every specified API route, publication checks, stable pagination, graph projection, normalized activity/summary queries, security headers, and cache/window revision behavior. Server code must not invoke `rad` or fetch upstream URLs in response to browser requests.
 
-- [ ] With approved configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. **Blocked: no approved live source or observer is configured.**
+- [x] With explicit public-only configuration, perform the bounded five-minute maximum live smoke test and record exact source/interface results. The 2026-09-26 HTTP smoke test against Radicle's published team seed passed in 60 seconds; the local CLI adapter remains fixture-tested only.
 - [x] Without approved working sources, implement and test both adapters against the pinned fixtures and report live integration as blocked. Do not make source availability a reason to change the selected architecture.
-- [x] Request explicit user acceptance of the live-integration gap at R2. **On 2026-09-25, the user approved continuing from the R2 handoff with this disclosed gap still open. The live smoke test above remains unperformed.**
+- [x] Request explicit user acceptance of the live-integration gap at R2. **On 2026-09-25, the user approved continuing from the R2 handoff with this disclosed gap still open; the HTTP smoke test subsequently passed on 2026-09-26.**
 
 - [x] Add `pnpm data:review` and connect the existing minimal demo screen to the full API. Its report must demonstrate one RID on three NIDs seen through two sources, no duplicate aggregate edges, source-specific disagreement, a missing metadata record, and a collection failure preserving cached data.
 
@@ -1264,15 +1264,15 @@ The R1–R5 stop wording below records the stages as they were originally execut
 - [x] Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, and backup/restore tests. Fix failures without weakening assertions. Validate the unactivated NixOS module’s structure and document activation as untested.
 
 - [x] Run automated real-WebGL canvas, context-loss, and renderer/worker cleanup checks in isolated Nix Firefox.
-- [ ] Run the bounded live smoke test against an approved source. No approved source is configured; R2 approval allowed proceeding with this disclosed gap, not claiming it passed.
+- [x] Run the bounded live smoke test against an explicitly configured public HTTPS source. The Radicle team seed's node, inventory, and catalog schemas were recognized; no local Radicle process or profile was used.
 
 - [x] Write the first-run README, architecture/semantics reports, compatibility report, NixOS runbook, backup/restore procedure, safe dedicated-observer instructions, 24-hour experiment command, and final validation/performance reports. Check examples against implemented command names and config paths. Include observed limitations and accepted external gaps.
 
-- [x] **Automated acceptance:** applicable offline release checks in section 13 pass; clean frozen install, native SQLite, Firefox WebGL and fallback coverage, production startup, backup restore, and process cleanup have actual results. Measurements identify hardware/runtime/rendering context and disclose missed targets. The fixed-port clean demo supervisor and live check remain separately open.
+- [x] **Automated acceptance:** applicable offline release checks in section 13 pass; clean frozen install, native SQLite, Firefox WebGL and fallback coverage, production startup, backup restore, process cleanup, fixed-port clean demo, and bounded public-HTTP live smoke have actual results. Measurements identify hardware/runtime/rendering context and disclose missed targets.
 
 **R6: Finish the remaining checks and hand off the release candidate.**
 
-- [ ] Update the review record with the final tested revision, exact demo and live startup commands, walkthrough, report/screenshot locations, both final commit SHAs for the user-facing handoff, final worktree status, and remaining gaps. Mark R6 `completed` only when agent-owned work is done; do not claim user acceptance or live verification. This authorization does not permit a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
+- [x] Update the review record with the final tested implementation revision, exact demo and live startup commands, walkthrough, report/screenshot locations, and remaining limitations. Report the review-documentation commit SHA and final worktree status in the user-facing handoff, as section 0.3 requires. Mark R6 `completed` as an autonomous milestone, without claiming user acceptance, live CLI verification, service activation, or publication.
 
 ### Checkpoint map
 
@@ -1294,7 +1294,7 @@ Present the first release candidate at R6 only when the following are satisfied 
 - [x] The product is named **ratlas** throughout, the required React stack is implemented, and no unapproved alternative frameworks or storage systems were introduced.
 - [x] A clean NixOS checkout enters `nix develop`, installs with both committed locks, runs the offline demo, and builds production artifacts using documented commands. At `6e9dc48`, the fixed-port supervisor served the UI on 5173 and proxied API on 3000, returned the expected synthetic counts, and released both ports on shutdown.
 - [x] Actual native SQLite/FTS/WAL checks and a Firefox launch using the version-matched Nix Firefox-only bundle have results. Browser dependencies and commands contain no Chrome/Chromium browser requirement; manual review remains in the user’s ordinary Firefox. A plain `nix flake check` is not presented as an application test.
-- [x] The CLI adapter and the specified HTTP-schema adapter are implemented and fixture-tested. No approved live source is configured; the requested live check returned prerequisite exit 2 rather than a fabricated pass.
+- [x] The CLI adapter and the specified HTTP-schema adapter are implemented and fixture-tested. A bounded live HTTP check passed against an explicitly configured public Radicle team seed; live CLI behavior remains unverified without a dedicated observer.
 - [x] Collection is resumable and read-only with respect to Radicle operations. No unrelated Git cloning or seeding is required; no browser request starts a crawl.
 - [x] Search, details, graph neighborhoods, explicit full-mode limits, source health, activity, summary chart, and missing metadata work together.
 - [x] Catalog/graph counts deduplicate IDs and relationships, and source/window/truncation limits remain visible. “Observed” never silently becomes “online,” “newly created,” or “all repositories.”
@@ -1302,13 +1302,13 @@ Present the first release candidate at R6 only when the following are satisfied 
 - [x] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests. Real WebGL worker/renderer cleanup also passes in browser tests.
 - [x] Performance reports contain real measurements, identify the actual Firefox WebGL mode, and do not infer hardware versus software from its privacy-masked renderer string. Browser draw-active frame rate is labeled as a proxy, not GPU presentation rate. No untested throughput, capacity, or security property is claimed.
 - [x] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
-- [ ] R1–R5 have genuine approval records. R6 was reopened as `in_progress` after the user asked to continue remaining work; mark it `completed` only after final implementation and reporting. It is not user approved, and pending feedback is not silently cleared.
+- [x] R1–R5 have genuine approval records. R6 is `completed` as autonomous implementation and validation work, without implying user approval. The live HTTP result and untested live CLI/service activation are reported distinctly.
 - [x] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
 - [x] The intended folder has a local Git repository with the bootstrap and incremental implementation history. Every presented checkpoint has a tested implementation SHA and committed review documents; completed agent-owned work is committed, unrelated user changes are preserved, and required ignore rules keep local data and generated artifacts out of history.
 
 The R6 handoff states what was built, how to start the demo and live configuration, which sources/interfaces were actually tested, exact check results, screenshot/report locations, tested implementation and review-documentation SHAs, a local commit summary, worktree status, user-approved deviations, and remaining limitations. State that nothing was pushed. Keep implemented, fixture-tested, live-tested, locally committed, and user-approved statuses distinct.
 
-An accurate handoff can say “implemented and fixture-tested; live CLI integration remains blocked because no approved observer is configured.” It must not say “fully tested” when a browser render, live connection, or service activation was not performed.
+An accurate handoff can say “implemented and fixture-tested; public HTTP integration passed a bounded live smoke test; live CLI integration and service activation remain unverified.” It must not say “fully tested” for unperformed checks.
 
 The user should be able to run the demo immediately from the documented shell, then configure an approved public HTTP source or a dedicated public-only observer and inspect a real repository-node graph. Finish with the separate R6 completion documentation commit required by section 0.6.4. Publishing and ongoing operations remain separate user decisions.
 

@@ -84,8 +84,10 @@ nix develop --command pnpm data:review --config config/ratlas.demo.json
 
 The saved report is `.ratlas/reviews/R2/data-review.md`. The details pane's coverage
 view shows source provenance and successful snapshot times. Both adapters are
-fixture-tested; live source compatibility remains unverified without approved
-configuration. See [collection commands](docs/COLLECTION.md) and [API contracts](docs/API.md).
+fixture-tested. A bounded live HTTP smoke test passed against an explicitly
+configured public Radicle team seed; live CLI integration still requires a
+dedicated public-only observer. See [collection commands](docs/COLLECTION.md)
+and [API contracts](docs/API.md).
 Target datasets are available through `pnpm data:target` and
 `pnpm demo --dataset target`; `pnpm demo:reset --dataset target` recreates only that separate demo
 database. `pnpm benchmark` measures the target dataset with 20 warm-up and

@@ -60,14 +60,27 @@ explicit writable data path. No NixOS configuration was imported into the
 host, no account or service was activated, and process isolation under
 systemd remains untested.
 
-The disabled example has no approved source. `pnpm test:live --config
+The disabled example has no source. Earlier, `pnpm test:live --config
 config/ratlas.example.json` and `pnpm experiment --config
-config/ratlas.example.json --duration 24h` both exited 2 before collection:
-missing external prerequisites, not successful live tests. No day-long
-experiment, public HTTP probe, Radicle daemon, replication command, or live
-collector was run. R2 and R4 approvals allowed progress with the live and
-WebGL verification gaps disclosed; the WebGL checks have since passed, but
-the live test remains open.
+config/ratlas.example.json --duration 24h` both exited 2 before collection.
+Those preflight results were not live tests. On 2026-09-26, an ignored explicit
+public-only configuration for `https://seed.radicle.dev/api/v1/` passed
+`pnpm doctor --check-sources --config config/ratlas.local.json`, recognizing
+the upstream node schema and pinned observer NID. `pnpm test:live --config
+config/ratlas.local.json` then ran for 60 seconds and exited 0. The source
+recorded five HTTP requests, 44,914 decoded bytes, zero parse errors, two
+successful collector runs, no source error, and no open breaker. The resulting
+public projection contained 14 repositories, one node, and 14 relationships.
+The built read-only API returned the same counts and healthy source state; it
+also served the production SPA to isolated Firefox. A live-data screenshot at
+`.ratlas/reviews/R6/live-public-seed-desktop.png` shows the real WebGL map,
+selected repository, public source evidence, and matching header/catalog
+counts. The API was stopped after validation. `PRAGMA quick_check` returned
+`ok`. The local Radicle adapter stayed disabled: no profile, daemon,
+replication command, or
+personal identity was touched. No day-long experiment or systemd service
+activation was run. This verifies one deployed public HTTP source, not all
+Radicle deployments or live CLI compatibility.
 
 [Performance measurements](PERFORMANCE.md) identify the target fixture,
 hardware, runtime, first uncached and 20 warm-up/200 measured requests per

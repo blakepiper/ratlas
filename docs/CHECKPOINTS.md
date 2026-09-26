@@ -1,17 +1,18 @@
 # ratlas checkpoints
 
 R1–R5 approved on 2026-09-25. The user authorized Stage F after the revised
-R5 handoff, with the Nix Firefox WebGL and live-source checks still open.
-Live integration is blocked by missing approved sources; R2 approved proceeding with that gap open.
+R5 handoff, when the Nix Firefox WebGL and live-source checks were still open.
+Both checks subsequently passed. R2 had approved proceeding with the live gap
+open; the bounded public HTTP check resolved that gap for one source.
 
-| Checkpoint | Status      | Presented revision                         | User approval                                                | Review artifact     |
-| ---------- | ----------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
-| R1         | approved    | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
-| R2         | approved    | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
-| R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
-| R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
-| R5         | approved    | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
-| R6         | in_progress | `92977809c1a2227cf9241365c6420a5a3d8cffad` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
+| Checkpoint | Status    | Presented revision                         | User approval                                                | Review artifact     |
+| ---------- | --------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| R1         | approved  | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
+| R2         | approved  | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
+| R3         | approved  | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
+| R4         | approved  | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
+| R5         | approved  | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
+| R6         | completed | `92977809c1a2227cf9241365c6420a5a3d8cffad` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -157,3 +158,18 @@ specified ports. The UI returned 200, the proxied summary had the exact small
 synthetic counts, and SIGINT stopped the supervisor and released both ports.
 This closes the clean-checkout startup item. No approved live source is
 configured, so the bounded live smoke test is still open.
+
+2026-09-26: after the user asked whether a public HTTP source exists and
+delegated finding one, the agent selected the Radicle team's documented public
+seed. Its `/api/v1/node` endpoint responded over HTTPS and the source doctor
+recognized the pinned node schema and observer NID. The ignored local config
+kept the CLI adapter disabled and used an isolated live-smoke database. The
+60-second `pnpm test:live` run exited 0 with 14 public repositories, one node,
+14 hosting relationships, five requests, zero parse errors, and no failed
+source. The built read-only API returned matching healthy counts, and isolated
+Firefox rendered a selected repository in the real WebGL map; both collector
+and API were stopped. The full offline check passed again with 61
+deterministic and 26 Firefox tests, no skips, and production build. R6 is
+`completed` as an autonomous milestone, not user approval. Live CLI
+compatibility, broader coverage, 24-hour operation, and service activation
+remain explicitly unverified.

@@ -35,6 +35,9 @@ Raw stderr, arbitrary addresses and arbitrary upstream payload fields are discar
 Logs and databases remain in private application directories. Pending normalized
 intake can contain quarantined observations and is never a public API response.
 
-Live integration is not verified until the operator supplies approved working sources.
-See the [NixOS runbook](../deploy/nixos/README.md) for dedicated observer,
+A bounded live HTTP smoke test passed against the Radicle team's public seed
+on 2026-09-26; see [compatibility](RADICLE_COMPATIBILITY.md). The ignored local
+config is machine-specific and must be supplied explicitly for any later run.
+Other HTTP deployments and the local CLI adapter remain unverified live. See
+the [NixOS runbook](../deploy/nixos/README.md) for dedicated observer,
 permission, backup, restore, shutdown, and update procedures.
