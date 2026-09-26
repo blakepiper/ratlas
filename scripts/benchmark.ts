@@ -92,6 +92,7 @@ async function request(path: string) {
 const measurements = [];
 try {
   for (const entry of cases.filter((candidate) => !values.case || candidate.name === values.case)) {
+    const cold = await request(entry.path);
     for (let i = 0; i < warmup; i++) await request(entry.path);
     for (const concurrency of [1, 4]) {
       const durations: number[] = [];
@@ -111,10 +112,11 @@ try {
         warmup,
         samples,
         bytes,
+        coldMs: cold.durationMs,
         ...distribution(durations),
       });
       console.log(
-        `${entry.name} c${concurrency}: p95=${Math.round(distribution(durations).p95)} ms, ${bytes} bytes`,
+        `${entry.name} c${concurrency}: first=${Math.round(cold.durationMs)} ms, p95=${Math.round(distribution(durations).p95)} ms, ${bytes} bytes`,
       );
     }
   }
@@ -132,7 +134,7 @@ const report = {
   },
   runtime: { node: process.version, sqlite: details.sqliteVersion, platform: process.platform },
   workload: { seed: 20260925, databasePath: '.ratlas/demo/target.sqlite', ...details },
-  note: 'Fastify injection into the built API with an open read-only SQLite database. No network, browser, layout, or frame-rate timing is included.',
+  note: 'Fastify injection into the built API with an open read-only SQLite database. The first request per case is uncached; measured warm repeats use the bounded response cache. No network, browser, layout, or frame-rate timing is included.',
   measurements,
 };
 mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });

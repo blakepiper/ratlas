@@ -42,6 +42,8 @@ import {
   type Db,
 } from '@ratlas/db';
 export function registerRoutes(app: FastifyInstance, db: Db, config: Config, now: () => number) {
+  const responseCache = new Map<string, { result: object; validated: unknown; etag: string }>();
+  let cachedDataVersion = -1;
   function id(request: FastifyRequest, kind: 'rid' | 'nid') {
     return (kind === 'rid' ? ridSchema : nidSchema).parse(
       (request.params as Record<string, unknown>)[kind],
@@ -87,9 +89,50 @@ export function registerRoutes(app: FastifyInstance, db: Db, config: Config, now
       if (!parsed.success)
         return reply.code(400).send({ error: 'Invalid query', requestId: request.id });
       const at = now();
+      const canonical = JSON.stringify(
+        Object.fromEntries(
+          Object.entries(parsed.data as object).sort(([a], [b]) => a.localeCompare(b)),
+        ),
+      );
       let result: unknown;
+      let validated: unknown;
+      let etag: string;
       try {
-        result = db.transaction(() => read(parsed.data, request, at))();
+        ({ result, validated, etag } = db.transaction(() => {
+          // Another process owns writes. data_version changes after any external
+          // commit, including source-health updates that do not bump the public
+          // projection revision. Check it inside the read snapshot.
+          const dataVersion = db.pragma('data_version', { simple: true }) as number;
+          if (dataVersion !== cachedDataVersion) {
+            responseCache.clear();
+            cachedDataVersion = dataVersion;
+          }
+          const timeBucket = Math.floor(referenceTime(db, at) / 15000);
+          const key = JSON.stringify([path, request.params, canonical, timeBucket]);
+          // Random selection must remain random on every request.
+          const hit = path === '/api/v1/repos/random' ? undefined : responseCache.get(key);
+          if (hit) {
+            responseCache.delete(key);
+            responseCache.set(key, hit);
+            return hit;
+          }
+          const value = read(parsed.data, request, at);
+          if (value === null) return { result: null, validated: null, etag: '' };
+          const checked = response.parse(value);
+          // Hash the public response, including coverage. A health-only update
+          // can change that response without bumping projection_revision.
+          const fingerprint = JSON.stringify([path, request.params, canonical, checked]);
+          const responseEtag = 'W/"' + createHash('sha256').update(fingerprint).digest('hex') + '"';
+          if (path !== '/api/v1/repos/random' && Buffer.byteLength(fingerprint) <= 2_000_000) {
+            responseCache.set(key, {
+              result: value as object,
+              validated: checked,
+              etag: responseEtag,
+            });
+            if (responseCache.size > 8) responseCache.delete(responseCache.keys().next().value!);
+          }
+          return { result: value, validated: checked, etag: responseEtag };
+        })());
       } catch (error) {
         if (error instanceof z.ZodError)
           return reply.code(400).send({ error: 'Invalid identifier', requestId: request.id });
@@ -100,28 +143,8 @@ export function registerRoutes(app: FastifyInstance, db: Db, config: Config, now
           error: 'Entity is outside the public dataset or active filters',
           requestId: request.id,
         });
-      const validated = response.parse(result);
       if (path === '/api/v1/graph' && typeof result === 'object' && 'error' in result)
         return reply.code(422).send({ ...(validated as object), requestId: request.id });
-      const canonical = JSON.stringify(
-        Object.fromEntries(
-          Object.entries(parsed.data as object).sort(([a], [b]) => a.localeCompare(b)),
-        ),
-      );
-      const etag =
-        'W/"' +
-        createHash('sha256')
-          .update(
-            JSON.stringify([
-              (result as { datasetRevision: number }).datasetRevision,
-              path,
-              request.params,
-              canonical,
-              Math.floor(referenceTime(db, at) / 15000),
-            ]),
-          )
-          .digest('hex') +
-        '"';
       reply.header('Cache-Control', 'private, max-age=0, must-revalidate').header('ETag', etag);
       if (
         request.headers['if-none-match']

@@ -250,3 +250,69 @@ it('expires live observation windows and changes ETags without new writes', asyn
     await live.close();
   }
 });
+it('invalidates cached public responses after a separate writer commits', async () => {
+  const path = resolve(mkdtempSync('.ratlas/tests/cache-'), 'ratlas.sqlite');
+  const writer = openWriter(path);
+  try {
+    migrate(writer.db, 'demo', DEMO_REFERENCE, DEMO_REFERENCE);
+    generateSmallDemo(writer.db);
+  } finally {
+    writer.close();
+  }
+  const live = await createApi(
+    configSchema.parse({ mode: 'demo', storage: { databasePath: path } }),
+  );
+  try {
+    const originalSummary = await live.inject('/api/v1/summary?window=all');
+    for (const route of ['summary?window=all', 'repos?window=all', 'graph?window=all']) {
+      const first = await live.inject('/api/v1/' + route);
+      const cached = await live.inject('/api/v1/' + route);
+      expect(cached.body).toBe(first.body);
+      expect(cached.headers.etag).toBe(first.headers.etag);
+    }
+    const nextRid = syntheticRid(new Uint8Array(20).fill(79));
+    const nextWriter = openWriter(path);
+    try {
+      observe(nextWriter.db, {
+        id: 'new-public-route',
+        sourceId: 'demo-a',
+        rid: nextRid,
+        nid: nids[0]!,
+        kind: 'present',
+        observedAt: DEMO_REFERENCE,
+      });
+    } finally {
+      nextWriter.close();
+    }
+    const summary = await live.inject('/api/v1/summary?window=all');
+    expect(summary.json()).toMatchObject({ repositories: 101, hostingRelationships: 301 });
+    expect(summary.headers.etag).not.toBe(originalSummary.headers.etag);
+    expect(
+      (
+        await live.inject({
+          url: '/api/v1/summary?window=all',
+          headers: { 'if-none-match': originalSummary.headers.etag! },
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect((await live.inject('/api/v1/repos?window=all')).json().total).toBe(101);
+    expect((await live.inject('/api/v1/graph?window=all')).json().eligibleEdgeCount).toBe(301);
+    const healthWriter = openWriter(path);
+    try {
+      healthWriter.db
+        .prepare("UPDATE source_health SET current_error='test-outage' WHERE source_id='demo-a'")
+        .run();
+    } finally {
+      healthWriter.close();
+    }
+    const changedHealth = await live.inject({
+      url: '/api/v1/summary?window=all',
+      headers: { 'if-none-match': summary.headers.etag! },
+    });
+    expect(changedHealth.statusCode).toBe(200);
+    expect(changedHealth.headers.etag).not.toBe(summary.headers.etag);
+    expect(changedHealth.json().coverage.sources[0].error).toBe('test-outage');
+  } finally {
+    await live.close();
+  }
+});
