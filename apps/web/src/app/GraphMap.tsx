@@ -138,6 +138,9 @@ function GraphCanvas({
     };
     try {
       sigma = new Sigma(instance, container.current, {
+        // Reserve stable space for the bottom information overlay, including
+        // its wrapped narrow-screen text, without resizing on hover.
+        stagePadding: 72,
         renderLabels: true,
         labelFont: 'system-ui, sans-serif',
         labelColor: { color: '#e8edf2' },

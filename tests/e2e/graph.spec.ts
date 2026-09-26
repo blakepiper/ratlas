@@ -225,7 +225,7 @@ test('real canvas responds to zoom and releases graph workers after navigation',
 test('hover and unchanged polling preserve canvas size, camera and settled layout', async ({
   page,
 }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+  test.setTimeout(45000);
   await page.goto('/');
   const map = await showMap(page);
   await openMapEntities(map);
@@ -236,6 +236,8 @@ test('hover and unchanged polling preserve canvas size, camera and settled layou
   await showMap(page);
   const canvas = map.locator('[data-graph-renderer="webgl"] canvas').first();
   await expect(canvas).toBeVisible();
+  // Exercise normal motion and wait for the specified five-second worker stop.
+  await page.waitForTimeout(5500);
   const original = await canvas.elementHandle();
   const bounds = await canvas.boundingBox();
   const ring = map.locator('[class*=selectionRing]');

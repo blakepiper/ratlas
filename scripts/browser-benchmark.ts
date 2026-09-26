@@ -148,6 +148,9 @@ try {
           await page.screenshot({
             path: `.ratlas/reviews/R6/target-${viewport.name}-${renderer}.png`,
           });
+        const firstFramePath = `.ratlas/reviews/R6/target-${viewport.name}-${condition}-painted.png`;
+        await map.screenshot({ path: firstFramePath });
+        const dataToCapturedFrameMs = graphDataAt === null ? null : performance.now() - graphDataAt;
         const interaction =
           condition === 'first' && renderer === 'webgl'
             ? await measureWebglInteraction(page, map)
@@ -157,6 +160,8 @@ try {
           condition,
           elapsedMs,
           dataToVisibleMs,
+          dataToCapturedFrameMs,
+          firstFramePath,
           renderer,
           webglInfo,
           interaction,
