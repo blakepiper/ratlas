@@ -177,4 +177,6 @@ pnpm experiment --config config/ratlas.local.json --duration 24h
 It resumes active runtime from ignored `.ratlas/reports/experiment/state.json`
 after interruption and writes a last-run report beside it. Offline intervals
 do not count toward 24 hours. Archive a completed state before beginning a
-new experiment. No day-long run was performed during implementation.
+new experiment. The report contains five-second collector CPU/memory samples and per-source/merged
+counts in `samples.ndjson`, with a summary in `last-run.json`. Keep that whole
+directory together when archiving. No day-long run was performed during implementation.

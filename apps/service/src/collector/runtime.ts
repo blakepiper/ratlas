@@ -176,6 +176,10 @@ export class Collector {
             this.nextSnapshot || Infinity,
             this.now() + this.config.collection.reconnectDebounceMs,
           );
+      if (!firstConnection)
+        this.db
+          .prepare('UPDATE source_health SET reconnect_count=reconnect_count+1 WHERE source_id=?')
+          .run('local-observer');
       firstConnection = false;
       try {
         for await (const incoming of eventStream(this.config, this.signal)) {

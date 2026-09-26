@@ -1,0 +1,1 @@
+ALTER TABLE source_health ADD COLUMN reconnect_count INTEGER NOT NULL DEFAULT 0;

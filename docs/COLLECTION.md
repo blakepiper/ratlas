@@ -41,3 +41,26 @@ config is machine-specific and must be supplied explicitly for any later run.
 Other HTTP deployments and the local CLI adapter remain unverified live. See
 the [NixOS runbook](../deploy/nixos/README.md) for dedicated observer,
 permission, backup, restore, shutdown, and update procedures.
+
+Experiment reports use `.ratlas/reports/experiment/last-run.json` plus an
+append-only `samples.ndjson` time series. The collector runs in the experiment
+process, so five-second memory and cumulative CPU samples describe the actual
+collector. Each sample identifies its process session and actual timestamp;
+CPU deltas must be computed within a session, and delayed samples remain visible.
+Counts include merged and per-source all-retained public evidence, metadata
+resolution, source failures/schema errors, reconnect attempts and coverage gaps,
+request totals, decoded body bytes, queue depth, and database/WAL sizes.
+
+Interrupt with Ctrl-C and repeat the same command/configuration to resume.
+Integer active-runtime milliseconds exclude downtime. A database writer lease
+and separate report-directory lease prevent concurrent collectors/report writers.
+Configuration changes are detected by a fingerprint. Archive the report directory
+before starting a different or completed experiment; old pre-telemetry state is
+rejected rather than presented as a complete measurement.
+
+The report includes baseline/latest values and growth. Dedicated observer storage
+is measured using directory/stat metadata only when the CLI is enabled with
+`public-only-observer`; symlinks are not followed. Otherwise it explicitly says
+not measured. Storage changes can include independent daemon/operator activity.
+No experiment initializes identities or runs replication commands. The operator
+24-hour run remains separate from bounded implementation validation.
