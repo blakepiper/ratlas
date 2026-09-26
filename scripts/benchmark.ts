@@ -37,6 +37,7 @@ let details: {
   sqliteVersion: string;
   firstRid: string;
 };
+let distinctRids: string[];
 try {
   if (dataset(reader).kind !== 'demo' || dataset(reader).generator_version !== 2)
     throw new Error('Generate the deterministic target workload with pnpm data:target first');
@@ -52,6 +53,11 @@ try {
       }
     ).rid,
   };
+  distinctRids = (
+    reader.prepare('SELECT rid FROM public_repositories ORDER BY rid LIMIT 2101').all() as {
+      rid: string;
+    }[]
+  ).map((row) => row.rid);
 } finally {
   reader.close();
 }
@@ -69,6 +75,12 @@ const cases = [
   {
     name: 'repo-neighborhood',
     path: `/api/v1/graph?window=all&mode=neighborhood&selected=${encodeURIComponent(`repo:${details.firstRid}`)}&vertices=2000&edges=10000`,
+  },
+  {
+    name: 'catalog-exact-distinct',
+    path: (index: number) =>
+      `/api/v1/repos?window=all&q=${encodeURIComponent(distinctRids[index]!)}&limit=25`,
+    distinct: true,
   },
 ];
 if (values.case && !cases.some((entry) => entry.name === values.case))
@@ -92,14 +104,22 @@ async function request(path: string) {
 const measurements = [];
 try {
   for (const entry of cases.filter((candidate) => !values.case || candidate.name === values.case)) {
-    const cold = await request(entry.path);
-    for (let i = 0; i < warmup; i++) await request(entry.path);
+    const pathAt = (index: number) =>
+      typeof entry.path === 'string' ? entry.path : entry.path(index);
+    const cold = await request(pathAt(0));
+    for (let i = 0; i < warmup; i++) await request(pathAt(entry.distinct ? i + 1 : 0));
     for (const concurrency of [1, 4]) {
       const durations: number[] = [];
       let bytes = 0;
       for (let i = 0; i < samples; i += concurrency) {
         const batch = await Promise.all(
-          Array.from({ length: Math.min(concurrency, samples - i) }, () => request(entry.path)),
+          Array.from({ length: Math.min(concurrency, samples - i) }, (_, offset) =>
+            request(
+              pathAt(
+                entry.distinct ? warmup + 1 + (concurrency === 4 ? samples : 0) + i + offset : 0,
+              ),
+            ),
+          ),
         );
         for (const result of batch) {
           durations.push(result.durationMs);
@@ -113,6 +133,7 @@ try {
         samples,
         bytes,
         coldMs: cold.durationMs,
+        pattern: entry.distinct ? 'distinct exact RIDs' : 'same query repeated',
         ...distribution(durations),
       });
       console.log(
@@ -134,7 +155,7 @@ const report = {
   },
   runtime: { node: process.version, sqlite: details.sqliteVersion, platform: process.platform },
   workload: { seed: 20260925, databasePath: '.ratlas/demo/target.sqlite', ...details },
-  note: 'Fastify injection into the built API with an open read-only SQLite database. The first request per case is uncached; measured warm repeats use the bounded response cache. No network, browser, layout, or frame-rate timing is included.',
+  note: 'Fastify injection into the built API with an open read-only SQLite database. The first request per case is uncached. Repeated-query cases use the bounded response cache; the distinct exact-RID case uses different RIDs for cold, warm-up, c1 and c4 requests. No network, browser, layout, or frame-rate timing is included.',
   measurements,
 };
 mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });
