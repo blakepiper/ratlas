@@ -1,6 +1,6 @@
 # ratlas release validation
 
-The latest tested implementation is `b62547eb8237d8cbfdf0dc62a178247598c72e73` on NixOS
+The latest tested implementation is `a133f061303e1c3dfbb7ce20c378d14e35b33cea` on NixOS
 x86_64. The final check ran from the repository's locked `nix develop` shell
 with Node 24.21.0, pnpm 10.34.0, native SQLite 3.53.4, Playwright 1.59.1,
 and Nix-supplied Firefox 148.0.2. No browser was installed, and no personal
@@ -56,9 +56,12 @@ collector was run. R2 and R4 approvals allowed progress with the live and
 WebGL verification gaps disclosed; they did not turn those checks into passes.
 
 [Performance measurements](PERFORMANCE.md) identify the target fixture,
-hardware, runtime, first uncached and 20 warm-up/200 repeated requests per
-API case, first/warm Firefox timings, renderer mode, and the remaining cold
-latency limitation. Target-scale images
+hardware, runtime, first uncached and 20 warm-up/200 measured requests per
+API case (including 200 distinct exact RID searches), first/warm Firefox
+timings, renderer mode, and the remaining cold
+latency limitation. The browser benchmark gave each viewport a fresh API
+instance; first fallback navigations took 5.6/5.5 seconds and warmed
+navigations took 425/484 ms. Target-scale images
 in ignored `.ratlas/reviews/R6/` show the actual Nix Firefox fallback at both
 viewports. They are not screenshots of a rendered Sigma canvas. Ordinary
 Firefox showed a canvas in a user-provided R4 screenshot before later label

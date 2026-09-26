@@ -11,7 +11,7 @@ Live integration is blocked by missing approved sources; R2 approved proceeding 
 | R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
 | R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
 | R5         | approved    | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
-| R6         | in_progress | `b62547eb8237d8cbfdf0dc62a178247598c72e73` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
+| R6         | in_progress | `a133f061303e1c3dfbb7ce20c378d14e35b33cea` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -109,3 +109,14 @@ The next implementation revision `b62547eb8237d8cbfdf0dc62a178247598c72e73`
 adds a bounded API cache with external-writer invalidation and content-based
 ETags. Repeated target queries now meet the warm latency goal, but uncached
 queries remain slow and the live/WebGL/fixed-port prerequisites remain open.
+
+2026-09-25: implementation `a133f061303e1c3dfbb7ce20c378d14e35b33cea`
+pushes exact RID predicates before global route grouping. A 200-distinct-RID
+target benchmark measured 139 ms warm p95 at concurrency one and 534 ms at
+concurrency four. The full Nix-shell check again passed 61 deterministic tests,
+22 Firefox UI tests, and production build; two real-WebGL tests skipped.
+The browser benchmark now starts a fresh API per viewport, showing separate
+5.6/5.5-second first fallback navigations and 425/484-ms warm navigations.
+R6 remains in progress because live and real-WebGL checks need external
+prerequisites, and the clean-checkout fixed-port supervisor is still blocked
+by the running demo.

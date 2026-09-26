@@ -2,7 +2,7 @@
 
 Current stage: Stage F/R6 reopened as `in_progress` after the user asked to
 continue remaining work. The latest tested implementation is
-`b62547eb8237d8cbfdf0dc62a178247598c72e73`. R6 remains an autonomous
+`a133f061303e1c3dfbb7ce20c378d14e35b33cea`. R6 remains an autonomous
 milestone, not a claim of user acceptance or complete specification coverage.
 See [R6](reviews/R6.md), [validation](VALIDATION.md), and
 [performance](PERFORMANCE.md) for actual checks and limitations.
@@ -39,9 +39,11 @@ backup was restored and served through the built API. The unactivated NixOS
 module evaluated with its required Node runtime and filesystem settings.
 The bounded API response cache invalidates after an external SQLite writer
 commits. Repeated target queries now meet the warm p95 latency goal, while
-first uncached requests still take 1.3–1.9 seconds. The 20-warm-up/200-request
-target-scale benchmark and first/warm Firefox fallback timings are recorded
-in [performance](PERFORMANCE.md).
+first uncached broad projections still take 1.3–1.9 seconds. Exact RID queries
+now restrict routes before grouping: 200 distinct target queries measured
+139 ms warm p95 at concurrency one and 534 ms at concurrency four. The
+20-warm-up/200-request target-scale benchmark and separate cold/warm Firefox
+fallback timings are recorded in [performance](PERFORMANCE.md).
 
 The R4 selected-label contrast fix was committed at
 `4469b636a552d1afe5e0a670f67243e63edc2b9d`. A user screenshot showed real

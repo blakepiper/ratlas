@@ -1257,6 +1257,8 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Add a bounded read-only API response cache that invalidates after separate SQLite writer commits; test public-count, source-health, and conditional-ETag changes. Re-measure cold and repeated target queries without conflating them.
 
+- [x] Push exact RID restrictions before route grouping and measure 200 distinct target RID queries at both required concurrency levels. Record the concurrency-four latency miss as well as the concurrency-one pass.
+
 - [x] Start the built production API against a verified restored synthetic backup on an isolated port; confirm health, readiness, summary, SPA, and process cleanup.
 
 - [x] Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, and backup/restore tests. Fix failures without weakening assertions. Validate the unactivated NixOS module’s structure and document activation as untested.
