@@ -106,7 +106,10 @@ try {
         const started = performance.now();
         await page.goto(address, { waitUntil: 'domcontentloaded' });
         const tabs = page.getByRole('navigation', { name: 'Workspace tabs' });
-        if (await tabs.isVisible()) await tabs.getByRole('button', { name: 'Map' }).click();
+        if (viewport.width <= 1023) {
+          await tabs.waitFor({ state: 'visible' });
+          await tabs.getByRole('button', { name: 'Map' }).click();
+        }
         const map = page.getByRole('region', { name: 'Relationship map' });
         await map
           .locator('[data-graph-renderer="webgl"], [data-graph-renderer="fallback"]')

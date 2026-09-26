@@ -2,7 +2,11 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 
 async function showMap(page: Page) {
   const tabs = page.getByRole('navigation', { name: 'Workspace tabs' });
-  if (await tabs.isVisible()) await tabs.getByRole('button', { name: 'Map' }).click();
+  if ((page.viewportSize()?.width ?? 0) <= 1023) {
+    await expect(tabs).toBeVisible();
+    await tabs.getByRole('button', { name: 'Map' }).click();
+    await expect(tabs.getByRole('button', { name: 'Map' })).toHaveAttribute('aria-current', 'page');
+  }
   return page.getByRole('region', { name: 'Relationship map' });
 }
 
