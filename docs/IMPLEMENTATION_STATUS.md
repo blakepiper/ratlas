@@ -1,7 +1,10 @@
 # ratlas implementation status
 
-Current stage: Stage F/R6 `completed` as an autonomous implementation and
-validation milestone. The latest tested implementation is
+Current stage: Stage F/R6 `in_progress`, reopened after the 2026-09-26 audit.
+Authorized work: complete experiment reporting/resumption, fix graph jitter and
+regression checks, improve and measure target performance, and prepare a
+separate real-data review instance while preserving the running demo.
+The earlier completion claim below is historical pending this follow-up. The latest tested implementation is
 `92977809c1a2227cf9241365c6420a5a3d8cffad`. R6 does not claim user
 acceptance, publication, or verification of unrun operational exercises.
 See [R6](reviews/R6.md), [validation](VALIDATION.md), and

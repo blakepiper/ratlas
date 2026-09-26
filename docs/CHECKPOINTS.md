@@ -5,14 +5,14 @@ R5 handoff, when the Nix Firefox WebGL and live-source checks were still open.
 Both checks subsequently passed. R2 had approved proceeding with the live gap
 open; the bounded public HTTP check resolved that gap for one source.
 
-| Checkpoint | Status    | Presented revision                         | User approval                                                | Review artifact     |
-| ---------- | --------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
-| R1         | approved  | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
-| R2         | approved  | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
-| R3         | approved  | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
-| R4         | approved  | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
-| R5         | approved  | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
-| R6         | completed | `92977809c1a2227cf9241365c6420a5a3d8cffad` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
+| Checkpoint | Status      | Presented revision                         | User approval                                                | Review artifact     |
+| ---------- | ----------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| R1         | approved    | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
+| R2         | approved    | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
+| R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
+| R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
+| R5         | approved    | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
+| R6         | in_progress | `92977809c1a2227cf9241365c6420a5a3d8cffad` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -173,3 +173,11 @@ deterministic and 26 Firefox tests, no skips, and production build. R6 is
 `completed` as an autonomous milestone, not user approval. Live CLI
 compatibility, broader coverage, 24-hour operation, and service activation
 remain explicitly unverified.
+
+2026-09-26: user authorized fixing the audit findings and finishing the spec,
+reported jitter in the running demo graph, and requested real data for the next
+review. R6 is reopened. The audit passed 61 deterministic tests but found three
+Firefox failures (two expired live-mode fixtures and one context-loss timeout),
+incomplete experiment telemetry, and fractional elapsed-time state rejected by
+the resume guard. Preserve the running demo; use the configured public HTTP
+source for bounded collection and a separate loopback review instance.
