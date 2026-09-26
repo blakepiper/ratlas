@@ -11,7 +11,7 @@ Live integration is blocked by missing approved sources; R2 approved proceeding 
 | R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
 | R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
 | R5         | approved    | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
-| R6         | in_progress | `f06280018b0c0fbf7b22cfbba6c2c99d2bce4fd7` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
+| R6         | in_progress | `92977809c1a2227cf9241365c6420a5a3d8cffad` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -132,3 +132,20 @@ warm navigations took 498/542 ms. GPU class is unknown because Firefox masks
 its renderer string; frame rate remains unmeasured. The live source and the
 existing demo's occupied fixed ports remain external prerequisites, so R6
 stays `in_progress`.
+
+2026-09-25: implementation `0de2ec711ddcd30c0f293a27a1702169aa6eee94`
+adds an isolated browser benchmark probe. Target first WebGL navigation took
+5.76/5.64 seconds desktop/narrow end to end; first graph-response completion
+to canvas-element visibility took 209/362 ms. Under 60 alternating wheel
+inputs after initial layout, 57.1/52.0 animation frames per second contained
+WebGL draw calls. The frame count is a browser-side proxy, not GPU presentation
+timing. The live-source and fixed-port checks remain open.
+
+2026-09-26: implementation `92977809c1a2227cf9241365c6420a5a3d8cffad`
+waits for the narrow Map tab after Activity → Explore navigation, removing an
+intermittent browser-test race. The full check passed 61 deterministic tests,
+26 Firefox tests with no skips, and production build. A fresh target browser
+benchmark measured first desktop/narrow WebGL navigation at 5.68/5.76 seconds,
+response-to-visible at 235/352 ms, and draw-active wheel-frame proxies at
+57.8/55.5 fps. R6 remains `in_progress` pending the approved live source and
+an available fixed-port clean-demo launch.

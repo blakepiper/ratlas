@@ -2,7 +2,7 @@
 
 Current stage: Stage F/R6 reopened as `in_progress` after the user asked to
 continue remaining work. The latest tested implementation is
-`f06280018b0c0fbf7b22cfbba6c2c99d2bce4fd7`. R6 remains an autonomous
+`92977809c1a2227cf9241365c6420a5a3d8cffad`. R6 remains an autonomous
 milestone, not a claim of user acceptance or complete specification coverage.
 See [R6](reviews/R6.md), [validation](VALIDATION.md), and
 [performance](PERFORMANCE.md) for actual checks and limitations.
@@ -43,8 +43,9 @@ now restrict routes before grouping: 200 distinct target queries measured
 139 ms warm p95 at concurrency one and 534 ms at concurrency four. The
 20-warm-up/200-request target-scale benchmark and separate cold/warm Firefox
 WebGL timings are recorded in [performance](PERFORMANCE.md). Firefox masks its
-renderer string, so hardware versus software cannot be classified; frame rate
-has not been measured.
+renderer string, so hardware versus software cannot be classified. A browser
+probe measured 57.8/55.5 draw-active animation frames per second under wheel
+input on desktop/narrow; GPU presentation rate remains unknown.
 
 The R4 selected-label contrast fix was committed at
 `4469b636a552d1afe5e0a670f67243e63edc2b9d`. A user screenshot showed real

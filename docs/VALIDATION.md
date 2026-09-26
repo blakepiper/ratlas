@@ -1,6 +1,6 @@
 # ratlas release validation
 
-The latest tested implementation is `f06280018b0c0fbf7b22cfbba6c2c99d2bce4fd7` on NixOS
+The latest tested implementation is `92977809c1a2227cf9241365c6420a5a3d8cffad` on NixOS
 x86_64. The final check ran from the repository's locked `nix develop` shell
 with Node 24.21.0, pnpm 10.34.0, native SQLite 3.53.4, Playwright 1.59.1,
 and Nix-supplied Firefox 148.0.2. No browser was installed, and no personal
@@ -13,8 +13,9 @@ build. Isolated Firefox receives Nix EGL/Mesa library paths for its child
 process; no browser preference or host configuration changed. The added API
 regression test verifies cache invalidation after a separate writer changes
 public routes and source health, including conditional ETags. Real canvas tests
-exercise pointer selection, pan/zoom, context loss,
-and renderer/worker cleanup during repeated navigation. Frame rate and
+exercise pointer selection, pan/zoom, context loss, and renderer/worker cleanup
+during repeated navigation. A separate browser
+benchmark records a draw-active frame proxy; GPU presentation rate and
 ForceAtlas2 timing remain unmeasured.
 
 A detached clean worktree at the earlier R6 implementation commit
@@ -62,13 +63,13 @@ the live test remains open.
 hardware, runtime, first uncached and 20 warm-up/200 measured requests per
 API case (including 200 distinct exact RID searches), first/warm Firefox
 timings, renderer mode, and the remaining cold latency limitation. The browser
-benchmark gave each viewport a fresh API
-instance; first WebGL navigations took 5.75/5.59 seconds and warmed
-navigations took 498/542 ms. Target-scale and selected-node images
-in ignored `.ratlas/reviews/R6/` show the actual Nix Firefox Sigma canvas at
+benchmark gave each viewport a fresh API instance; first WebGL navigations took
+5.68/5.76 seconds and warmed navigations took 527/445 ms. The browser probe counted 57.8/55.5 draw-active
+frames per second during wheel interaction after initial layout. This is not
+GPU presentation timing. Target-scale and selected-node images in ignored
+`.ratlas/reviews/R6/` show the actual Nix Firefox Sigma canvas at
 both viewports after the selected-label and toolbar revisions. Firefox's
 privacy-masked renderer string does not distinguish hardware from software.
-The canvas frame-rate target is not yet measured.
 
 No remote was created or modified; nothing was pushed, tagged, published,
 deployed, or activated. Runtime databases, backups, profiles, reports, and

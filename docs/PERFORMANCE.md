@@ -52,17 +52,24 @@ larger full-mode response is outside the default navigation path.
 An isolated Playwright Firefox 148.0.2 process used the built production SPA
 and target API on ephemeral loopback ports. The Firefox child process used
 Nix-provided EGL and Mesa library paths, without changing browser preferences
-or the host. Browser launch took 567 ms. Each viewport received a fresh API
+or the host. Browser launch took 582 ms. Each viewport received a fresh API
 instance so its first navigation was cold. Navigation-to-visible-WebGL-map
-timing was 5,749 ms first and 498 ms warm at 1440×900, and 5,591 ms first and
-542 ms warm at 390×844. These four samples include page, API, and canvas work.
-The first navigations exceed three seconds end to end; the measurement does
-not isolate post-data rendering time, so it cannot establish whether the
-separate three-second render target passes. Firefox reports vendor `Mozilla`
-and renderer `Intel(R) HD Graphics, or similar`; this privacy-masked string
-does not establish hardware versus software. ForceAtlas2 timing and canvas
-frame rate remain unmeasured, so the 30 fps target is unverified. Real canvas
-selection, pan/zoom, context loss, and renderer/worker cleanup passed in
+timing was 5,676 ms first and 527 ms warm at 1440×900, and 5,763 ms first and
+445 ms warm at 390×844. These four samples include page, API, and canvas work.
+From completion of the first graph response body to canvas-element visibility,
+the first/warm intervals were 235/303 ms desktop and 352/286 ms narrow. This
+includes browser parsing and scheduling, but visibility does not prove a fully
+painted first frame. Cold end-to-end navigation still exceeds three seconds.
+Firefox reports vendor `Mozilla` and renderer `Intel(R) HD Graphics, or
+similar`; this privacy-masked string
+does not establish hardware versus software. After the five-second initial
+layout, 60 alternating wheel inputs produced 104 draw-active animation frames
+in 1.800 seconds (57.8 fps) desktop and 100 in 1.802 seconds (55.5 fps) narrow.
+The probe counts frames with intercepted WebGL draw calls; it does not measure
+GPU presentation or dropped compositor frames. It exceeds the 30 fps
+browser-side proxy target on this one run, while hardware frame rate and
+ForceAtlas2 timing remain unverified. Real canvas selection, pan/zoom, context
+loss, and renderer/worker cleanup passed in
 browser tests at both viewports. Raw browser results are in ignored
 `.ratlas/reports/browser-benchmark.json`; actual screenshots are
 `R6/target-desktop-webgl.png`, `R6/target-narrow-webgl.png`,

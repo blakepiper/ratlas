@@ -1253,7 +1253,7 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Write the first-run, architecture, and NixOS operations documentation; provide and evaluate an unactivated two-service module. Live activation remains untested.
 
-- [x] Measure the target-scale API with 20 warm-up/200 requests per query at concurrency one and four, and record first/warm Nix Firefox behavior and actual renderer mode. Report uncached latency separately from warm repeated-query cache results and disclose unmeasured frame rate and GPU classification.
+- [x] Measure the target-scale API with 20 warm-up/200 requests per query at concurrency one and four, and record first/warm Nix Firefox behavior and actual renderer mode. Report uncached latency separately from warm repeated-query cache results, and distinguish browser draw-active frame proxy from GPU presentation rate and unknown GPU classification.
 
 - [x] Add a bounded read-only API response cache that invalidates after separate SQLite writer commits; test public-count, source-health, and conditional-ETag changes. Re-measure cold and repeated target queries without conflating them.
 
@@ -1300,7 +1300,7 @@ Present the first release candidate at R6 only when the following are satisfied 
 - [x] Catalog/graph counts deduplicate IDs and relationships, and source/window/truncation limits remain visible. “Observed” never silently becomes “online,” “newly created,” or “all repositories.”
 - [x] Private/quarantined data cannot escape through APIs, enrichment, logs, fixtures, search, graph, history, or exports in the tested paths.
 - [x] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests. Real WebGL worker/renderer cleanup also passes in browser tests.
-- [x] Performance reports contain real measurements, identify the actual Firefox WebGL mode, and do not infer hardware versus software from its privacy-masked renderer string. No untested frame rate, throughput, capacity, or security property is claimed.
+- [x] Performance reports contain real measurements, identify the actual Firefox WebGL mode, and do not infer hardware versus software from its privacy-masked renderer string. Browser draw-active frame rate is labeled as a proxy, not GPU presentation rate. No untested throughput, capacity, or security property is claimed.
 - [x] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
 - [ ] R1–R5 have genuine approval records. R6 was reopened as `in_progress` after the user asked to continue remaining work; mark it `completed` only after final implementation and reporting. It is not user approved, and pending feedback is not silently cleared.
 - [x] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
