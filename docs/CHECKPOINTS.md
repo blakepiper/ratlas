@@ -149,3 +149,11 @@ benchmark measured first desktop/narrow WebGL navigation at 5.68/5.76 seconds,
 response-to-visible at 235/352 ms, and draw-active wheel-frame proxies at
 57.8/55.5 fps. R6 remains `in_progress` pending the approved live source and
 an available fixed-port clean-demo launch.
+
+2026-09-26: the earlier processes on ports 3000/5173 had exited. A new clean
+detached checkout at review revision `6e9dc48` entered the locked shell,
+completed frozen install, build and doctor, then launched `pnpm demo` on the
+specified ports. The UI returned 200, the proxied summary had the exact small
+synthetic counts, and SIGINT stopped the supervisor and released both ports.
+This closes the clean-checkout startup item. No approved live source is
+configured, so the bounded live smoke test is still open.

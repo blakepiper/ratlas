@@ -31,9 +31,10 @@ collection rather than being reported as source outages.
 
 `pnpm check` passed on the final tested implementation: formatting, lint,
 repository/Firefox policy checks, types, 61 deterministic tests, 26 Firefox
-desktop/narrow UI tests, and production build, with no WebGL skips. A clean worktree at
-the earlier `c26d1b6` revision completed frozen install, native SQLite build, production build, offline demo
-preparation, doctor, and isolated production serving. A verified online
+desktop/narrow UI tests, and production build, with no WebGL skips. A clean
+worktree at `6e9dc48` completed frozen install, native SQLite/Firefox doctor,
+production build, fixed-port offline demo startup, HTTP UI and proxied API
+checks, and orderly shutdown with both ports released. A verified online
 backup was restored and served through the built API. The unactivated NixOS
 module evaluated with its required Node runtime and filesystem settings.
 The bounded API response cache invalidates after an external SQLite writer
@@ -54,15 +55,13 @@ has now been visually rechecked in isolated Nix Firefox WebGL screenshots.
 Real canvas selection, pan/zoom, context loss, and worker cleanup pass at both
 viewports. No approved live source or observer executable is configured, so live
 compatibility remains untested. No Radicle node, replication, personal
-profile, remote, push, or publication was used. Existing demo processes on
-ports 3000 and 5173 were left untouched.
+profile, remote, push, or publication was used. Earlier demo processes on
+ports 3000 and 5173 had exited before the clean-checkout startup check.
 
-After the current demo processes are stopped by their owner, use
-`env -u TMPDIR nix develop --command pnpm demo:reset` to start the small
+Use `env -u TMPDIR nix develop --command pnpm demo:reset` to start the small
 outage/recovery walkthrough from a fresh, archived baseline. Then run
 `env -u TMPDIR nix develop --command pnpm demo` and open
-http://127.0.0.1:5173 in Firefox. The existing user-owned processes on ports
-3000 and 5173 were not interrupted during validation. Live compatibility and
-the fixed-port clean demo launch remain external-prerequisite gaps. No remote,
+http://127.0.0.1:5173 in Firefox. No earlier demo process was interrupted.
+Live compatibility remains an external-prerequisite gap. No remote,
 push, publication, Radicle node, replication, system activation, or personal
 profile change was performed.

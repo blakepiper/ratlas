@@ -1,13 +1,15 @@
 # ratlas Radicle compatibility
 
-Reference check: 2026-09-25. No executable or observer has been configured,
+Reference check: 2026-09-26. No executable or observer has been configured,
 queried, or modified. No live source probing or collection has occurred.
 
 The [September 23 security disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)
 reported transport vulnerabilities and advised against private network
-repository use pending a fix. Older encryption claims must not be repeated as
-verified properties. Recheck the notice and release information before any
-future live integration. No Radicle version is installed by this project's shell.
+repository use pending a fix. Rechecked on 2026-09-26 against the current
+Radicle site: the disclosure still says all released versions are affected and
+a breaking fix is under development. Older encryption claims must not be
+repeated as verified properties. Recheck release information before any future
+live integration. No Radicle version is installed by this project's shell.
 
 The reference contract is release commit `341982110`:
 
@@ -46,5 +48,4 @@ No deployed source schema or installed Radicle version was measured. The disable
 example produces exit 2 for `collect:once` and `test:live`, correctly reporting a
 missing prerequisite. R2 and R4 approvals permitted development to continue
 with this disclosed gap; they did not make live compatibility a tested result.
-Live validation remains incomplete until an approved source is configured and
-the security notice is checked again.
+Live validation remains incomplete until an approved source is configured.

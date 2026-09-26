@@ -32,6 +32,16 @@ supervisor correctly refused to take port 3000, which the existing user-owned
 demo already occupied. Ports 3000/5173 and their processes were left alone.
 The temporary worktree was removed after validation.
 
+On 2026-09-26, after both ports became free, a new detached clean checkout at
+`6e9dc48` entered `nix develop` and completed `pnpm install --frozen-lockfile`
+in 2m 5.5s, `pnpm build`, and `pnpm doctor`. Native SQLite/FTS5/WAL and
+isolated Firefox checks passed. `pnpm demo` launched the fixed-port supervisor;
+Vite returned HTTP 200 at `http://127.0.0.1:5173/`, and its
+`/api/v1/summary` proxy returned 100 repositories, 20 nodes, 300
+relationships, two synthetic sources, and 20 unresolved names. SIGINT shut the
+supervisor down with exit 0; neither 3000 nor 5173 remained bound, no child
+PID remained, and the clean checkout was removed. No live collector ran.
+
 The online-backup regression test created a backup with an open source WAL,
 then reopened the saved database and compared public summary and retained
 route-change counts. A real local CLI backup of the small synthetic demo
