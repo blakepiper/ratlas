@@ -6,6 +6,9 @@
   overflow: auto;
   background: var(--background);
 }
+.map > :not(.stage) {
+  flex-shrink: 0;
+}
 .heading {
   display: flex;
   align-items: center;
@@ -86,7 +89,7 @@
 }
 .stage {
   position: relative;
-  flex: 1;
+  flex: 1 0 330px;
   min-height: 330px;
 }
 .stageFallback {
@@ -123,6 +126,13 @@
   margin: 0;
 }
 .entityInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--surface);
   display: flex;
   flex-wrap: wrap;
   gap: 6px 12px;
@@ -170,6 +180,9 @@
   color: var(--muted);
 }
 @media (max-width: 1023px) {
+  .map {
+    overflow: visible;
+  }
   .heading,
   .controls,
   .counts,
@@ -187,6 +200,7 @@
     padding-right: 16px;
   }
   .stage {
+    flex-basis: 430px;
     min-height: 430px;
   }
   .stageFallback {

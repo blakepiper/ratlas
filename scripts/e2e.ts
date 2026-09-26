@@ -132,7 +132,7 @@ const browseApp = await createApi(
       },
     ],
   }),
-  { production: true, rateLimitMax: 1000 },
+  { production: true, rateLimitMax: 1000, now: () => DEMO_REFERENCE },
 );
 try {
   const url = await app.listen({ host: '127.0.0.1', port: 0 });

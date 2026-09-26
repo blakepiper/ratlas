@@ -277,17 +277,17 @@ function GraphCanvas({
             </button>
           </div>
         )}
+        {(hoveredNode ?? selectedNode) && (
+          <div className={styles.entityInfo}>
+            <strong>
+              {hoveredNode ? 'Hovered' : 'Selected'}{' '}
+              {(hoveredNode ?? selectedNode)?.kind === 'repo' ? 'repository' : 'node identity'}
+            </strong>
+            <span>{(hoveredNode ?? selectedNode)!.label}</span>
+            <code>{(hoveredNode ?? selectedNode)!.id}</code>
+          </div>
+        )}
       </div>
-      {(hoveredNode ?? selectedNode) && (
-        <div className={styles.entityInfo}>
-          <strong>
-            {hoveredNode ? 'Hovered' : 'Selected'}{' '}
-            {(hoveredNode ?? selectedNode)?.kind === 'repo' ? 'repository' : 'node identity'}
-          </strong>
-          <span>{(hoveredNode ?? selectedNode)!.label}</span>
-          <code>{(hoveredNode ?? selectedNode)!.id}</code>
-        </div>
-      )}
     </>
   );
 }
@@ -342,10 +342,18 @@ export function GraphMap({
     return params.toString();
   }, [filterQuery, mode, selectedKey]);
   const request = useQuery({
-    queryKey: ['graph', queryString, datasetRevision, windowBucket],
+    queryKey: ['graph', queryString],
     enabled: mode !== 'neighborhood' || !!selectedKey,
     queryFn: ({ signal }) => loadGraph(`/api/v1/graph?${queryString}`, signal),
   });
+  const lastVersion = useRef({ datasetRevision, windowBucket });
+  const { refetch } = request;
+  useEffect(() => {
+    const previous = lastVersion.current;
+    lastVersion.current = { datasetRevision, windowBucket };
+    if (previous.datasetRevision !== datasetRevision || previous.windowBucket !== windowBucket)
+      void refetch();
+  }, [datasetRevision, windowBucket, refetch]);
   useEffect(() => {
     if (request.error instanceof GraphRequestError && request.error.status === 404 && selectedKey) {
       setNotice('The selected entity is outside the active graph filters. Selection was cleared.');
@@ -356,9 +364,14 @@ export function GraphMap({
   const result = request.data;
   const data = result && !('error' in result) ? result : null;
   const limit = result && 'error' in result ? result : null;
+  const graphNodes = data?.nodes;
+  const graphEdges = data?.edges;
   const displayed = useMemo(
-    () => (data ? visibleGraph(data, hideHubs, threshold) : null),
-    [data, hideHubs, threshold],
+    () =>
+      graphNodes && graphEdges
+        ? visibleGraph({ nodes: graphNodes, edges: graphEdges }, hideHubs, threshold)
+        : null,
+    [graphNodes, graphEdges, hideHubs, threshold],
   );
   function selectKey(key: string) {
     const node = data?.nodes.find((entry) => entry.key === key);

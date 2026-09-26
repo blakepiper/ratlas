@@ -116,7 +116,9 @@ test('WebGL context loss replaces the canvas with the accessible fallback', asyn
     test.skip(true, 'This Firefox session cannot create a WebGL context');
     return;
   }
-  await canvas.dispatchEvent('webglcontextlost');
+  await canvas.evaluate((element) =>
+    element.dispatchEvent(new Event('webglcontextlost', { cancelable: true })),
+  );
   await expect(map.locator('[data-graph-renderer="fallback"]')).toBeVisible();
   await expect(map).toContainText('WebGL context lost');
   await openMapEntities(map);
@@ -218,4 +220,34 @@ test('real canvas responds to zoom and releases graph workers after navigation',
     ),
   ).toBeGreaterThan(0);
   expect(errors).toEqual([]);
+});
+
+test('hover and unchanged polling preserve canvas size, camera and settled layout', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const map = await showMap(page);
+  await openMapEntities(map);
+  await map
+    .getByRole('button', { name: /\[repo\]/u })
+    .first()
+    .click();
+  await showMap(page);
+  const canvas = map.locator('[data-graph-renderer="webgl"] canvas').first();
+  await expect(canvas).toBeVisible();
+  const original = await canvas.elementHandle();
+  const bounds = await canvas.boundingBox();
+  const ring = map.locator('[class*=selectionRing]');
+  await expect(ring).toBeVisible();
+  const point = (await ring.boundingBox())!;
+  await page.mouse.move(point.x + point.width / 2, point.y + point.height / 2);
+  await expect(map.locator('[class*=entityInfo]')).toContainText('Hovered');
+  expect(await canvas.boundingBox()).toEqual(bounds);
+  await page.mouse.move(0, 0);
+  // A full polling interval catches data-refresh effects, not just React rerenders.
+  await page.waitForTimeout(16000);
+  expect(await original!.evaluate((element) => element.isConnected)).toBe(true);
+  expect(await canvas.boundingBox()).toEqual(bounds);
+  expect(await ring.boundingBox()).toEqual(point);
 });

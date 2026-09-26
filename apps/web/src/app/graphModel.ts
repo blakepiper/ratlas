@@ -23,7 +23,11 @@ export function seededPosition(key: string) {
   return { x: Math.cos(angle) * radius + 0.00001, y: Math.sin(angle) * radius + 0.00001 };
 }
 
-export function visibleGraph(data: GraphData, hideHubs: boolean, threshold: number) {
+export function visibleGraph(
+  data: Pick<GraphData, 'nodes' | 'edges'>,
+  hideHubs: boolean,
+  threshold: number,
+) {
   const nodes = hideHubs
     ? data.nodes.filter((node) => node.kind !== 'node' || node.degree <= threshold)
     : data.nodes;
