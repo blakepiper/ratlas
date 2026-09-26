@@ -16,14 +16,9 @@ try {
 } finally {
   reader.close();
 }
-const app = await createApi(configSchema.parse({ mode: 'demo', storage: { databasePath } }), {
-  production: true,
-  rateLimitMax: 100000,
-});
 let browser: Awaited<ReturnType<typeof firefox.launch>> | undefined;
 const samples = [];
 try {
-  const address = await app.listen({ host: '127.0.0.1', port: 0 });
   const launchStart = performance.now();
   browser = await firefox.launch({ headless: true });
   const launchMs = performance.now() - launchStart;
@@ -32,12 +27,19 @@ try {
     { name: 'desktop', width: 1440, height: 900 },
     { name: 'narrow', width: 390, height: 844 },
   ]) {
-    const context = await browser.newContext({
-      viewport: { width: viewport.width, height: viewport.height },
-      locale: 'en-US',
-      timezoneId: 'UTC',
+    // Give each viewport a fresh API cache so both "first" samples are cold.
+    const app = await createApi(configSchema.parse({ mode: 'demo', storage: { databasePath } }), {
+      production: true,
+      rateLimitMax: 100000,
     });
+    let context: Awaited<ReturnType<typeof browser.newContext>> | undefined;
     try {
+      context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+        locale: 'en-US',
+        timezoneId: 'UTC',
+      });
+      const address = await app.listen({ host: '127.0.0.1', port: 0 });
       const page = await context.newPage();
       for (const condition of ['first', 'warm'] as const) {
         const started = performance.now();
@@ -64,7 +66,8 @@ try {
         console.log(`${viewport.name} ${condition}: ${Math.round(elapsedMs)} ms, ${renderer}`);
       }
     } finally {
-      await context.close();
+      await context?.close();
+      await app.close();
     }
   }
   const report = {
@@ -73,7 +76,7 @@ try {
     browser: { engine: 'firefox', version: browser.version(), launchMs },
     workload:
       'Synthetic target dataset (20000 repositories, 2000 nodes, 100000 hosting relationships)',
-    note: 'Navigation-to-visible-map timing includes page, API, and render/fallback work. A fallback is not a WebGL frame-rate or layout measurement.',
+    note: 'Each viewport uses a fresh API cache for its first navigation, then repeats with that same cache. Navigation-to-visible-map timing includes page, API, and render/fallback work. A fallback is not a WebGL frame-rate or layout measurement.',
     samples,
   };
   mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });
@@ -82,5 +85,4 @@ try {
   });
 } finally {
   await browser?.close();
-  await app.close();
 }
