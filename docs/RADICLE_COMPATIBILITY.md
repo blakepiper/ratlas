@@ -67,3 +67,13 @@ source status, and isolated Firefox rendered the live public repository map.
 `PRAGMA quick_check` was `ok`, and the collector and API were
 stopped after validation. This is a single-source compatibility result, not
 network-wide coverage or a live CLI test. No raw upstream payload is committed.
+
+Audit follow-up (2026-09-26): rechecked the same official security disclosure and
+1.10.3 reference before bounded public HTTP collection; no new security or live
+CLI claim. The isolated review config passed source doctor and a 60-second
+telemetry experiment against the same pinned public seed. Five requests, 44,912
+decoded bytes, 13 samples, no source error; merged projection again 14/1/14.
+Observer storage was explicitly not measured because CLI observation was disabled.
+The saved database now serves through the built API on port 3001 with collection
+stopped; isolated Firefox verified desktop and narrow WebGL. This remains
+single-source evidence, not a network survey.

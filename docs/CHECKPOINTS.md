@@ -5,14 +5,14 @@ R5 handoff, when the Nix Firefox WebGL and live-source checks were still open.
 Both checks subsequently passed. R2 had approved proceeding with the live gap
 open; the bounded public HTTP check resolved that gap for one source.
 
-| Checkpoint | Status      | Presented revision                         | User approval                                                | Review artifact     |
-| ---------- | ----------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
-| R1         | approved    | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
-| R2         | approved    | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
-| R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
-| R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
-| R5         | approved    | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
-| R6         | in_progress | `92977809c1a2227cf9241365c6420a5a3d8cffad` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
+| Checkpoint | Status    | Presented revision                         | User approval                                                | Review artifact     |
+| ---------- | --------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| R1         | approved  | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
+| R2         | approved  | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
+| R3         | approved  | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
+| R4         | approved  | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
+| R5         | approved  | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
+| R6         | completed | `737f97069288c2c628333f42e57fbfbf8688f5b7` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -181,3 +181,17 @@ Firefox failures (two expired live-mode fixtures and one context-loss timeout),
 incomplete experiment telemetry, and fractional elapsed-time state rejected by
 the resume guard. Preserve the running demo; use the configured public HTTP
 source for bounded collection and a separate loopback review instance.
+
+2026-09-26 audit follow-up: implementation `737f97069288c2c628333f42e57fbfbf8688f5b7` completes
+experiment telemetry/resumption, fixes hover/polling jitter and overlay padding,
+optimizes selective queries and heartbeat cache invalidation, and corrects the
+expired browser fixture/context-loss race. Final checks: 64 deterministic and
+28 Firefox tests, no skips, formatting/lint/types/build passed. A bounded
+60-second experiment captured 14 public repositories/one node/14 relationships,
+five HTTP requests and 13 telemetry samples. Collector stopped; separate review
+API left on 127.0.0.1:3001 with actual desktop/narrow WebGL screenshots. The
+original demo was not stopped by this work; its processes had exited by final
+verification. R6 is completed autonomously, not user approval. Cold broad query
+latency, unknown GPU presentation timing, live CLI, day-long operation, and
+systemd activation remain disclosed limits. See PERFORMANCE and R6 for commands,
+measurement scope, and ignored artifacts.

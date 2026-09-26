@@ -54,3 +54,14 @@ user authorized autonomous work through completion without further check-ins.
 R6 is a progress/completion milestone, not an approval gate. Existing R1–R5
 approval records remain factual, and neither this authorization nor completion
 permits pushing, publishing, service activation, or unconfigured live access.
+
+2026-09-26 implementation follow-up (within existing autonomous authorization):
+hover information overlays a fixed-size graph stage; 72 px Sigma padding reserves
+room without hover-triggered resize. Graph polling retains data and renderer when
+entities are unchanged. Database revision triggers cover all public projection
+inputs, allowing bounded entity caches to survive health-only heartbeats while
+source/privacy changes invalidate them. Experiment telemetry runs in the collector
+process so CPU/memory samples describe the collector, and persists integer active
+runtime across restarts. Real review uses a separate ignored config/database and
+port 3001; bounded collection stops before handoff. These are implementation
+choices, not new approvals or stack deviations.

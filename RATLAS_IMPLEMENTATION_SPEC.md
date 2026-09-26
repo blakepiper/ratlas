@@ -1249,7 +1249,7 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Add an online SQLite backup command with schema, integrity, and representative-count verification; test backup and restore while the source remains in WAL mode.
 
-- [x] Add a resumable, operator-invoked 24-hour observation experiment command. Its no-source preflight exits incomplete; no day-long or live run was performed during implementation.
+- [x] Add a resumable, operator-invoked 24-hour observation experiment command. Its no-source preflight exits incomplete. The audit follow-up added the required telemetry and restart guards; a bounded 60-second public HTTP experiment passed, while day-long operation remains untested.
 
 - [x] Write the first-run, architecture, and NixOS operations documentation; provide and evaluate an unactivated two-service module. Live activation remains untested.
 
@@ -1257,7 +1257,7 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Add a bounded read-only API response cache that invalidates after separate SQLite writer commits; test public-count, source-health, and conditional-ETag changes. Re-measure cold and repeated target queries without conflating them.
 
-- [x] Push exact RID restrictions before route grouping and measure 200 distinct target RID queries at both required concurrency levels. Record the concurrency-four latency miss as well as the concurrency-one pass.
+- [x] Push exact RID restrictions before route grouping and measure 200 distinct target RID queries at both required concurrency levels. The audit follow-up replaced the initial concurrency-four miss with measured 2/7 ms p95 at concurrency one/four using indexed metadata lookup; preserve the earlier miss in the historical record.
 
 - [x] Start the built production API against a verified restored synthetic backup on an isolated port; confirm health, readiness, summary, SPA, and process cleanup.
 

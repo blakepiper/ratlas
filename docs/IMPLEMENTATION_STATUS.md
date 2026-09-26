@@ -1,74 +1,45 @@
 # ratlas implementation status
 
-Current stage: Stage F/R6 `in_progress`, reopened after the 2026-09-26 audit.
-Authorized work: complete experiment reporting/resumption, fix graph jitter and
-regression checks, improve and measure target performance, and prepare a
-separate real-data review instance while preserving the running demo.
-The earlier completion claim below is historical pending this follow-up. The latest tested implementation is
-`92977809c1a2227cf9241365c6420a5a3d8cffad`. R6 does not claim user
-acceptance, publication, or verification of unrun operational exercises.
+Current stage: Stage F/R6 `completed` as autonomous implementation and validation,
+without claiming user acceptance. Tested implementation: `737f97069288c2c628333f42e57fbfbf8688f5b7`.
+The 2026-09-26 follow-up fixes the audit findings and user-reported graph jitter.
 See [R6](reviews/R6.md), [validation](VALIDATION.md), and
-[performance](PERFORMANCE.md) for actual checks and limitations.
+[performance](PERFORMANCE.md) for evidence and remaining limits.
 
-The map's separate navigation, layout, and label/edge toolbar was removed in
-response to R5 UI feedback. Pointer pan/zoom, click selection, view and hub
-filters, and the accessible entity list remain. The selected label and toolbar
-change were visually checked on screenshots from the real Nix Firefox WebGL canvas.
+The catalog, repository/node details, bounded WebGL map, accessible entity list,
+Activity feed/chart, provenance, coverage gaps, retention, backup/restore,
+separate collector/API, and NixOS module are implemented. Historical R1–R5
+approvals and accepted dependency/UI deviations remain in [decisions](DECISIONS.md).
 
-The Activity view now shows a source-filtered, paged observation feed, stored
-UTC-hour repository/node/hosting count series, the explicit retained-history
-boundary, source coverage and circuit-breaker state, and privacy-safe wording.
-A synthetic outage keeps cached records available in All retained even while
-the 24-hour window has no observations. Recovery uses a complete synthetic
-snapshot, closes the gap, and restores 24-hour counts. The demo reset command
-archives a confirmed demo database and refuses a live or in-use database.
+Hover information no longer changes map geometry. Polling retains the renderer,
+camera, and settled layout when graph entities are unchanged. Fixed padding keeps
+nodes clear of the information overlay. Normal-animation Firefox regressions cover
+hover and a full polling interval at desktop and narrow widths.
 
-The live collector prunes normalized observation details after seven days and
-route changes, closed gaps, hourly samples, and unreferenced run diagnostics
-after 90 days by default. It runs at most once per day in 1000-row batches,
-retains canonical identities and current source-route state, preserves foreign
-keys, and advances the public history boundary only after successful pruning.
-It records database/WAL size, queue and event-backlog peaks, source failures,
-last reconciliation, and collector heartbeat. SQLite storage failures stop
-collection rather than being reported as source outages.
+The resumable experiment now records per-source/merged counts, metadata resolution,
+health/errors/reconnects/gaps, decoded bytes and requests, queue, database/WAL growth,
+and actual collector CPU/memory samples. Observer storage is stat-only and requires
+an explicitly dedicated public observer; otherwise it reports not measured.
+Integer progress survives interruption/resumption. Asynchronous fatal storage
+errors yield failure even at shutdown. A 60-second public HTTP run completed;
+24-hour operation remains untested.
 
-`pnpm check` passed on the final tested implementation: formatting, lint,
-repository/Firefox policy checks, types, 61 deterministic tests, 26 Firefox
-desktop/narrow UI tests, and production build, with no WebGL skips. A clean
-worktree at `6e9dc48` completed frozen install, native SQLite/Firefox doctor,
-production build, fixed-port offline demo startup, HTTP UI and proxied API
-checks, and orderly shutdown with both ports released. A verified online
-backup was restored and served through the built API. The unactivated NixOS
-module evaluated with its required Node runtime and filesystem settings.
-The bounded API response cache invalidates after an external SQLite writer
-commits. Repeated target queries now meet the warm p95 latency goal, while
-first uncached broad projections still take 1.3–1.9 seconds. Exact RID queries
-now restrict routes before grouping: 200 distinct target queries measured
-139 ms warm p95 at concurrency one and 534 ms at concurrency four. The
-20-warm-up/200-request target-scale benchmark and separate cold/warm Firefox
-WebGL timings are recorded in [performance](PERFORMANCE.md). Firefox masks its
-renderer string, so hardware versus software cannot be classified. A browser
-probe measured 57.8/55.5 draw-active animation frames per second under wheel
-input on desktop/narrow; GPU presentation rate remains unknown.
+`pnpm check` passed formatting, lint/policy, types, 64 deterministic tests,
+28 Firefox tests with no skips, and production build. Target-scale exact searches
+now reach 2/7 ms p95 at concurrency one/four. Varied selective text and repository
+neighborhood queries also pass the measured warm 250 ms target. Heartbeat-only
+writer churn no longer invalidates entity projections; privacy/source mutations
+still invalidate them. First uncached broad queries remain about 1.5–2 seconds.
+Firefox's GPU class and presentation frame rate remain unknown.
 
-The R4 selected-label contrast fix was committed at
-`4469b636a552d1afe5e0a670f67243e63edc2b9d`. A user screenshot showed real
-canvas rendering in ordinary Firefox before the fix, but the corrected label
-has now been visually rechecked in isolated Nix Firefox WebGL screenshots.
-Real canvas selection, pan/zoom, context loss, and worker cleanup pass at both
-viewports. An explicitly configured public HTTPS source at the Radicle team's
-seed passed a 60-second live smoke test: 14 public repositories, one node, 14
-relationships, five requests, no parse errors or failed source, and healthy
-read-only API response. The local CLI adapter remains fixture-tested only.
-No Radicle node, replication, personal profile, remote, push, or publication
-was used. Earlier demo processes on
-ports 3000 and 5173 had exited before the clean-checkout startup check.
+The saved real public dataset has 14 repositories, one node, 14 relationships,
+and one unresolved name from the team's selective public seed. The separate built
+API serves it at http://127.0.0.1:3001/?window=all. The collector has stopped;
+this is a snapshot, not ongoing observation. The user's demo was not stopped; its original processes had exited by final
+verification. [R6](reviews/R6.md) gives restart and bounded refresh commands.
 
-Use `env -u TMPDIR nix develop --command pnpm demo:reset` to start the small
-outage/recovery walkthrough from a fresh, archived baseline. Then run
-`env -u TMPDIR nix develop --command pnpm demo` and open
-http://127.0.0.1:5173 in Firefox. No earlier demo process was interrupted.
-The public HTTP smoke test completed; broader network coverage, live CLI
-integration, a 24-hour experiment, and NixOS service activation were outside
-this bounded validation. No remote, push, publication, Radicle node,
-replication, system activation, or personal profile change was performed.
+Earlier clean-checkout frozen-install/demo, verified backup restore, and unactivated
+NixOS module evaluation results remain historical evidence at their recorded
+revisions. Live CLI compatibility, broader source coverage, 24-hour operation,
+and service activation remain unverified. No remote, push, publication, Radicle
+node, replication, system configuration, or personal profile change occurred.

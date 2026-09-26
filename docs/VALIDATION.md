@@ -1,6 +1,36 @@
 # ratlas release validation
 
-The latest tested implementation is `92977809c1a2227cf9241365c6420a5a3d8cffad` on NixOS
+## 2026-09-26 audit follow-up
+
+Tested implementation: `737f97069288c2c628333f42e57fbfbf8688f5b7`. `pnpm check` passed formatting,
+lint/policy, types, 64 deterministic tests, 28 Firefox tests with no skips, and
+production build. Normal-motion hover/polling keeps canvas geometry, element
+identity, and settled selection coordinates stable. Experiment tests cover real
+offline collector interruption/resumption, fractional elapsed-state recovery,
+configuration guards, storage-stat symlink refusal, and fatal shutdown errors.
+External-writer tests cover routes, health/ETags, and direct SQL quarantine.
+
+The final production API on 127.0.0.1:3001 returns mode `live`, 14 repositories,
+one node, 14 relationships, and one unresolved name. Isolated Firefox desktop
+and narrow screens selected heartwood in real WebGL with no page errors; actual
+screenshots were inspected. The saved snapshot came from a bounded 60-second
+experiment run, five requests/44,912 decoded bytes and 13 samples. That run
+preceded the final fatal-error guard and projection migration; the database was
+subsequently migrated. Collector stopped; API left running for the user. Existing
+demo processes were preserved. No personal profile or Radicle process was used.
+
+The target benchmark now includes 200 distinct selective text, exact RID, and
+repository-neighborhood requests, plus a five-broad-query cycle. A separate
+writer committed heartbeat updates each second (16 commits in the main run,
+eight in the broad-query run). It does not simulate route/metadata ingestion.
+Actual domain invalidation is regression-tested. [Performance](PERFORMANCE.md)
+records current numbers and painted-frame screenshots, including cold latency
+and GPU measurement limits. No 24-hour operation, live CLI, or systemd activation
+is claimed.
+
+## Earlier release checks (historical revisions)
+
+The earlier tested implementation was `92977809c1a2227cf9241365c6420a5a3d8cffad` on NixOS
 x86_64. The final check ran from the repository's locked `nix develop` shell
 with Node 24.21.0, pnpm 10.34.0, native SQLite 3.53.4, Playwright 1.59.1,
 and Nix-supplied Firefox 148.0.2. No browser was installed, and no personal

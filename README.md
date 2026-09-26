@@ -57,6 +57,14 @@ deterministic unit/database/API tests, both Firefox viewport tests, and the
 production build. E2E uses its own database and an ephemeral loopback port. No
 browser download or personal Firefox profile is used.
 
+For the prepared real-data review in this checkout, open
+http://127.0.0.1:3001/?window=all. This is a saved public-seed snapshot (14
+repositories), with collection stopped. It can run alongside the sample demo.
+Restart it with `env -u TMPDIR nix develop --command pnpm start:api --config
+config/ratlas.review.local.json`; [R6](docs/reviews/R6.md) gives the bounded
+refresh command and walkthrough. This ignored local config is not shipped to
+other checkouts.
+
 For a separate local live configuration, copy `config/ratlas.example.json` to
 ignored `config/ratlas.local.json` and edit it. The example has no enabled source,
 no observer profile and quarantines local observation. `pnpm dev --config
