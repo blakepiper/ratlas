@@ -92,3 +92,34 @@ it('measures only an explicitly public observer storage tree without following s
     'not-measured',
   );
 });
+
+it('reports a fatal asynchronous storage error even when the deadline precedes the next tick', async () => {
+  mkdirSync('.ratlas/tests', { recursive: true });
+  const directory = resolve(mkdtempSync('.ratlas/tests/experiment-failure-'));
+  const config = configSchema.parse({
+    mode: 'live',
+    storage: { databasePath: join(directory, 'db') },
+    httpSources: [
+      {
+        id: 'fixture',
+        label: 'Offline fixture',
+        enabled: true,
+        apiBaseUrl: 'https://fixture.invalid/api/',
+      },
+    ],
+  });
+  const result = await runExperiment(config, {
+    directory,
+    durationMs: 100,
+    signal: new AbortController().signal,
+    collectorDependencies: {
+      transport: () => ({
+        get: async () => {
+          throw Object.assign(new Error('synthetic disk full'), { code: 'SQLITE_FULL' });
+        },
+      }),
+    },
+  });
+  expect(result.report.status).toBe('failed');
+  expect(result.exitCode).toBe(1);
+});

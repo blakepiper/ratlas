@@ -83,6 +83,9 @@ export class Collector {
   private fail(error: unknown) {
     this.fatalError ??= error;
   }
+  assertHealthy() {
+    if (this.fatalError) throw this.fatalError;
+  }
   private async wait(ms: number) {
     if (ms > 0) await delay(ms, undefined, { signal: this.signal });
   }

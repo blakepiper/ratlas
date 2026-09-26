@@ -268,6 +268,7 @@ export async function runExperiment(
     clearTimeout(deadline);
     try {
       await collector.close();
+      collector.assertHealthy();
     } catch (error) {
       failure ??= error;
     }
