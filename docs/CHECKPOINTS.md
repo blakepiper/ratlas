@@ -11,7 +11,7 @@ Live integration is blocked by missing approved sources; R2 approved proceeding 
 | R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
 | R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
 | R5         | approved    | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
-| R6         | in_progress | `a133f061303e1c3dfbb7ce20c378d14e35b33cea` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
+| R6         | in_progress | `f06280018b0c0fbf7b22cfbba6c2c99d2bce4fd7` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -120,3 +120,15 @@ The browser benchmark now starts a fresh API per viewport, showing separate
 R6 remains in progress because live and real-WebGL checks need external
 prerequisites, and the clean-checkout fixed-port supervisor is still blocked
 by the running demo.
+
+2026-09-25: implementation `f06280018b0c0fbf7b22cfbba6c2c99d2bce4fd7`
+supplies Nix EGL/Mesa paths only to isolated Firefox, enabling real Sigma
+WebGL contexts in headless and headed checks. Desktop/narrow real-canvas
+selection, pan/zoom, context loss, and renderer/worker cleanup passed; the
+selected label is legible in reviewed screenshots. The full check passed 61
+deterministic tests, 26 Firefox UI tests with no skips, and production build.
+Target first WebGL navigations took 5.75/5.59 seconds including API work;
+warm navigations took 498/542 ms. GPU class is unknown because Firefox masks
+its renderer string; frame rate remains unmeasured. The live source and the
+existing demo's occupied fixed ports remain external prerequisites, so R6
+stays `in_progress`.

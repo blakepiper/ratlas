@@ -1215,10 +1215,10 @@ The R1–R5 stop wording below records the stages as they were originally execut
 - [x] Implement Sigma/Graphology rendering, worker-based ForceAtlas2, deterministic positions, selected neighborhoods, catalog synchronization, hub visibility controls, truncated overview, explicit full-mode limits, pointer graph interactions, reduced-motion behavior, and renderer/worker cleanup. Use the exact selection/appearance rules in section 8.
 
 - [x] Generate the target-scale dataset and inspect real fallback screenshots at both viewport sizes, including the large-host display control.
-- [ ] Exercise a real Sigma canvas in Nix-provided Firefox and classify hardware or software WebGL. Headless and headed Nix Firefox currently return no WebGL context. A user screenshot shows the canvas in ordinary Firefox and exposed a selected-label contrast bug; the corrected label still needs manual review.
+- [x] Exercise a real Sigma canvas in Nix-provided Firefox and record the WebGL renderer classification supported by the evidence. The isolated Firefox environment now creates a context; Firefox masks the renderer, so hardware versus software remains unknown. The corrected selected label was visually checked on real canvas screenshots.
 
 - [x] **Automated acceptance:** the accessible map list navigates repo → host → other repos; API limits have no dangling edges; full-mode failure explains its limits; catalog access survives unavailable WebGL.
-- [ ] **Automated acceptance:** real canvas selection, pan/zoom, context loss, and repeated navigation worker cleanup require a Firefox WebGL context.
+- [x] **Automated acceptance:** real canvas selection, pan/zoom, context loss, and repeated navigation worker cleanup pass in isolated Firefox WebGL tests at desktop and narrow viewports.
 
 **R4: Stop and ask the user to inspect the map.**
 
@@ -1253,7 +1253,7 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Write the first-run, architecture, and NixOS operations documentation; provide and evaluate an unactivated two-service module. Live activation remains untested.
 
-- [x] Measure the target-scale API with 20 warm-up/200 requests per query at concurrency one and four, and record first/warm Nix Firefox behavior and actual renderer mode. Report uncached latency separately from warm repeated-query cache results and unavailable WebGL metrics.
+- [x] Measure the target-scale API with 20 warm-up/200 requests per query at concurrency one and four, and record first/warm Nix Firefox behavior and actual renderer mode. Report uncached latency separately from warm repeated-query cache results and disclose unmeasured frame rate and GPU classification.
 
 - [x] Add a bounded read-only API response cache that invalidates after separate SQLite writer commits; test public-count, source-health, and conditional-ETag changes. Re-measure cold and repeated target queries without conflating them.
 
@@ -1263,11 +1263,12 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Run the full Nix-shell check suite, production build/startup, target-scale benchmarks, and backup/restore tests. Fix failures without weakening assertions. Validate the unactivated NixOS module’s structure and document activation as untested.
 
-- [ ] Run a separately approved live smoke test and automated real-WebGL canvas/cleanup checks. No approved source is configured and Nix Firefox creates no WebGL context; R2/R4 approvals allowed proceeding with these disclosed gaps, not claiming they passed.
+- [x] Run automated real-WebGL canvas, context-loss, and renderer/worker cleanup checks in isolated Nix Firefox.
+- [ ] Run the bounded live smoke test against an approved source. No approved source is configured; R2 approval allowed proceeding with this disclosed gap, not claiming it passed.
 
 - [x] Write the first-run README, architecture/semantics reports, compatibility report, NixOS runbook, backup/restore procedure, safe dedicated-observer instructions, 24-hour experiment command, and final validation/performance reports. Check examples against implemented command names and config paths. Include observed limitations and accepted external gaps.
 
-- [x] **Automated acceptance:** applicable offline release checks in section 13 pass; clean frozen install, native SQLite, Firefox fallback, production startup, backup restore, and process cleanup have actual results. Measurements identify hardware/runtime/rendering context and disclose missed targets. The fixed-port clean demo supervisor and real WebGL/live checks remain separately open.
+- [x] **Automated acceptance:** applicable offline release checks in section 13 pass; clean frozen install, native SQLite, Firefox WebGL and fallback coverage, production startup, backup restore, and process cleanup have actual results. Measurements identify hardware/runtime/rendering context and disclose missed targets. The fixed-port clean demo supervisor and live check remain separately open.
 
 **R6: Finish the remaining checks and hand off the release candidate.**
 
@@ -1298,8 +1299,8 @@ Present the first release candidate at R6 only when the following are satisfied 
 - [x] Search, details, graph neighborhoods, explicit full-mode limits, source health, activity, summary chart, and missing metadata work together.
 - [x] Catalog/graph counts deduplicate IDs and relationships, and source/window/truncation limits remain visible. “Observed” never silently becomes “online,” “newly created,” or “all repositories.”
 - [x] Private/quarantined data cannot escape through APIs, enrichment, logs, fixtures, search, graph, history, or exports in the tested paths.
-- [ ] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests. The first cases pass; real WebGL worker/renderer cleanup remains unverified because Nix Firefox has no context.
-- [x] Performance reports contain real measurements, identify that Nix Firefox had no WebGL context, and do not conflate fallback with hardware/software WebGL results. No untested throughput, capacity, or security property is claimed.
+- [x] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests. Real WebGL worker/renderer cleanup also passes in browser tests.
+- [x] Performance reports contain real measurements, identify the actual Firefox WebGL mode, and do not infer hardware versus software from its privacy-masked renderer string. No untested frame rate, throughput, capacity, or security property is claimed.
 - [x] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
 - [ ] R1–R5 have genuine approval records. R6 was reopened as `in_progress` after the user asked to continue remaining work; mark it `completed` only after final implementation and reporting. It is not user approved, and pending feedback is not silently cleared.
 - [x] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.

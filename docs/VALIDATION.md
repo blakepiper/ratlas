@@ -1,19 +1,21 @@
 # ratlas release validation
 
-The latest tested implementation is `a133f061303e1c3dfbb7ce20c378d14e35b33cea` on NixOS
+The latest tested implementation is `f06280018b0c0fbf7b22cfbba6c2c99d2bce4fd7` on NixOS
 x86_64. The final check ran from the repository's locked `nix develop` shell
 with Node 24.21.0, pnpm 10.34.0, native SQLite 3.53.4, Playwright 1.59.1,
 and Nix-supplied Firefox 148.0.2. No browser was installed, and no personal
 Firefox profile or Radicle identity was accessed.
 
 `pnpm check` passed: Prettier and Nix formatting, ESLint and repository/Firefox
-policy checks, all workspace/tool type checks, 61 deterministic tests, 22
-desktop/narrow Firefox UI tests, and the production build. Two WebGL
-context-loss tests skipped because Nix Firefox could not create a WebGL
-context. The added API regression test verifies cache invalidation after a
-separate writer changes public routes and source health, including conditional
-ETags. The accessible fallback tests passed; they do not prove canvas
-selection, frame rate, ForceAtlas2 timing, or renderer/worker cleanup.
+policy checks, all workspace/tool type checks, 61 deterministic tests, 26
+desktop/narrow Firefox UI tests with real WebGL and no skips, and the production
+build. Isolated Firefox receives Nix EGL/Mesa library paths for its child
+process; no browser preference or host configuration changed. The added API
+regression test verifies cache invalidation after a separate writer changes
+public routes and source health, including conditional ETags. Real canvas tests
+exercise pointer selection, pan/zoom, context loss,
+and renderer/worker cleanup during repeated navigation. Frame rate and
+ForceAtlas2 timing remain unmeasured.
 
 A detached clean worktree at the earlier R6 implementation commit
 `c26d1b646d925b0ce8d607f8bf4c1b6808bebee5` entered `nix develop`, ran
@@ -53,20 +55,20 @@ config/ratlas.example.json --duration 24h` both exited 2 before collection:
 missing external prerequisites, not successful live tests. No day-long
 experiment, public HTTP probe, Radicle daemon, replication command, or live
 collector was run. R2 and R4 approvals allowed progress with the live and
-WebGL verification gaps disclosed; they did not turn those checks into passes.
+WebGL verification gaps disclosed; the WebGL checks have since passed, but
+the live test remains open.
 
 [Performance measurements](PERFORMANCE.md) identify the target fixture,
 hardware, runtime, first uncached and 20 warm-up/200 measured requests per
 API case (including 200 distinct exact RID searches), first/warm Firefox
-timings, renderer mode, and the remaining cold
-latency limitation. The browser benchmark gave each viewport a fresh API
-instance; first fallback navigations took 5.6/5.5 seconds and warmed
-navigations took 425/484 ms. Target-scale images
-in ignored `.ratlas/reviews/R6/` show the actual Nix Firefox fallback at both
-viewports. They are not screenshots of a rendered Sigma canvas. Ordinary
-Firefox showed a canvas in a user-provided R4 screenshot before later label
-and toolbar revisions; no automated post-revision WebGL canvas check is
-available in this environment.
+timings, renderer mode, and the remaining cold latency limitation. The browser
+benchmark gave each viewport a fresh API
+instance; first WebGL navigations took 5.75/5.59 seconds and warmed
+navigations took 498/542 ms. Target-scale and selected-node images
+in ignored `.ratlas/reviews/R6/` show the actual Nix Firefox Sigma canvas at
+both viewports after the selected-label and toolbar revisions. Firefox's
+privacy-masked renderer string does not distinguish hardware from software.
+The canvas frame-rate target is not yet measured.
 
 No remote was created or modified; nothing was pushed, tagged, published,
 deployed, or activated. Runtime databases, backups, profiles, reports, and

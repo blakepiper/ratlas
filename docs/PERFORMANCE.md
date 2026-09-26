@@ -50,15 +50,21 @@ Bounded overview returned
 larger full-mode response is outside the default navigation path.
 
 An isolated Playwright Firefox 148.0.2 process used the built production SPA
-and target API on ephemeral loopback ports. Browser launch took 397 ms. Each
-viewport received a fresh API instance so its first navigation was cold.
-Navigation-to-visible-map timing was 5,625 ms first and 425 ms warm at
-1440×900, and 5,536 ms first and 484 ms warm at 390×844. These four
-samples include page, API, and fallback work. Nix Firefox created no WebGL
-context, so all four samples are **fallback**, with no software/hardware GPU
-classification, ForceAtlas2 timing, canvas frame-rate result, or renderer
-cleanup result. The 3-second first-usable-render and 30 fps goals cannot be
-evaluated as canvas results from fallback timing. Raw browser results are in
-ignored `.ratlas/reports/browser-benchmark.json`; actual screenshots are
-`R6/target-desktop-fallback.png` and `R6/target-narrow-fallback.png` under
-ignored `.ratlas/reviews/`.
+and target API on ephemeral loopback ports. The Firefox child process used
+Nix-provided EGL and Mesa library paths, without changing browser preferences
+or the host. Browser launch took 567 ms. Each viewport received a fresh API
+instance so its first navigation was cold. Navigation-to-visible-WebGL-map
+timing was 5,749 ms first and 498 ms warm at 1440×900, and 5,591 ms first and
+542 ms warm at 390×844. These four samples include page, API, and canvas work.
+The first navigations exceed three seconds end to end; the measurement does
+not isolate post-data rendering time, so it cannot establish whether the
+separate three-second render target passes. Firefox reports vendor `Mozilla`
+and renderer `Intel(R) HD Graphics, or similar`; this privacy-masked string
+does not establish hardware versus software. ForceAtlas2 timing and canvas
+frame rate remain unmeasured, so the 30 fps target is unverified. Real canvas
+selection, pan/zoom, context loss, and renderer/worker cleanup passed in
+browser tests at both viewports. Raw browser results are in ignored
+`.ratlas/reports/browser-benchmark.json`; actual screenshots are
+`R6/target-desktop-webgl.png`, `R6/target-narrow-webgl.png`,
+`R6/firefox-desktop-selected-webgl.png`, and
+`R6/firefox-narrow-selected-webgl.png` under ignored `.ratlas/reviews/`.
