@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Graph from 'graphology';
 import FA2Layout from 'graphology-layout-forceatlas2/worker';
@@ -73,19 +73,24 @@ function GraphCanvas({
   const focusedLabels = mode === 'neighborhood' && nodes.length <= 200;
   const limitedEdges = edges.length > 10_000;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = container.current;
     if (!element) return;
     const observer = new ResizeObserver(() => {
-      setReady(element.clientWidth > 0 && element.clientHeight > 0);
-      renderer.current?.resize();
+      const hasSize = element.clientWidth > 0 && element.clientHeight > 0;
+      setReady(hasSize);
+      if (hasSize) renderer.current?.resize();
     });
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!ready || renderError || !container.current || !nodes.length) return;
+    if (container.current.clientWidth === 0 || container.current.clientHeight === 0) {
+      setReady(false);
+      return;
+    }
     setRendered(false);
     const instance = new Graph({ type: 'undirected', multi: false, allowSelfLoops: false });
     for (const node of nodes) {
@@ -309,8 +314,19 @@ export function GraphMap({
   const [threshold, setThreshold] = useState(1000);
   const [notice, setNotice] = useState<string | null>(null);
   const [entityListOpen, setEntityListOpen] = useState(false);
+  const [narrowViewport, setNarrowViewport] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches,
+  );
   const positions = useRef(new Map<string, Position>());
   const selectedKey = selected ? `${selected.kind}:${selected.id}` : null;
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const update = () => setNarrowViewport(media.matches);
+    media.addEventListener('change', update);
+    update();
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     if (selectedKey) setMode('neighborhood');
@@ -462,15 +478,17 @@ export function GraphMap({
           </p>
           {displayed.nodes.length ? (
             <>
-              <GraphCanvas
-                nodes={displayed.nodes}
-                edges={displayed.edges}
-                selectedKey={selectedKey}
-                mode={mode}
-                onSelect={selectKey}
-                onRendererUnavailable={() => setEntityListOpen(true)}
-                positions={positions.current}
-              />
+              {(!narrowViewport || active) && (
+                <GraphCanvas
+                  nodes={displayed.nodes}
+                  edges={displayed.edges}
+                  selectedKey={selectedKey}
+                  mode={mode}
+                  onSelect={selectKey}
+                  onRendererUnavailable={() => setEntityListOpen(true)}
+                  positions={positions.current}
+                />
+              )}
               <details
                 className={styles.entityList}
                 open={entityListOpen}

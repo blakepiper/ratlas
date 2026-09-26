@@ -6,6 +6,7 @@ import { configSchema } from '../packages/core/src/index.js';
 import { dataset, openReader } from '../packages/db/src/index.js';
 import { createApi } from '../apps/service/src/api/server.js';
 import { checkToolchain } from './check-toolchain.mjs';
+import { firefoxLaunchEnvironment } from './firefox-env.js';
 
 checkToolchain();
 const databasePath = resolve('.ratlas/demo/target.sqlite');
@@ -20,7 +21,7 @@ let browser: Awaited<ReturnType<typeof firefox.launch>> | undefined;
 const samples = [];
 try {
   const launchStart = performance.now();
-  browser = await firefox.launch({ headless: true });
+  browser = await firefox.launch({ headless: true, env: firefoxLaunchEnvironment() });
   const launchMs = performance.now() - launchStart;
   mkdirSync('.ratlas/reviews/R6', { recursive: true, mode: 0o700 });
   for (const viewport of [
@@ -57,12 +58,39 @@ try {
         const renderer = await map
           .locator('[data-graph-renderer]')
           .getAttribute('data-graph-renderer');
+        const webglInfo =
+          renderer === 'webgl'
+            ? await page.evaluate(() => {
+                for (const canvas of document.querySelectorAll<HTMLCanvasElement>(
+                  '[data-graph-renderer="webgl"] canvas',
+                )) {
+                  const gl = canvas.getContext('webgl') ?? canvas.getContext('webgl2');
+                  if (!gl) continue;
+                  const debug = gl.getExtension('WEBGL_debug_renderer_info');
+                  return {
+                    vendor: String(gl.getParameter(gl.VENDOR)),
+                    renderer: String(
+                      gl.getParameter(debug?.UNMASKED_RENDERER_WEBGL ?? gl.RENDERER),
+                    ),
+                    classification: 'unknown' as const,
+                  };
+                }
+                return null;
+              })
+            : null;
         const countText = await map.locator('[class*=counts]').innerText();
         if (condition === 'first')
           await page.screenshot({
             path: `.ratlas/reviews/R6/target-${viewport.name}-${renderer}.png`,
           });
-        samples.push({ viewport: viewport.name, condition, elapsedMs, renderer, countText });
+        samples.push({
+          viewport: viewport.name,
+          condition,
+          elapsedMs,
+          renderer,
+          webglInfo,
+          countText,
+        });
         console.log(`${viewport.name} ${condition}: ${Math.round(elapsedMs)} ms, ${renderer}`);
       }
     } finally {
@@ -76,7 +104,7 @@ try {
     browser: { engine: 'firefox', version: browser.version(), launchMs },
     workload:
       'Synthetic target dataset (20000 repositories, 2000 nodes, 100000 hosting relationships)',
-    note: 'Each viewport uses a fresh API cache for its first navigation, then repeats with that same cache. Navigation-to-visible-map timing includes page, API, and render/fallback work. A fallback is not a WebGL frame-rate or layout measurement.',
+    note: 'Each viewport uses a fresh API cache for its first navigation, then repeats with that same cache. Navigation-to-visible-map timing includes page, API, and render/fallback work. WebGL renderer strings may be privacy-masked and do not establish hardware/software classification; frame rate and layout timing are not measured.',
     samples,
   };
   mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });

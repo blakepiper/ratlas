@@ -47,6 +47,7 @@
         RATLAS_PNPM_VERSION = pnpm.version;
         RATLAS_PLAYWRIGHT_VERSION = pkgs.playwright-driver.version;
         RATLAS_TEST_BROWSER = "firefox";
+        RATLAS_EGL_LIB_DIR = "${pkgs.libglvnd}/lib";
         PLAYWRIGHT_BROWSERS_PATH = "${browsers}";
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
         PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
