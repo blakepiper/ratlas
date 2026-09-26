@@ -38,12 +38,13 @@ import {
   sources,
   randomRepository,
   referenceTime,
+  dataRevision,
   revision,
   type Db,
 } from '@ratlas/db';
 export function registerRoutes(app: FastifyInstance, db: Db, config: Config, now: () => number) {
   const responseCache = new Map<string, { result: object; validated: unknown; etag: string }>();
-  let cachedDataVersion = -1;
+
   function id(request: FastifyRequest, kind: 'rid' | 'nid') {
     return (kind === 'rid' ? ridSchema : nidSchema).parse(
       (request.params as Record<string, unknown>)[kind],
@@ -103,12 +104,13 @@ export function registerRoutes(app: FastifyInstance, db: Db, config: Config, now
           // commit, including source-health updates that do not bump the public
           // projection revision. Check it inside the read snapshot.
           const dataVersion = db.pragma('data_version', { simple: true }) as number;
-          if (dataVersion !== cachedDataVersion) {
-            responseCache.clear();
-            cachedDataVersion = dataVersion;
-          }
           const timeBucket = Math.floor(referenceTime(db, at) / 15000);
-          const key = JSON.stringify([path, request.params, canonical, timeBucket]);
+          // Catalog/detail bodies do not contain health. Triggers cover every
+          // domain-table mutation, including writes outside collector helpers.
+          const healthIndependent =
+            path.startsWith('/api/v1/repos') || path.startsWith('/api/v1/nodes');
+          const epoch = healthIndependent ? [dataRevision(db), revision(db)] : dataVersion;
+          const key = JSON.stringify([epoch, path, request.params, canonical, timeBucket]);
           // Random selection must remain random on every request.
           const hit = path === '/api/v1/repos/random' ? undefined : responseCache.get(key);
           if (hit) {

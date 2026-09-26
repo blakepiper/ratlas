@@ -312,6 +312,27 @@ it('invalidates cached public responses after a separate writer commits', async 
     expect(changedHealth.statusCode).toBe(200);
     expect(changedHealth.headers.etag).not.toBe(summary.headers.etag);
     expect(changedHealth.json().coverage.sources[0].error).toBe('test-outage');
+    const beforePrivacy = await live.inject('/api/v1/summary?window=all');
+    // Direct SQL bypasses observation helpers: database triggers must still
+    // invalidate shared counts and graph data when eligibility changes.
+    const privacyWriter = openWriter(path);
+    try {
+      privacyWriter.db
+        .prepare("UPDATE sources SET publication_policy='quarantine' WHERE id='demo-a'")
+        .run();
+    } finally {
+      privacyWriter.close();
+    }
+    const afterPrivacy = await live.inject('/api/v1/summary?window=all');
+    expect(afterPrivacy.json().repositories).toBeLessThan(beforePrivacy.json().repositories);
+    const hidden = await live.inject(
+      '/api/v1/repos?q=' + encodeURIComponent(nextRid) + '&window=all',
+    );
+    expect(hidden.json().total).toBe(0);
+    const graph = await live.inject('/api/v1/graph?window=all');
+    expect(graph.json().nodes.some((node: { id: string }) => node.id === nextRid)).toBe(false);
+    // All-retained includes the two historical relationships from demo-b.
+    expect(graph.json().eligibleEdgeCount).toBe(300);
   } finally {
     await live.close();
   }

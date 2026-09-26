@@ -1,6 +1,6 @@
 import { graphSchema, graphLimitSchema, type GraphQuery, type Config } from '@ratlas/core';
 import type { Db } from './connection.js';
-import { filterSql, coverage, revision, iso } from './public.js';
+import { filterSql, coverage, revision, dataRevision, iso } from './public.js';
 import { referenceTime } from './queries.js';
 export function fnv1a(input: string) {
   let hash = 2166136261;
@@ -8,12 +8,28 @@ export function fnv1a(input: string) {
   return hash >>> 0;
 }
 const binary = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
-export function graphProjection(
-  db: Db,
-  query: GraphQuery,
-  presentation: Config['presentation'],
-  now = Date.now(),
-) {
+type Vertex = { key: string; id: string; kind: 'repo' | 'node'; label: string; degree: number };
+type EligibleGraph = {
+  repos: { rid: string; name: string | null }[];
+  vertices: Map<string, Vertex>;
+  edges: { key: string; source: string; target: string; weight: 1; historical: boolean }[];
+};
+// One bounded shared filtered projection per connection. Changing the selected
+// entity can reuse its degrees/relationships; database triggers invalidate it on entity/source changes.
+const projections = new WeakMap<Db, { key: string; data: EligibleGraph }>();
+function eligibleGraph(db: Db, query: GraphQuery, now: number): EligibleGraph {
+  const key = JSON.stringify([
+    dataRevision(db),
+    Math.floor(referenceTime(db, now) / 15000),
+    query.q,
+    query.source,
+    query.window,
+    query.metadata,
+    query.minSeeders,
+    query.maxSeeders,
+  ]);
+  const cached = projections.get(db);
+  if (cached?.key === key) return cached.data;
   const { sql, parameters } = filterSql(db, query, now);
   const repos = db
     .prepare(sql + ' SELECT rid,name FROM filtered_repos ORDER BY rid COLLATE BINARY')
@@ -21,7 +37,6 @@ export function graphProjection(
   const routes = db
     .prepare(sql + ' SELECT * FROM filtered_routes ORDER BY rid COLLATE BINARY,nid COLLATE BINARY')
     .all(parameters) as { rid: string; nid: string; current: number }[];
-  type Vertex = { key: string; id: string; kind: 'repo' | 'node'; label: string; degree: number };
   const vertices = new Map<string, Vertex>();
   for (const repo of repos)
     vertices.set('repo:' + repo.rid, {
@@ -51,6 +66,18 @@ export function graphProjection(
       historical: !route.current,
     };
   });
+  const data = { repos, vertices, edges };
+  if (vertices.size <= 25000 && edges.length <= 150000) projections.set(db, { key, data });
+  else projections.delete(db);
+  return data;
+}
+export function graphProjection(
+  db: Db,
+  query: GraphQuery,
+  presentation: Config['presentation'],
+  now = Date.now(),
+) {
+  const { repos, vertices, edges } = eligibleGraph(db, query, now);
   const budget =
     presentation[
       query.mode === 'full' ? 'full' : query.mode === 'neighborhood' ? 'neighborhood' : 'overview'
@@ -104,7 +131,7 @@ export function graphProjection(
       list.push(edge);
       byRepo.set(edge.target, list);
     }
-    const ordered = repos.sort((a, b) => fnv1a(a.rid) - fnv1a(b.rid) || binary(a.rid, b.rid));
+    const ordered = repos.toSorted((a, b) => fnv1a(a.rid) - fnv1a(b.rid) || binary(a.rid, b.rid));
     for (const repo of ordered) {
       const key = 'repo:' + repo.rid;
       if (chosen.size >= limit.vertices) break;

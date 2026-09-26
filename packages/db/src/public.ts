@@ -23,6 +23,14 @@ export const iso = (value: number | null) =>
 export function revision(db: Db) {
   return dataset(db).projection_revision;
 }
+export function dataRevision(db: Db): number {
+  return (
+    db.prepare('SELECT data_revision FROM dataset_meta WHERE id=1').get() as {
+      data_revision: number;
+    }
+  ).data_revision;
+}
+const summaryCounts = new WeakMap<Db, Map<string, object>>();
 export function filterSql(db: Db, query: Filters, now = Date.now()) {
   const since = windowStart(query.window, referenceTime(db, now));
   const parameters = {
@@ -35,25 +43,28 @@ export function filterSql(db: Db, query: Filters, now = Date.now()) {
   };
   let text = '';
   const extra: Record<string, string> = {};
-  let exactRid = false;
+  let restriction = '';
   if (query.q) {
     if (query.q.startsWith('rad:')) {
       text = ' AND r.rid=$exact';
       extra.exact = query.q;
-      exactRid = true;
+      restriction = 'rid=$exact';
     } else {
       const terms = ftsLiteral(query.q);
       text = terms
         ? ' AND r.rid IN (SELECT rid FROM repositories_fts WHERE repositories_fts MATCH $fts)'
         : ' AND 0';
       if (terms) extra.fts = terms;
+      restriction = terms
+        ? 'rid IN (SELECT rid FROM repositories_fts WHERE repositories_fts MATCH $fts)'
+        : '0';
     }
   }
-  const sql = `WITH source_evidence AS (SELECT e.* FROM public_evidence e WHERE (json_array_length($sources)=0 OR e.source_id IN (SELECT value FROM json_each($sources)))),
+  const sql = `WITH source_evidence AS (SELECT e.* FROM public_evidence e WHERE (json_array_length($sources)=0 OR e.source_id IN (SELECT value FROM json_each($sources))) ${restriction ? `AND ${restriction === '0' ? '0' : 'e.' + restriction}` : ''}),
  routes AS (SELECT * FROM eligible_routes WHERE (json_array_length($sources)=0 OR source_id IN (SELECT value FROM json_each($sources)))),
- active_routes AS (SELECT rid,nid,MAX(state='present') current FROM routes WHERE ${exactRid ? 'rid=$exact AND ' : ''}($all=1 OR (state='present' AND last_positive_at >= $since)) GROUP BY rid,nid),
- eligible_repos AS (SELECT r.rid,MIN(e.first_observed_at) first_observed_at,MAX(e.last_observed_at) last_observed_at FROM repositories r JOIN source_evidence e ON e.rid=r.rid ${exactRid ? 'WHERE r.rid=$exact' : ''} GROUP BY r.rid HAVING $all=1 OR MAX(e.last_observed_at)>=$since),
- counted_repos AS (SELECT r.*,m.name,m.description,m.source_id metadataSource,(SELECT COUNT(*) FROM active_routes a WHERE a.rid=r.rid) observedSeederCount FROM eligible_repos r LEFT JOIN selected_metadata m ON m.rid=r.rid WHERE 1 ${text}),
+ active_routes AS (SELECT rid,nid,MAX(state='present') current FROM routes WHERE ${restriction ? restriction + ' AND ' : ''}($all=1 OR (state='present' AND last_positive_at >= $since)) GROUP BY rid,nid),
+ eligible_repos AS (SELECT r.rid,MIN(e.first_observed_at) first_observed_at,MAX(e.last_observed_at) last_observed_at FROM repositories r JOIN source_evidence e ON e.rid=r.rid ${restriction ? 'WHERE ' + (restriction === '0' ? '0' : 'r.' + restriction) : ''} GROUP BY r.rid HAVING $all=1 OR MAX(e.last_observed_at)>=$since),
+ counted_repos AS (SELECT r.*,m.name,m.description,m.source_id metadataSource,(SELECT COUNT(*) FROM active_routes a WHERE a.rid=r.rid) observedSeederCount FROM eligible_repos r LEFT JOIN repository_metadata m ON m.rid=r.rid AND m.source_id=(SELECT chosen.source_id FROM eligible_metadata chosen WHERE chosen.rid=r.rid ORDER BY chosen.metadata_priority,chosen.retrieved_at DESC,chosen.source_id COLLATE BINARY LIMIT 1) WHERE 1 ${text}),
  filtered_repos AS (SELECT * FROM counted_repos WHERE observedSeederCount BETWEEN $min AND $max AND ($metadata='all' OR ($metadata='resolved' AND name IS NOT NULL AND name!='') OR ($metadata='unresolved' AND (name IS NULL OR name='')))),
  filtered_routes AS (SELECT a.* FROM active_routes a JOIN filtered_repos r ON r.rid=a.rid)`;
   return { sql, parameters: { ...parameters, ...extra } };
@@ -198,12 +209,27 @@ export function coverage(db: Db) {
 }
 export function publicSummary(db: Db, query: Filters, now = Date.now()) {
   const { sql, parameters } = filterSql(db, query, now);
-  const counts = db
-    .prepare(
-      sql +
-        ` SELECT (SELECT COUNT(*) FROM filtered_repos) repositories,(SELECT COUNT(DISTINCT nid) FROM filtered_routes) nodeIdentities,(SELECT COUNT(*) FROM filtered_routes) hostingRelationships,(SELECT COUNT(DISTINCT source_id) FROM source_evidence e JOIN filtered_repos r ON r.rid=e.rid WHERE $all=1 OR e.last_observed_at >= $since) evidenceSources,(SELECT COUNT(*) FROM filtered_repos WHERE name IS NULL OR name='') unresolvedMetadata`,
-    )
-    .get(parameters);
+  let cache = summaryCounts.get(db);
+  if (!cache) {
+    cache = new Map();
+    summaryCounts.set(db, cache);
+  }
+  const key = JSON.stringify([
+    dataRevision(db),
+    Math.floor(referenceTime(db, now) / 15000),
+    { ...parameters, since: Math.floor(parameters.since / 15000) * 15000 },
+  ]);
+  let counts = cache.get(key);
+  if (!counts) {
+    counts = db
+      .prepare(
+        sql +
+          ` SELECT (SELECT COUNT(*) FROM filtered_repos) repositories,(SELECT COUNT(DISTINCT nid) FROM filtered_routes) nodeIdentities,(SELECT COUNT(*) FROM filtered_routes) hostingRelationships,(SELECT COUNT(DISTINCT source_id) FROM source_evidence e JOIN filtered_repos r ON r.rid=e.rid WHERE $all=1 OR e.last_observed_at >= $since) evidenceSources,(SELECT COUNT(*) FROM filtered_repos WHERE name IS NULL OR name='') unresolvedMetadata`,
+      )
+      .get(parameters) as object;
+    cache.set(key, counts);
+    if (cache.size > 8) cache.delete(cache.keys().next().value!);
+  }
   const ref = referenceTime(db, now);
   return fullSummarySchema.parse({
     ...(counts as object),
