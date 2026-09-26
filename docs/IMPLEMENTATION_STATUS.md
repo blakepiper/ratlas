@@ -1,9 +1,10 @@
 # ratlas implementation status
 
-Current stage: Stage F implementation and offline validation completed at
-`c26d1b646d925b0ce8d607f8bf4c1b6808bebee5`; R6 is a completion
-milestone under the user's autonomous-work instruction, not a claim of user
-acceptance. See [R6](reviews/R6.md), [validation](VALIDATION.md), and
+Current stage: Stage F/R6 reopened as `in_progress` after the user asked to
+continue remaining work. The latest tested implementation is
+`b62547eb8237d8cbfdf0dc62a178247598c72e73`. R6 remains an autonomous
+milestone, not a claim of user acceptance or complete specification coverage.
+See [R6](reviews/R6.md), [validation](VALIDATION.md), and
 [performance](PERFORMANCE.md) for actual checks and limitations.
 
 The map's separate navigation, layout, and label/edge toolbar was removed in
@@ -29,16 +30,18 @@ last reconciliation, and collector heartbeat. SQLite storage failures stop
 collection rather than being reported as source outages.
 
 `pnpm check` passed on the final tested implementation: formatting, lint,
-repository/Firefox policy checks, types, 60 deterministic tests, 22 Firefox
+repository/Firefox policy checks, types, 61 deterministic tests, 22 Firefox
 desktop/narrow UI tests, and production build. Two WebGL-dependent tests still
-skip because Nix-supplied Firefox cannot create a context. A clean worktree
-completed frozen install, native SQLite build, production build, offline demo
+skip because Nix-supplied Firefox cannot create a context. A clean worktree at
+the earlier `c26d1b6` revision completed frozen install, native SQLite build, production build, offline demo
 preparation, doctor, and isolated production serving. A verified online
 backup was restored and served through the built API. The unactivated NixOS
 module evaluated with its required Node runtime and filesystem settings.
-The 20-warm-up/200-request target-scale benchmark and first/warm Firefox
-fallback timings are recorded in [performance](PERFORMANCE.md); backend
-latency missed its engineering target.
+The bounded API response cache invalidates after an external SQLite writer
+commits. Repeated target queries now meet the warm p95 latency goal, while
+first uncached requests still take 1.3–1.9 seconds. The 20-warm-up/200-request
+target-scale benchmark and first/warm Firefox fallback timings are recorded
+in [performance](PERFORMANCE.md).
 
 The R4 selected-label contrast fix was committed at
 `4469b636a552d1afe5e0a670f67243e63edc2b9d`. A user screenshot showed real

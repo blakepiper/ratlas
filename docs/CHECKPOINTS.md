@@ -4,14 +4,14 @@ R1–R5 approved on 2026-09-25. The user authorized Stage F after the revised
 R5 handoff, with the Nix Firefox WebGL and live-source checks still open.
 Live integration is blocked by missing approved sources; R2 approved proceeding with that gap open.
 
-| Checkpoint | Status    | Presented revision                         | User approval                                                | Review artifact     |
-| ---------- | --------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
-| R1         | approved  | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
-| R2         | approved  | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
-| R3         | approved  | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
-| R4         | approved  | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
-| R5         | approved  | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
-| R6         | completed | `c26d1b646d925b0ce8d607f8bf4c1b6808bebee5` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
+| Checkpoint | Status      | Presented revision                         | User approval                                                | Review artifact     |
+| ---------- | ----------- | ------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| R1         | approved    | `ae6fc59e71c97241ee1a8add1b92648aca8b39a2` | 2026-09-25: explicit approval                                | [R1](reviews/R1.md) |
+| R2         | approved    | `0729293d1d76761b75255eee77c8dae6038242df` | 2026-09-25: approved continuing with disclosed live gap open | [R2](reviews/R2.md) |
+| R3         | approved    | `70e285f2921b314b9c51fa142c60b9c8c929879d` | 2026-09-25: approved continuing after layout corrections     | [R3](reviews/R3.md) |
+| R4         | approved    | `4469b636a552d1afe5e0a670f67243e63edc2b9d` | 2026-09-25: approved continuing with Nix WebGL gap open      | [R4](reviews/R4.md) |
+| R5         | approved    | `e39924bd7f1510600802a16f29995daaed0407f8` | 2026-09-25: explicitly approved revised R5                   | [R5](reviews/R5.md) |
+| R6         | in_progress | `b62547eb8237d8cbfdf0dc62a178247598c72e73` | Not required for autonomous completion                       | [R6](reviews/R6.md) |
 
 User feedback: R1 approved; completion checkboxes requested and implemented. R2 approved with the disclosed live-integration gap still open.
 
@@ -101,3 +101,11 @@ The fixed-port clean demo startup, real WebGL canvas/cleanup, live-source
 smoke test, 24-hour experiment, and NixOS service activation were not run;
 the first is occupied by the existing demo, and the others lack external
 prerequisites or fall outside the authorized implementation run.
+
+2026-09-25: after the R6 handoff, the user asked whether the specification was
+100% complete. The agent clarified that six validation lines remained unchecked,
+then the user instructed, “Keep working.” R6 is reopened as `in_progress`.
+The next implementation revision `b62547eb8237d8cbfdf0dc62a178247598c72e73`
+adds a bounded API cache with external-writer invalidation and content-based
+ETags. Repeated target queries now meet the warm latency goal, but uncached
+queries remain slow and the live/WebGL/fixed-port prerequisites remain open.

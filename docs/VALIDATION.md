@@ -1,19 +1,22 @@
 # ratlas release validation
 
-The tested implementation is `c26d1b646d925b0ce8d607f8bf4c1b6808bebee5` on NixOS
+The latest tested implementation is `b62547eb8237d8cbfdf0dc62a178247598c72e73` on NixOS
 x86_64. The final check ran from the repository's locked `nix develop` shell
 with Node 24.21.0, pnpm 10.34.0, native SQLite 3.53.4, Playwright 1.59.1,
 and Nix-supplied Firefox 148.0.2. No browser was installed, and no personal
 Firefox profile or Radicle identity was accessed.
 
 `pnpm check` passed: Prettier and Nix formatting, ESLint and repository/Firefox
-policy checks, all workspace/tool type checks, 60 deterministic tests, 22
+policy checks, all workspace/tool type checks, 61 deterministic tests, 22
 desktop/narrow Firefox UI tests, and the production build. Two WebGL
 context-loss tests skipped because Nix Firefox could not create a WebGL
-context. The accessible fallback tests passed; they do not prove canvas
+context. The added API regression test verifies cache invalidation after a
+separate writer changes public routes and source health, including conditional
+ETags. The accessible fallback tests passed; they do not prove canvas
 selection, frame rate, ForceAtlas2 timing, or renderer/worker cleanup.
 
-A detached clean worktree at the tested commit entered `nix develop`, ran
+A detached clean worktree at the earlier R6 implementation commit
+`c26d1b646d925b0ce8d607f8bf4c1b6808bebee5` entered `nix develop`, ran
 `pnpm install --frozen-lockfile` successfully in 1m 18.6s, compiled
 better-sqlite3 from source, ran `pnpm build`, and passed `pnpm doctor` with
 native binding, FTS5, WAL, read-only reopen, and isolated Firefox launch/PNG
@@ -53,8 +56,9 @@ collector was run. R2 and R4 approvals allowed progress with the live and
 WebGL verification gaps disclosed; they did not turn those checks into passes.
 
 [Performance measurements](PERFORMANCE.md) identify the target fixture,
-hardware, runtime, 20 warm-up/200 measured requests per API case, first/warm
-Firefox timings, renderer mode, and missed latency goal. Target-scale images
+hardware, runtime, first uncached and 20 warm-up/200 repeated requests per
+API case, first/warm Firefox timings, renderer mode, and the remaining cold
+latency limitation. Target-scale images
 in ignored `.ratlas/reviews/R6/` show the actual Nix Firefox fallback at both
 viewports. They are not screenshots of a rendered Sigma canvas. Ordinary
 Firefox showed a canvas in a user-provided R4 screenshot before later label

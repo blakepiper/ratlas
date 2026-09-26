@@ -1253,7 +1253,9 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] Write the first-run, architecture, and NixOS operations documentation; provide and evaluate an unactivated two-service module. Live activation remains untested.
 
-- [x] Measure the target-scale API with 20 warm-up/200 requests per query at concurrency one and four, and record first/warm Nix Firefox behavior and actual renderer mode. Report the missed latency target and unavailable WebGL metrics.
+- [x] Measure the target-scale API with 20 warm-up/200 requests per query at concurrency one and four, and record first/warm Nix Firefox behavior and actual renderer mode. Report uncached latency separately from warm repeated-query cache results and unavailable WebGL metrics.
+
+- [x] Add a bounded read-only API response cache that invalidates after separate SQLite writer commits; test public-count, source-health, and conditional-ETag changes. Re-measure cold and repeated target queries without conflating them.
 
 - [x] Start the built production API against a verified restored synthetic backup on an isolated port; confirm health, readiness, summary, SPA, and process cleanup.
 
@@ -1265,9 +1267,9 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 - [x] **Automated acceptance:** applicable offline release checks in section 13 pass; clean frozen install, native SQLite, Firefox fallback, production startup, backup restore, and process cleanup have actual results. Measurements identify hardware/runtime/rendering context and disclose missed targets. The fixed-port clean demo supervisor and real WebGL/live checks remain separately open.
 
-**R6: Record the completed release candidate and hand it off.**
+**R6: Finish the remaining checks and hand off the release candidate.**
 
-- [x] Prepare exact demo and live startup commands, a short whole-product walkthrough, report/screenshot locations, both final commit SHAs for the user-facing handoff, the local commit summary, final worktree status, and remaining gaps. Mark R6 `completed` without claiming user acceptance or live verification. This authorization does not permit a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
+- [ ] Update the review record with the final tested revision, exact demo and live startup commands, walkthrough, report/screenshot locations, both final commit SHAs for the user-facing handoff, final worktree status, and remaining gaps. Mark R6 `completed` only when agent-owned work is done; do not claim user acceptance or live verification. This authorization does not permit a remote push, tag publication, public deployment, system configuration change, or a new feature phase.
 
 ### Checkpoint map
 
@@ -1297,7 +1299,7 @@ Present the first release candidate at R6 only when the following are satisfied 
 - [ ] Snapshot interruption, replay, reconnect, source disagreement, stale caches, process ownership, restart, backup/restore, and graph cleanup have deterministic regression tests. The first cases pass; real WebGL worker/renderer cleanup remains unverified because Nix Firefox has no context.
 - [x] Performance reports contain real measurements, identify that Nix Firefox had no WebGL context, and do not conflate fallback with hardware/software WebGL results. No untested throughput, capacity, or security property is claimed.
 - [x] NixOS runbooks, command examples, compatibility notes, safe observer instructions, and the unactivated module are consistent with the implemented application.
-- [x] R1–R5 have genuine approval records. R6 is marked `completed` after autonomous implementation and reporting; it is not mislabeled as user approved. Pending feedback is not silently cleared.
+- [ ] R1–R5 have genuine approval records. R6 was reopened as `in_progress` after the user asked to continue remaining work; mark it `completed` only after final implementation and reporting. It is not user approved, and pending feedback is not silently cleared.
 - [x] No remote creation/modification, push, tag publication, Radicle publication, public deployment, service activation, global package change, NixOS configuration change, or personal identity change was performed under this plan.
 - [x] The intended folder has a local Git repository with the bootstrap and incremental implementation history. Every presented checkpoint has a tested implementation SHA and committed review documents; completed agent-owned work is committed, unrelated user changes are preserved, and required ignore rules keep local data and generated artifacts out of history.
 

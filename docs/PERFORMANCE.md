@@ -15,23 +15,30 @@ benchmark used the production Fastify app and a read-only SQLite connection,
 but invoked routes in-process to avoid loopback transport variation. Each
 query had 20 warm-up requests and 200 measured requests at concurrency one,
 then 200 at concurrency four. Times include SQL, projection, validation, and
-JSON serialization. They do not include browser rendering.
+JSON serialization. They do not include browser rendering. After the initial
+R6 measurement, the API gained an eight-entry response cache, limited to
+2 MB per entry and invalidated by SQLite `data_version` after any external
+writer commit. Responses use content-derived ETags, so source-health changes
+without a projection-revision increment also invalidate conditional reads.
 
-| API query                        | JSON bytes | Warm p95, c1 | Warm p95, c4 |
-| -------------------------------- | ---------: | -----------: | -----------: |
-| Summary, All retained            |      3,266 |     1,647 ms |     6,948 ms |
-| Catalog search, first 25         |      7,389 |     1,364 ms |     5,404 ms |
-| Bounded overview graph           |  1,054,265 |     2,067 ms |     8,221 ms |
-| Selected repository neighborhood |      6,354 |       943 ms |     3,775 ms |
+| API query                        | JSON bytes | First uncached | Repeated p95, c1 | Repeated p95, c4 |
+| -------------------------------- | ---------: | -------------: | ---------------: | ---------------: |
+| Summary, All retained            |      3,266 |       1,830 ms |             1 ms |             1 ms |
+| Catalog search, first 25         |      7,389 |       1,266 ms |           < 1 ms |             1 ms |
+| Bounded overview graph           |  1,054,265 |       1,854 ms |            10 ms |            32 ms |
+| Selected repository neighborhood |      6,354 |       1,414 ms |           < 1 ms |             1 ms |
 
-The engineering target of warm p95 below 250 ms for common indexed queries
-was missed on this machine. The result is a measurable backend latency and
-large-payload limitation; it should not be described as a passing performance
-target. The raw local sample distribution is in ignored
-`.ratlas/reports/benchmark.json`.
+The warm repeated-query p95 target of 250 ms now passes for the measured
+paths. This reflects cache hits on the **same** query, not faster uncached SQL
+or a workload with many distinct search terms and selected entities. First
+uncached requests still take 1.3–1.9 seconds on this machine and are an
+important browsing limitation. The original uncached warm p95 values were
+1,647/6,948 ms for summary, 1,364/5,404 ms for catalog search, 2,067/8,221 ms
+for bounded overview, and 943/3,775 ms for neighborhood at concurrency one/four.
+The raw latest sample distribution is in ignored `.ratlas/reports/benchmark.json`.
 
 The neighborhood case used the first public target RID and the same 20/200
-sample schedule in a separate process. Its raw samples are in ignored
+sample schedule. The earlier uncached run is retained in ignored
 `.ratlas/reports/benchmark-repo-neighborhood.json`. Bounded overview returned
 2,000 of 22,000 eligible vertices and 2,766 of 100,000 eligible edges; the
 larger full-mode response is outside the default navigation path.
