@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
+
+if (( $# == 0 )); then
+  config=config/ratlas.demo.json
+elif (( $# == 2 )) && [[ "$1" == --config && -n "$2" ]]; then
+  config=$2
+else
+  printf 'Usage: ./ratlas [--config path]\n' >&2
+  exit 2
+fi
+
+exec nix develop --command bash scripts/start-production.sh "$config"
