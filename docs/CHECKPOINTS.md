@@ -195,3 +195,10 @@ verification. R6 is completed autonomously, not user approval. Cold broad query
 latency, unknown GPU presentation timing, live CLI, day-long operation, and
 systemd activation remain disclosed limits. See PERFORMANCE and R6 for commands,
 measurement scope, and ignored artifacts.
+
+2026-09-27: after R6 completion, the user requested one-command production and
+demo launchers. Implementation `e3b6e20dc5d914b384d83f05559946400e323795`
+smoke-tested both start/stop paths. The production build and deterministic
+checks pass. The current host's isolated Firefox fell back from WebGL, leaving
+four canvas tests failed and two context-loss tests skipped; this does not
+replace the historical R6 tested revision or invent a new approval.

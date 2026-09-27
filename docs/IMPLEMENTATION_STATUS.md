@@ -1,7 +1,9 @@
 # ratlas implementation status
 
 Current stage: Stage F/R6 `completed` as autonomous implementation and validation,
-without claiming user acceptance. Tested implementation: `737f97069288c2c628333f42e57fbfbf8688f5b7`.
+without claiming user acceptance. The R6 tested implementation was
+`737f97069288c2c628333f42e57fbfbf8688f5b7`.
+The 2026-09-27 launcher follow-up is `e3b6e20dc5d914b384d83f05559946400e323795`.
 The 2026-09-26 follow-up fixes the audit findings and user-reported graph jitter.
 See [R6](reviews/R6.md), [validation](VALIDATION.md), and
 [performance](PERFORMANCE.md) for evidence and remaining limits.
@@ -24,7 +26,7 @@ Integer progress survives interruption/resumption. Asynchronous fatal storage
 errors yield failure even at shutdown. A 60-second public HTTP run completed;
 24-hour operation remains untested.
 
-`pnpm check` passed formatting, lint/policy, types, 64 deterministic tests,
+At the R6 handoff, `pnpm check` passed formatting, lint/policy, types, 64 deterministic tests,
 28 Firefox tests with no skips, and production build. Target-scale exact searches
 now reach 2/7 ms p95 at concurrency one/four. Varied selective text and repository
 neighborhood queries also pass the measured warm 250 ms target. Heartbeat-only
@@ -43,3 +45,16 @@ NixOS module evaluation results remain historical evidence at their recorded
 revisions. Live CLI compatibility, broader source coverage, 24-hour operation,
 and service activation remain unverified. No remote, push, publication, Radicle
 node, replication, system configuration, or personal profile change occurred.
+
+On 2026-09-27, root `./ratlas` and `./ratlas-demo` launchers were added. They
+enter `nix develop`, install frozen dependencies when missing, and stay in the
+foreground for Ctrl-C shutdown. The production launcher builds, prepares its
+selected database, and serves the built UI/API; its default is the offline demo
+config. Direct smoke tests returned HTTP 200 and the expected 100/20/300 demo
+counts, then released ports 3000 and 5173 on shutdown. Shell syntax, format,
+lint/policy, types, 64 deterministic tests, and production build passed.
+The full 2026-09-27 check did not pass: isolated Firefox produced the accessible
+WebGL fallback on this host, so 22 browser tests passed, two WebGL-context-loss
+tests skipped, and four canvas-dependent tests failed. Rerunning browser tests
+with `TMPDIR` unset reproduced the same result. No browser code changed in the
+launcher follow-up; real WebGL in the current host remains unverified.
