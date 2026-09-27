@@ -77,3 +77,10 @@ Observer storage was explicitly not measured because CLI observation was disable
 The saved database now serves through the built API on port 3001 with collection
 stopped; isolated Firefox verified desktop and narrow WebGL. This remains
 single-source evidence, not a network survey.
+
+On 2026-09-27, the official disclosure and release page were rechecked before
+another one-shot public HTTP collection. The disclosure still advised against
+private network repository use pending a fix; the release page still listed
+Radicle 1.10.3. This collection used the already configured unauthenticated
+public HTTPS source only, with the CLI adapter and Radicle node disabled. It
+returned 14 repositories, one node, 14 relationships, and no source error.

@@ -202,3 +202,9 @@ smoke-tested both start/stop paths. The production build and deterministic
 checks pass. The current host's isolated Firefox fell back from WebGL, leaving
 four canvas tests failed and two context-loss tests skipped; this does not
 replace the historical R6 tested revision or invent a new approval.
+
+2026-09-27: the user reported that `./ratlas` still showed synthetic data.
+Implementation `0e32b7378059535adc6f4914b66e6138e3af5d88` changes its
+default to the configured live dataset and performs one public-source refresh
+before serving. An isolated port 3002 run returned live 14/1/14 counts and
+released the port on Ctrl-C. The existing demo on port 3000 was preserved.

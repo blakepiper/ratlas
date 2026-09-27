@@ -65,3 +65,10 @@ process so CPU/memory samples describe the collector, and persists integer activ
 runtime across restarts. Real review uses a separate ignored config/database and
 port 3001; bounded collection stops before handoff. These are implementation
 choices, not new approvals or stack deviations.
+
+User-directed launcher correction (2026-09-27): `./ratlas` defaults to the
+ignored, explicitly configured live dataset and performs one bounded collection
+pass before serving the built app. It does not silently use demo data or keep a
+collector running. `./ratlas-demo` remains the deterministic offline entry point.
+The committed example still enables no sources; missing local configuration is
+reported instead of replaced with a synthetic fallback.
