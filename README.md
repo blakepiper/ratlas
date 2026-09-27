@@ -20,15 +20,19 @@ uses a fixed demo clock and never contacts upstream sources. Ctrl-C stops the
 supervisor and its own API, Vite and TypeScript watchers. Ports 3000 and 5173 must
 be free; startup refuses conflicts. Later starts reuse the demo database.
 
-To run the built production app with the same offline data, use `./ratlas` from
-the repository root. Both launchers enter the locked Nix shell and install the
-frozen dependencies if missing. `./ratlas` builds the backend and SPA, prepares
-the demo database, then serves both at http://127.0.0.1:3000. Ctrl-C stops the
-server. Both launchers stay in the foreground and can be run again.
-`./ratlas --config config/ratlas.local.json` uses an explicitly configured local
-dataset instead; it never starts a collector. `./ratlas-demo --dataset target`
-starts the larger synthetic development demo. Ports 3000 and 5173 are separate,
-so stop the demo before starting production on the default port.
+To run the built production app with real observations, configure the ignored
+`config/ratlas.local.json` as described below, then run `./ratlas` from the
+repository root. Both launchers enter the locked Nix shell and install frozen
+dependencies if missing. `./ratlas` builds the backend and SPA, prepares the
+configured database, performs one collection pass against its explicitly enabled
+public source, and serves the result at http://127.0.0.1:3000. Collection stops
+before the API starts; it does not continue in the background. If the live
+config is missing, startup reports that instead of showing synthetic data.
+Ctrl-C stops the server. `./ratlas --config path` selects another configured
+dataset; `./ratlas --config config/ratlas.demo.json` explicitly serves the
+synthetic dataset in production mode. `./ratlas-demo --dataset target` starts the
+larger synthetic development demo. Stop the demo before starting production on
+the default port, since both use port 3000 for the API.
 
 A production build by itself writes artifacts and does not start a server. The
 explicit build command is `nix develop --command pnpm build`; the launchers
@@ -82,12 +86,14 @@ no observer profile and quarantines local observation. `pnpm dev --config
 config/ratlas.local.json` starts an empty read-only view and no collector. Missing
 live config never activates the demo. Configuration changes require restart.
 
-The implemented production entry point serves the built SPA and read-only API:
+The implemented production entry point serves the built SPA and read-only API.
+For a manual live startup after preparing and collecting from an approved source:
 
 ```sh
 nix develop --command pnpm build
-nix develop --command pnpm db:migrate --config config/ratlas.demo.json
-nix develop --command pnpm start:api --config config/ratlas.demo.json
+nix develop --command pnpm db:migrate --config config/ratlas.local.json
+nix develop --command pnpm collect:once --config config/ratlas.local.json
+nix develop --command pnpm start:api --config config/ratlas.local.json
 ```
 
 Production listens at http://127.0.0.1:3000. Its Node entry point does not require
