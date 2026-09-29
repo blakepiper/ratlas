@@ -143,3 +143,10 @@ stops collection on API failure. Actual root SIGINT/SIGTERM cleanup passed;
 no system service was activated. The original local baseline was preserved and
 new coverage data/configuration isolated. [The ledger](COVERAGE_LEDGER.md)
 separates software delivery, live validation, blocked gates and user acceptance.
+
+2026-09-29 save/push authorization: after the coverage handoff, the user instructed
+“Ok save progress in an intelligent way and push all of it”. This explicitly
+authorizes pushing the saved implementation and review commits on `main` to its
+existing `origin/main`, overriding the earlier no-push rule for this operation.
+Keep the remote configuration and history intact; no force push, unrelated
+branch publication or runtime/private artifact enrollment is authorized.

@@ -39,6 +39,28 @@ paragraphs below describe their actual revisions/platforms and do not establish
 this plan's completion. The earlier Guix Firefox gap has now been resolved for
 isolated automation; its historical failure reports remain intact.
 
+Saved handoff: `c12c6fa` contains the coverage ledger and C2–C5 reviews; the tested
+software revision above remains distinct from documentation commits. The user
+subsequently authorized saving this continuation record and pushing the current
+branch to its existing upstream; see [decisions](DECISIONS.md).
+
+Resume in this order:
+
+1. Resolve [C2's existing public-only observer prerequisite](reviews/C2.md)
+   and verify live CLI/publication semantics before enrolling it. HTTP-only
+   polling cannot create the missing subject population.
+2. Continue budgeted catalog/metadata intake and independent reference
+   enumerations per [C3](reviews/C3.md) and [operations](OPERATIONS.md). Compare
+   a new ledger with the saved UTC window; retain unknown denominators and
+   unchanged numeric targets. Archive experiment state if the cohort changes.
+3. Perform the explicit operator 24-hour run, restart and recovery evaluation
+   in [C5](reviews/C5.md), then repeat real-data Firefox journeys and evaluate
+   every gate. Keep C2–C5 open until their actual requirements pass.
+
+Machine-local configs, live SQLite/WAL data, backups, Firefox runtime, logs and
+screenshots remain ignored and available locally; Git preserves the software,
+sanitized measurements and continuation instructions, not these private artifacts.
+
 Planning revision `b0ebc9b2e6ef3e69633a5f8a7525eaa3d2444adf` defines source
 feasibility, public node discovery, complete backfill, production collection,
 coverage reporting, and sustained real-data acceptance. Initial numerical targets
