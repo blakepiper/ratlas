@@ -12,8 +12,8 @@ C0 is recorded in [its review](reviews/C0.md). No user acceptance is inferred.
 | Checkpoint | Status      | Evidence required                                      |
 | ---------- | ----------- | ------------------------------------------------------ |
 | C0         | completed   | Current live baseline and collection audit             |
-| C1         | in_progress | Source capability matrix and target feasibility        |
-| C2         | pending     | Public node discovery and measured topology path       |
+| C1         | completed   | Source capability matrix and target feasibility        |
+| C2         | in_progress | Public node discovery and measured topology path       |
 | C3         | pending     | Complete backfill, metadata, and coverage reports      |
 | C4         | pending     | Production collection and real-data Firefox experience |
 | C5         | pending     | Actual 24-hour run and all completion gates evaluated  |

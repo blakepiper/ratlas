@@ -1,10 +1,13 @@
 # ratlas implementation status
 
-Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md), C0 `completed`, C1 `in_progress`, C2–C5 `pending`.
+Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md), C0 `completed`, C1 `completed`, C2 `in_progress`, C3–C5 `pending`.
 
 2026-09-29: the user instructed autonomous completion. [C0](reviews/C0.md)
 records the current saved live 14/1/14 baseline, discovery/pagination audit,
-and verified backup. Source feasibility and diagnostics are in progress.
+and verified backup. Source feasibility/diagnostics and preset initialization are recorded in
+[C1](reviews/C1.md). Iris and Rosa expose 13,408/15,913 self-inventory RIDs;
+all three observers share the Radicle operator. Candidate discovery and
+resumable fair catalog intake are in progress.
 Extended operation remains an explicit operator action; no new approval
 is required for software work or bounded public-source research.
 The user requested this plan on 2026-09-29 after the live application showed
