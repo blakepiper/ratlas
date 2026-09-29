@@ -26,7 +26,10 @@ function prepared(db: Db, sql: string) {
 }
 
 export function refreshPublication(db: Db, rid: string) {
-  const publicRow = prepared(db, 'SELECT rid FROM public_repositories WHERE rid=?').get(rid);
+  // Filtering the aggregate public_repositories view does not push the RID
+  // predicate into its UNION on SQLite. Use the equivalent indexed existence
+  // check so one publication refresh does not scan every retained route.
+  const publicRow = prepared(db, 'SELECT rid FROM public_evidence WHERE rid=? LIMIT 1').get(rid);
   const provenance = prepared(
     db,
     'SELECT DISTINCT source_id FROM public_evidence WHERE rid=? ORDER BY source_id',

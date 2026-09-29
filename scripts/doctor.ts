@@ -1,12 +1,21 @@
 import { existsSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { setTimeout as delay } from 'node:timers/promises';
 import { configPath, loadConfig } from '../apps/service/src/commands/config.js';
-import { dataset, openReader } from '../packages/db/dist/index.js';
+import {
+  dataset,
+  openReader,
+  openWriter,
+  registerSource,
+  reserveRequest,
+} from '../packages/db/dist/index.js';
+import { sourceSchema } from '../packages/core/dist/index.js';
 import {
   cliCapabilities,
   routingSnapshot,
   HttpAdapter,
   HttpTransport,
+  AdapterError,
   failureKind,
 } from '../packages/radicle/dist/index.js';
 import { toolchainSmoke } from './toolchain-smoke.js';
@@ -60,26 +69,79 @@ if (!values.config && !process.env.RATLAS_CONFIG && !existsSync(configPath())) {
     }
   } else console.log('Local observer disabled; no personal profile accessed');
   if (values['check-sources']) {
-    for (const source of config.httpSources.filter((s) => s.enabled)) {
-      configured++;
-      try {
-        const adapter = new HttpAdapter(new HttpTransport(source.apiBaseUrl, config.collection));
-        const node = await adapter.node(signal, source.expectedNid);
+    const httpSources = config.httpSources.filter((s) => s.enabled);
+    const writer =
+      httpSources.length && existsSync(config.storage.databasePath)
+        ? openWriter(config.storage.databasePath)
+        : null;
+    try {
+      if (httpSources.length && !writer) {
         console.log(
-          JSON.stringify({
-            source: source.id,
-            adapter: 'http',
-            observerNid: node.id,
-            nodeSchema: 'recognized',
-            inventory: 'not-probed',
-            catalog: 'not-probed',
-            publication: 'public-http',
-          }),
+          'HTTP identity checks require an initialized database for persistent budgets; run db:migrate explicitly first',
         );
-      } catch (error) {
-        console.log(JSON.stringify({ source: source.id, status: failureKind(error) }));
-        process.exitCode = 1;
+        process.exitCode = 2;
+        configured += httpSources.length;
       }
+      for (const source of writer ? httpSources : []) {
+        configured++;
+        try {
+          const db = writer!.db;
+          registerSource(
+            db,
+            sourceSchema.parse({
+              id: source.id,
+              label: source.label,
+              adapter: 'http',
+              policy: 'public-http',
+              origin: new URL(source.apiBaseUrl).origin,
+              enabled: source.enabled,
+              metadataPriority: source.metadataPriority,
+              observerNid:
+                (
+                  db.prepare('SELECT observer_nid FROM sources WHERE id=?').get(source.id) as
+                    { observer_nid: string | null } | undefined
+                )?.observer_nid ?? null,
+            }),
+          );
+          const raw = new HttpTransport(source.apiBaseUrl, config.collection);
+          const adapter = new HttpAdapter({
+            get: async (path, signal) => {
+              for (;;) {
+                const until = reserveRequest(
+                  db,
+                  source.id,
+                  new URL(source.apiBaseUrl).origin,
+                  'probe',
+                  Date.now(),
+                  config.collection,
+                );
+                if (until === null) break;
+                if (until - Date.now() > config.collection.originSpacingMs)
+                  throw new AdapterError('budget-deferred');
+                await delay(Math.max(1, until - Date.now()), undefined, { signal });
+              }
+              return raw.get(path, signal);
+            },
+          });
+          const node = await adapter.node(signal, source.expectedNid);
+          console.log(
+            JSON.stringify({
+              source: source.id,
+              adapter: 'http',
+              observerNid: node.id,
+              nodeSchema: 'recognized',
+              inventory: 'not-probed',
+              catalog: 'not-probed',
+              publication: 'public-http',
+            }),
+          );
+        } catch (error) {
+          console.log(JSON.stringify({ source: source.id, status: failureKind(error) }));
+          process.exitCode = 1;
+        }
+      }
+    } finally {
+      writer?.close();
     }
     if (!configured) {
       console.log('Source checks not run: no enabled configured sources');

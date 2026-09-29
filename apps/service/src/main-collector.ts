@@ -7,6 +7,7 @@ import { backupBeforeMigration } from './commands/migration-backup.js';
 import { loadConfig } from './commands/config.js';
 import { migrate, openWriter, summary } from '@ratlas/db';
 import { Collector } from './collector/runtime.js';
+import { failureKind } from '@ratlas/radicle';
 
 const { values } = parseArgs({
   options: {
@@ -59,8 +60,12 @@ if (!config.radicle.enabled && !config.httpSources.some((s) => s.enabled)) {
       JSON.stringify({ kind: 'live', ...summary(writer.db), failedSources: failed.count }),
     );
     if (failed.count) process.exitCode = 1;
-  } catch {
-    logger.error('collection failed; previously committed state retained');
+  } catch (error) {
+    const kind =
+      error instanceof Error && error.message === 'Job lease lost'
+        ? 'job-lease-lost'
+        : failureKind(error);
+    logger.error({ kind }, 'collection failed; previously committed state retained');
     console.error('ratlas collection failed; inspect source health and private logs');
     process.exitCode = 1;
   } finally {
