@@ -1,5 +1,23 @@
 # ratlas implementation status
 
+2026-09-29 Guix setup follow-up: the user requested a manifest on the new
+machine. `manifest.scm`, `guix-channels.scm`, `./ratlas-guix`, and
+[Guix development instructions](GUIX_DEVELOPMENT.md) provide Guix's prebuilt
+Node 24.18.0 and the pinned pnpm/application dependencies. The initial custom
+Node 24.21.0 source build was stopped after the user objected to its CPU cost.
+Toolchain entry now requires prebuilt packages with `--max-jobs=0`. Implementation
+`49baebd22b3717a6c7f79751e0782b7b03b90872` passed actual environment entry,
+Node/pnpm version and Node-header checks, frozen install with native SQLite,
+formatting (including nixfmt), lint/policy, typechecking, all 64 deterministic
+tests across 15 files, and production build. Tests used one to two workers;
+native addon builds used at most two jobs. Shell syntax and outside-shell
+rejection passed. `pnpm doctor` correctly exited 2 for the missing patched
+Firefox prerequisite; browser tests and the combined `pnpm check` remain
+unavailable on Guix. No browser was installed or launched. Vite reported its
+existing dependency-comment and chunk-size warnings. No server or collector
+was started. The historical R6 results below remain Nix results, not Guix
+validation. Local logs are under ignored `.ratlas/guix-bootstrap/`.
+
 Current stage: Stage F/R6 `completed` as autonomous implementation and validation,
 without claiming user acceptance. The R6 tested implementation was
 `737f97069288c2c628333f42e57fbfbf8688f5b7`.

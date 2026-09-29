@@ -72,3 +72,17 @@ pass before serving the built app. It does not silently use demo data or keep a
 collector running. `./ratlas-demo` remains the deterministic offline entry point.
 The committed example still enables no sources; missing local configuration is
 reported instead of replaced with a synthetic fallback.
+
+User-directed platform addition (2026-09-29): the user moved to a Guix machine
+and requested a development manifest. `manifest.scm` and `./ratlas-guix` provide
+the Guix development/Git entry point, superseding the Nix-only requirement on
+this platform. After the user objected to the CPU-heavy Node source build and
+directed use of prebuilt options, use Guix's prebuilt Node 24.18.0 alongside the
+existing Nix 24.21.0 in the engine constraint. Keep pnpm 10.34.0, both lockfiles
+and the fixed application stack unchanged. The entry point requires binary
+substitutes for toolchain packages (`--max-jobs=0`); it only constructs the small
+pnpm command wrapper and Guix profile locally. The captured channel goes in
+`guix-channels.scm`.
+The Guix manifest does not supply Playwright's patched Firefox; browser-dependent
+commands report incomplete instead of installing a browser or using a personal
+profile. Historical Nix tests and R1–R6 approval/completion records are unchanged.

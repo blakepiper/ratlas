@@ -208,3 +208,13 @@ Implementation `0e32b7378059535adc6f4914b66e6138e3af5d88` changes its
 default to the configured live dataset and performs one public-source refresh
 before serving. An isolated port 3002 run returned live 14/1/14 counts and
 released the port on Ctrl-C. The existing demo on port 3000 was preserved.
+
+2026-09-29: the user requested a Guix manifest and then directed use of prebuilt
+dependencies after objecting to the initial Node source build's CPU cost.
+That build was stopped. Implementation `49baebd22b3717a6c7f79751e0782b7b03b90872`
+uses prebuilt Guix Node 24.18.0, pinned pnpm 10.34.0 JavaScript, and a
+`--max-jobs=0` toolchain preflight. Environment entry, frozen install/native
+SQLite, formatting, lint/policy, types, 64 deterministic tests, and production
+build passed. Browser-dependent commands report the missing patched Firefox
+prerequisite with exit code 2. This is a platform follow-up, not a new R6
+approval or a replacement for its historical Nix/browser validation.
