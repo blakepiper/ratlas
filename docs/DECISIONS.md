@@ -1,13 +1,15 @@
 # ratlas decisions
 
-The fixed decisions are defined by revision 5 of `RATLAS_IMPLEMENTATION_SPEC.md`.
+The current decisions are defined by revision 6 of `RATLAS_IMPLEMENTATION_SPEC.md`.
 
-- NixOS x86_64-linux, plain locked nixpkgs 26.05 development shell, Node 24 and pnpm 10.
+- Guix x86_64-linux, `manifest.scm` and recorded `guix-channels.scm`, prebuilt
+  Node 24.18.0 and pnpm 10.34.0 through `./ratlas-guix`. No toolchain source builds.
 - Exact workspace dependencies; TypeScript, React, Vite, Fastify, Zod, better-sqlite3,
   Graphology/Sigma and Firefox automation retain the specified version families.
 - Read-only API, separate single-writer collector, SQLite WAL, explicit publication
   eligibility, source-specific evidence, and deterministic offline demo data.
-- Firefox-only bundle and isolated profiles; no changes to the user's browser.
+- Firefox-only automation and isolated profiles; no changes to the user's browser.
+  The matching patched Firefox runtime is currently unavailable on Guix.
 - Six progress milestones and incremental local Git commits; no remotes or publication.
 
 User-approved deviation (2026-09-25): ESLint and `@eslint/js` use family 10.
@@ -26,11 +28,13 @@ after the reproduced native cleanup-hook abort. The user replied “yes I approv
 to this specific proposal. Compile from source in Nix and rerun the real workload.
 This approval does not approve R1 or authorize Stage B.
 
-Command compatibility: locked pnpm 10 has its own built-in `doctor`, which takes
-precedence over package scripts. The Nix shell supplies a tiny `pnpm` dispatcher
+Command compatibility: pinned pnpm 10 has its own built-in `doctor`, which takes
+precedence over package scripts. The Guix package supplies a tiny `pnpm` dispatcher
 that maps only `pnpm doctor ...` to the same locked pnpm's `run doctor ...`.
-All other arguments go unchanged to `pkgs.pnpm_10`. This preserves the required
-project command without a package-manager version change or shell-entry effects.
+All other arguments go unchanged to the pinned pnpm JavaScript entry point.
+The legacy Nix shell has the equivalent dispatcher. The Guix project doctor
+currently reports its missing Firefox prerequisite rather than running the
+upstream pnpm doctor or claiming a successful project smoke test.
 
 User-directed R3 layout revision (2026-09-25): dataset counts move beneath the
 logo on one line; the separate count, demo-mode, and footer bars and the map
@@ -86,3 +90,12 @@ pnpm command wrapper and Guix profile locally. The captured channel goes in
 The Guix manifest does not supply Playwright's patched Firefox; browser-dependent
 commands report incomplete instead of installing a browser or using a personal
 profile. Historical Nix tests and R1–R6 approval/completion records are unchanged.
+
+User-directed documentation revision (2026-09-29): the user asked to replace
+Nix-oriented instructions with Guix-specific documentation. Specification
+revision 6 and the active guides now use `./ratlas-guix` and the prebuilt
+manifest. The old Nix development guide and NixOS module remain explicitly
+legacy; historical test results and approvals retain their actual platform.
+Current operations are manual Guix processes, with no invented Shepherd service
+or claimed browser runtime. The root Nix launchers are unchanged, so Guix
+startup examples use the existing helpers through `./ratlas-guix`.

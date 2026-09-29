@@ -1,5 +1,20 @@
 # ratlas implementation status
 
+Current platform: Guix. Use `./ratlas-guix` and the current
+[development](GUIX_DEVELOPMENT.md) and [operations](OPERATIONS.md) guides.
+Nix commands below describe historical work on the previous machine.
+
+2026-09-29 documentation follow-up: revision
+`e42c4ce59638c2c393e6d8fd778b98b10caff87c` makes the README, active specification,
+agent instructions, development, collection, toolchain, and operations guides
+Guix-first. Revision 6 replaces the obsolete Nix setup contract and keeps the
+original Nix milestone evidence explicitly historical. Formatting, 62 local
+documentation links, syntax of 34 shell examples, current pnpm command names,
+and the read-only specification/repository checks passed. This was documentation
+work only: no package rebuild, application test rerun, browser, server, live
+collection, or system change. Legacy launchers and the NixOS module are accurately
+labeled; no Guix service implementation or Firefox automation support is claimed.
+
 2026-09-29 Guix setup follow-up: the user requested a manifest on the new
 machine. `manifest.scm`, `guix-channels.scm`, `./ratlas-guix`, and
 [Guix development instructions](GUIX_DEVELOPMENT.md) provide Guix's prebuilt
@@ -53,11 +68,12 @@ writer churn no longer invalidates entity projections; privacy/source mutations
 still invalidate them. First uncached broad queries remain about 1.5–2 seconds.
 Firefox's GPU class and presentation frame rate remain unknown.
 
-The saved real public dataset has 14 repositories, one node, 14 relationships,
-and one unresolved name from the team's selective public seed. The separate built
-API serves it at http://127.0.0.1:3001/?window=all. The collector has stopped;
-this is a snapshot, not ongoing observation. The user's demo was not stopped; its original processes had exited by final
-verification. [R6](reviews/R6.md) gives restart and bounded refresh commands.
+At the historical R6 handoff, the saved real public dataset had 14 repositories,
+one node, 14 relationships, and one unresolved name from the team's selective
+public seed. A separate API served it on port 3001 with collection stopped.
+That ignored config/database and server process are not supplied on this new
+machine. [R6](reviews/R6.md) preserves the original commands and evidence;
+use the Guix operations guide for a newly configured instance.
 
 Earlier clean-checkout frozen-install/demo, verified backup restore, and unactivated
 NixOS module evaluation results remain historical evidence at their recorded

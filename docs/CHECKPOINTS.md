@@ -218,3 +218,12 @@ SQLite, formatting, lint/policy, types, 64 deterministic tests, and production
 build passed. Browser-dependent commands report the missing patched Firefox
 prerequisite with exit code 2. This is a platform follow-up, not a new R6
 approval or a replacement for its historical Nix/browser validation.
+
+2026-09-29 documentation follow-up: at
+`e42c4ce59638c2c393e6d8fd778b98b10caff87c`, the README and active specification,
+development, collection, operations, and toolchain guides use Guix. Legacy
+Nix instructions and original review artifacts are labeled accordingly.
+Formatting, local documentation links, shell-example syntax, pnpm command
+names, and read-only repository/specification checks passed. No application
+code changed, no packages were rebuilt, and historical milestone approvals
+and tested implementation revisions remain unchanged.
