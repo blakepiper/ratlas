@@ -274,8 +274,9 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
           minimumUnresolvedMetadataDrainHours:
             count(
               db,
-              "SELECT COUNT(*) count FROM metadata_jobs WHERE source_id=? AND task='metadata' AND last_success IS NULL",
+              "SELECT COUNT(*) count FROM metadata_jobs j WHERE source_id=? AND task='metadata' AND last_success IS NULL AND NOT EXISTS (SELECT 1 FROM eligible_metadata m WHERE m.source_id=j.source_id AND m.rid=j.entity_id AND m.retrieved_at>?)",
               source.id,
+              ref - config.collection.metadataSuccessTtlMs,
             ) / config.collection.unresolvedMetadataPerHour,
         },
         metadata: {

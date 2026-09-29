@@ -488,7 +488,14 @@ export class Collector {
       this.db.transaction(() => {
         let added = 0;
         for (const metadata of rows) {
-          storeMetadata(this.db, { ...metadata, sourceId: source.id, retrievedAt: this.now() });
+          const retrievedAt = this.now();
+          storeMetadata(this.db, { ...metadata, sourceId: source.id, retrievedAt });
+          if (metadata.visibility === 'public')
+            this.db
+              .prepare(
+                "UPDATE metadata_jobs SET due_at=MAX(due_at,?),last_success=?,last_error=NULL WHERE source_id=? AND entity_id=? AND task='metadata' AND status='pending'",
+              )
+              .run(retrievedAt + limits.metadataSuccessTtlMs, retrievedAt, source.id, metadata.rid);
           added += this.db
             .prepare('INSERT OR IGNORE INTO catalog_members VALUES (?,?)')
             .run(source.id, metadata.rid).changes;
@@ -511,7 +518,7 @@ export class Collector {
       return rows.length ? limits.schedulerTickMs : limits.catalogRefreshMs;
     }
     if (job.task === 'metadata') {
-      if (!this.db.prepare('SELECT 1 FROM public_repositories WHERE rid=?').get(job.entity_id))
+      if (!this.db.prepare('SELECT 1 FROM public_evidence WHERE rid=? LIMIT 1').get(job.entity_id))
         return limits.negativeMetadataTtlMs;
       const cached = this.db
         .prepare('SELECT retrieved_at FROM eligible_metadata WHERE source_id=? AND rid=?')
@@ -526,6 +533,11 @@ export class Collector {
   }
   private async execute(job: Job) {
     const limits = this.config.collection;
+    const requestsBefore = (
+      this.db
+        .prepare('SELECT request_count count FROM source_health WHERE source_id=?')
+        .get(job.source_id) as { count: number }
+    ).count;
     const refresh =
       job.task === 'inventory'
         ? Number(
@@ -555,7 +567,13 @@ export class Collector {
         this.db
           .prepare("UPDATE node_candidates SET disposition='observed',next_attempt=? WHERE nid=?")
           .run(this.now() + interval, job.entity_id);
-      sourceSuccess(this.db, job.source_id, this.now());
+      const requestsAfter = (
+        this.db
+          .prepare('SELECT request_count count FROM source_health WHERE source_id=?')
+          .get(job.source_id) as { count: number }
+      ).count;
+      // TTL/cache and privacy no-ops are not successful new upstream reads.
+      if (requestsAfter > requestsBefore) sourceSuccess(this.db, job.source_id, this.now());
       finishJob(this.db, job.key, this.owner, this.now() + interval, this.now(), null);
       this.enqueueDiscovery(job.source_id);
     } catch (error) {

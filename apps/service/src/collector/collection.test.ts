@@ -20,6 +20,7 @@ import {
   admitCandidate,
   publicCandidate,
   deferExhaustedBudgets,
+  storeMetadata,
 } from '@ratlas/db';
 import { AdapterError } from '@ratlas/radicle';
 import { Collector } from './runtime.js';
@@ -50,6 +51,52 @@ beforeEach(() => {
   );
 });
 afterEach(() => writer.close());
+it('does not turn a fresh metadata cache hit into a new successful upstream read', async () => {
+  const db = writer.db;
+  storeMetadata(db, {
+    rid,
+    sourceId: 'fixture',
+    retrievedAt: at,
+    visibility: 'public',
+    name: 'Cached project',
+    description: null,
+    branch: null,
+    delegates: [],
+    revision: null,
+  });
+  const controller = new AbortController();
+  const collector = new Collector(db, config, controller.signal, {
+    now: () => at + 1000,
+    transport: () => ({
+      get: async () => {
+        throw new Error('A cache hit must not make a request');
+      },
+    }),
+  });
+  try {
+    await collector.initialize();
+    db.prepare('UPDATE sources SET observer_nid=? WHERE id=?').run(nid, 'fixture');
+    db.exec(
+      "DELETE FROM metadata_jobs; UPDATE source_health SET current_error='timeout',retry_at=NULL,paused=0 WHERE source_id='fixture'",
+    );
+    scheduleJob(db, 'fixture', rid, 'metadata', at, 20);
+    await collector.tick();
+    await collector.close();
+    expect(
+      db
+        .prepare(
+          "SELECT current_error,last_success,request_count FROM source_health WHERE source_id='fixture'",
+        )
+        .get(),
+    ).toEqual({ current_error: 'timeout', last_success: null, request_count: 0 });
+    expect(
+      db.prepare("SELECT due_at,last_success FROM metadata_jobs WHERE task='metadata'").get(),
+    ).toEqual({ due_at: at + config.collection.metadataSuccessTtlMs, last_success: at + 1000 });
+  } finally {
+    controller.abort();
+    await collector.close();
+  }
+});
 it('defers an exhausted metadata backlog in one batch while preserving catalog and source fairness', () => {
   const db = writer.db;
   registerSource(
