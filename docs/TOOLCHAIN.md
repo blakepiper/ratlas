@@ -1,7 +1,18 @@
 # ratlas toolchain
 
-Nixpkgs revision: c508844df6c28fa6dabc1b6af70f3ccbd65c5201.
-Node 24.21.0; pnpm 10.34.0; Playwright 1.59.1.
+Current Guix channel: `5ceffb60e55b86920fd720817dd24b0e1f900ac1`, recorded in
+`guix-channels.scm`. Prebuilt Node 24.18.0; pnpm 10.34.0 JavaScript package;
+GCC 14.3.0, Python 3.12.12, and Make 4.4.1. Playwright remains pinned at 1.59.1,
+but its matched patched Firefox runtime is not provided on Guix.
+Enter with `./ratlas-guix`; see [Guix development](GUIX_DEVELOPMENT.md).
+
+At implementation `49baebd22b3717a6c7f79751e0782b7b03b90872`, Guix environment
+entry, Node/pnpm and header checks, frozen install/native SQLite, formatting,
+lint/policy, types, 64 deterministic tests, and production build passed.
+`pnpm doctor` reported the missing Firefox prerequisite with exit code 2.
+The entry point checks binary substitutes with `--max-jobs=0`; it never
+compiles Node or the compiler toolchain. Native SQLite builds use at most two
+jobs. Evidence is under ignored `.ratlas/guix-bootstrap/`.
 
 The user approved ESLint/@eslint/js family 10 and better-sqlite3 13.0.3 on 2026-09-25. All other
 direct dependencies follow specification families, with stable non-deprecated
@@ -51,7 +62,11 @@ versions from the official npm registry. Strict peer and engine resolution passe
 | packages/radicle | undici                        | 7.30.0        |
 | packages/radicle | ipaddr.js                     | 2.5.0         |
 
-## Actual checks
+## Historical Nix checks (2026-09-25)
+
+These results used nixpkgs `c508844df6c28fa6dabc1b6af70f3ccbd65c5201`,
+Node 24.21.0, pnpm 10.34.0, and Playwright 1.59.1 on the previous machine.
+They do not establish Guix browser support.
 
 - Nix flake/toolchain check passed. Shell entry has no application side effects.
 - Frozen-lock install passed; better-sqlite3 compiled its bundled SQLite with Nix
@@ -74,4 +89,5 @@ not the ratlas application or a live-data screenshot.
 
 An inherited deleted TMPDIR in the agent environment was worked around with
 command-scoped env -u TMPDIR nix develop --command; no user settings changed.
-See NIX_DEVELOPMENT.md for normal commands and the workaround.
+See [legacy Nix development](NIX_DEVELOPMENT.md) for those platform-specific
+commands; current commands are in [Guix development](GUIX_DEVELOPMENT.md).

@@ -48,10 +48,11 @@ The map requests a bounded overview by default. Selected one-hop neighborhoods
 and an explicit full mode use server-enforced vertex/edge limits. Sigma and
 Graphology render the returned graph, with a short-lived ForceAtlas2 worker.
 Pointer pan/zoom and click selection work when WebGL is available. The
-accessible entity list and catalog/details stay available if it is not. The
-Nix Firefox bundle currently reaches that fallback, so real canvas timing and
-cleanup remain unverified there; a screenshot from ordinary Firefox showed
-canvas rendering before later label and toolbar revisions.
+accessible entity list and catalog/details stay available if it is not.
+Guix currently lacks the matching patched Playwright Firefox runtime, so
+automated canvas checks have not run on this machine. Earlier Nix Firefox
+canvas, cleanup, and timing results are recorded in [validation](VALIDATION.md)
+and [performance](PERFORMANCE.md); they are historical measurements.
 
 The deterministic small and target demo datasets are isolated from live
 configuration. The small fixture has 100 repositories, 20 node identities,

@@ -1,4 +1,9 @@
-# ratlas native SQLite compatibility blocker
+# ratlas native SQLite compatibility history
+
+This records the resolved 2026-09-25 blocker on the previous Nix machine.
+The current Guix setup uses Node 24.18.0 and better-sqlite3 13.0.3; its frozen
+install/native addon and 64 deterministic tests passed at `49baebd`.
+See [current toolchain](TOOLCHAIN.md) for setup and verification.
 
 Checked 2026-09-25 in the repository Nix development shell.
 

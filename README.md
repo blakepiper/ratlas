@@ -1,142 +1,108 @@
 # ratlas
 
-A local browser of public Radicle repository observations. The catalog, map,
-Activity view, and source coverage work with a deterministic offline demo.
-Live collection requires an explicitly configured and approved public source;
-the committed configuration starts none. The user authorized autonomous
-completion after R5, and [checkpoint status](docs/CHECKPOINTS.md) records
-validation progress.
+A local browser of public Radicle repository observations. Explore repositories,
+hosting nodes, their relationships, activity, source evidence, and coverage limits.
+The React interface runs in Firefox; the API reads a local SQLite database.
+Live collection requires explicitly configured public sources.
 
-On Guix, enter `./ratlas-guix`, then run `pnpm install --frozen-lockfile`
-and `pnpm demo`. See [Guix development](docs/GUIX_DEVELOPMENT.md) for the
-manifest, reproducible channel, checks, and Firefox automation limitation.
-
-From this checkout on NixOS:
+From this checkout on Guix, start the offline demo:
 
 ```sh
-./ratlas-demo
+./ratlas-guix bash scripts/start-demo.sh
 ```
 
-Open http://127.0.0.1:5173 in Firefox. The deterministic demo contains 100
-repositories, 20 node identities, 300 hosting relationships and two synthetic
-sources. Twenty names are unresolved. It reads the real local SQLite database,
-uses a fixed demo clock and never contacts upstream sources. Ctrl-C stops the
-supervisor and its own API, Vite and TypeScript watchers. Ports 3000 and 5173 must
-be free; startup refuses conflicts. Later starts reuse the demo database.
+Open http://127.0.0.1:5173 in Firefox. The helper installs frozen workspace
+dependencies if missing and starts the demo. Its synthetic dataset contains
+100 repositories, 20 node identities, 300 hosting relationships, two sources,
+and 20 unresolved names. It never contacts upstream sources. Ports 3000 and
+5173 must be free. Ctrl-C stops the supervisor and its API, Vite, and TypeScript
+watchers; later starts reuse the demo database.
 
-To run the built production app with real observations, configure the ignored
-`config/ratlas.local.json` as described below, then run `./ratlas` from the
-repository root. Both launchers enter the locked Nix shell and install frozen
-dependencies if missing. `./ratlas` builds the backend and SPA, prepares the
-configured database, performs one collection pass against its explicitly enabled
-public source, and serves the result at http://127.0.0.1:3000. Collection stops
-before the API starts; it does not continue in the background. If the live
-config is missing, startup reports that instead of showing synthetic data.
-Ctrl-C stops the server. `./ratlas --config path` selects another configured
-dataset; `./ratlas --config config/ratlas.demo.json` explicitly serves the
-synthetic dataset in production mode. `./ratlas-demo --dataset target` starts the
-larger synthetic development demo. Stop the demo before starting production on
-the default port, since both use port 3000 for the API.
+`./ratlas-guix` enters an interactive development shell. Prefix a command with
+it for a single invocation, such as `./ratlas-guix pnpm build`. The manifest
+uses prebuilt Guix Node 24.18.0 and toolchain packages, plus pinned pnpm 10.34.0
+JavaScript. Entry refuses missing binary substitutes instead of compiling the
+toolchain. Workspace installation builds the SQLite addon with at most two jobs.
+See [Guix development](docs/GUIX_DEVELOPMENT.md) for setup and channel pinning.
 
-A production build by itself writes artifacts and does not start a server. The
-explicit build command is `nix develop --command pnpm build`; the launchers
-provide the remaining startup and shutdown steps.
+To use real observations, create `config/ratlas.local.json` from
+`config/ratlas.example.json` if it does not already exist, and configure an
+approved public source. The example enables no sources and accesses no personal
+Radicle profile. Start the built application with:
+
+```sh
+./ratlas-guix bash scripts/start-production.sh config/ratlas.local.json
+```
+
+This installs missing dependencies, builds the app, prepares the database,
+performs one collection pass against the explicitly enabled sources, and serves
+the saved observations at http://127.0.0.1:3000. Collection ends before serving;
+a failed refresh reports the error and serves previously stored observations.
+Missing configuration never falls back to synthetic data. Ctrl-C stops the API.
+Stop the demo first because both use API port 3000. Pass another config path
+to select another dataset; `config/ratlas.demo.json` explicitly selects the
+synthetic dataset. The short `./ratlas` and `./ratlas-demo` scripts are legacy
+Nix entry points; use the Guix commands above on this machine.
 
 Search names, descriptions, or an exact RID. Filters, sorting, pagination,
-selection, and the observation window are saved in the URL. Repository details
-show source evidence and a copyable clone command; node details list observed
-repositories. Explore includes a bounded relationship map and accessible entity
-list fallback when Firefox cannot create a WebGL context. Activity shows stored
-count history, source-specific changes, collection gaps, and coverage limits.
+selection, and the observation window persist in the URL. Repository details
+show source evidence and a copyable clone command. The map offers selected
+neighborhoods and a larger dataset view; a list remains available if Firefox
+cannot create a WebGL context. Activity shows recorded counts, changes, gaps,
+and coverage limits. Cached observations do not prove that a node is online.
 
-To repeat the offline outage/recovery walkthrough, stop the demo supervisor,
-reset its dedicated database, and start `pnpm demo` again. Reset archives the
-previous demo database and refuses a live or in-use database. In another Nix
-shell, run the scenario commands while the demo UI is open:
+Run the supported development checks inside `./ratlas-guix`:
+
+```sh
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm exec vitest run --minWorkers=1 --maxWorkers=2
+pnpm build
+```
+
+The Guix setup passed these checks, including 64 deterministic tests and the
+production build. Guix currently lacks the matching patched Playwright Firefox
+package. `pnpm doctor`, `pnpm test:e2e`, `pnpm benchmark:browser`, and the combined
+`pnpm check` report that prerequisite with exit code 2. Manual Firefox use works
+independently of automation. Do not run a browser installer or use a personal
+Firefox profile for tests. [Validation](docs/VALIDATION.md) separates current
+Guix results from the earlier browser checks.
+
+For the offline outage/recovery walkthrough, stop the demo before resetting it.
+Enter `./ratlas-guix` in each terminal:
 
 ```sh
 pnpm demo:reset
 pnpm demo
-# In a second shell after opening the UI:
+# In the second Guix shell while the UI is open:
 pnpm demo:scenario --name source-outage
 pnpm demo:scenario --name source-recovery
 ```
 
-Inspect Activity at each step. During the outage, 24-hour counts fall to zero
-while All retained still shows cached repositories. Recovery closes the gap and
-restores current counts. Each command prints its synthetic clock and injected
-events; scenario reports are saved under ignored `.ratlas/reviews/R5/`.
+During the outage, the 24-hour window drops to zero while All retained still
+shows cached repositories. Recovery closes the gap and restores current counts.
+Reset archives only the dedicated demo database and refuses a live or in-use
+database. Use `pnpm demo --dataset target` for the larger synthetic dataset;
+`pnpm demo:reset --dataset target` resets only that separate dataset.
+
+Inspect stored data or create a verified online backup from the Guix shell:
 
 ```sh
-nix develop --command pnpm check
-```
-
-This runs formatting, lint and repository/browser policy checks, all type checks,
-deterministic unit/database/API tests, both Firefox viewport tests, and the
-production build. E2E uses its own database and an ephemeral loopback port. No
-browser download or personal Firefox profile is used.
-
-For the prepared real-data review in this checkout, open
-http://127.0.0.1:3001/?window=all. This is a saved public-seed snapshot (14
-repositories), with collection stopped. It can run alongside the sample demo.
-Restart it with `env -u TMPDIR nix develop --command pnpm start:api --config
-config/ratlas.review.local.json`; [R6](docs/reviews/R6.md) gives the bounded
-refresh command and walkthrough. This ignored local config is not shipped to
-other checkouts.
-
-For a separate local live configuration, copy `config/ratlas.example.json` to
-ignored `config/ratlas.local.json` and edit it. The example has no enabled source,
-no observer profile and quarantines local observation. `pnpm dev --config
-config/ratlas.local.json` starts an empty read-only view and no collector. Missing
-live config never activates the demo. Configuration changes require restart.
-
-The implemented production entry point serves the built SPA and read-only API.
-For a manual live startup after preparing and collecting from an approved source:
-
-```sh
-nix develop --command pnpm build
-nix develop --command pnpm db:migrate --config config/ratlas.local.json
-nix develop --command pnpm collect:once --config config/ratlas.local.json
-nix develop --command pnpm start:api --config config/ratlas.local.json
-```
-
-Production listens at http://127.0.0.1:3000. Its Node entry point does not require
-an interactive-shell marker, does not migrate, and does not collect. Production
-CSP uses same-origin assets without eval. Vite development separately permits its
-localhost module/HMR machinery; it is not the production security policy.
-
-Review the data without starting a collector:
-
-```sh
-nix develop --command pnpm data:review --config config/ratlas.demo.json
-```
-
-The saved report is `.ratlas/reviews/R2/data-review.md`. The details pane's coverage
-view shows source provenance and successful snapshot times. Both adapters are
-fixture-tested. A bounded live HTTP smoke test passed against an explicitly
-configured public Radicle team seed; live CLI integration still requires a
-dedicated public-only observer. See [collection commands](docs/COLLECTION.md)
-and [API contracts](docs/API.md).
-Target datasets are available through `pnpm data:target` and
-`pnpm demo --dataset target`; `pnpm demo:reset --dataset target` recreates only that separate demo
-database. `pnpm benchmark` measures the target dataset with 20 warm-up and
-200 measured requests per query at concurrency one and four, saving an ignored
-report under `.ratlas/reports/`. Generate or migrate the target dataset first.
-`pnpm benchmark:browser` measures first and warm map navigation in isolated
-Nix-supplied Firefox, records the actual renderer mode, and saves local R6
-screenshots. A fallback timing is not a canvas frame-rate result.
-Create a verified online backup at a new path:
-
-```sh
+pnpm data:review --config config/ratlas.demo.json
 pnpm db:backup --config config/ratlas.local.json --output .ratlas/backups/ratlas.sqlite
 ```
 
-See the [NixOS runbook](deploy/nixos/README.md) for restore, service isolation,
-safe observer, update, and 24-hour experiment instructions. No day-long run or
-system service activation is part of development.
+The data report is `.ratlas/reviews/R2/data-review.md`. Use a new backup filename
+each time. Runtime data, local configs, logs, and reports remain ignored by Git.
+The old machine's live-review configuration, database, running server, and
+screenshots are not supplied with this checkout.
 
-See [development instructions](docs/NIX_DEVELOPMENT.md),
-[data semantics](docs/DATA_SEMANTICS.md), [toolchain results](docs/TOOLCHAIN.md),
-[dependency assessment](docs/DEPENDENCY_SECURITY.md) and
-[architecture](docs/ARCHITECTURE.md). Both dependency-family deviations have
-explicit user approval. Work is committed locally; nothing is pushed.
+See [Guix operations](docs/OPERATIONS.md) for manual production startup,
+collection, permissions, shutdown, backup, restore, and updates;
+[collection commands](docs/COLLECTION.md) for source budgets and experiments;
+[data semantics](docs/DATA_SEMANTICS.md), [architecture](docs/ARCHITECTURE.md),
+[API contracts](docs/API.md), and [toolchain versions](docs/TOOLCHAIN.md) for
+implementation details. The [performance report](docs/PERFORMANCE.md) records
+measurements from the earlier machine, not Guix benchmarks. Historical approvals
+and tested revisions remain in [checkpoints](docs/CHECKPOINTS.md).

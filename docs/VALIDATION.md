@@ -1,6 +1,32 @@
 # ratlas release validation
 
-## 2026-09-26 audit follow-up
+## Current Guix validation (2026-09-29)
+
+Tested implementation: `49baebd22b3717a6c7f79751e0782b7b03b90872`.
+The prebuilt Guix Node 24.18.0 / pnpm 10.34.0 environment passed entry,
+version/header checks, frozen installation with native SQLite, formatting,
+lint/policy, typechecking, 64 deterministic tests, and the production build.
+Native addon builds used at most two jobs; Vitest used one to two workers.
+`pnpm doctor` exited 2 for the missing patched Firefox prerequisite. No browser,
+live source, server, or collector was started for this Guix validation.
+
+Current commands run inside `./ratlas-guix`:
+
+```sh
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm exec vitest run --minWorkers=1 --maxWorkers=2
+pnpm build
+```
+
+`pnpm check`, `pnpm doctor`, `pnpm test:e2e`, and `pnpm benchmark:browser`
+remain unavailable on Guix and report the missing runtime with exit code 2.
+See [Guix development](GUIX_DEVELOPMENT.md) and [operations](OPERATIONS.md).
+The results below are historical Nix results. Old local configs, datasets,
+screenshots, and server processes do not transfer to this machine through Git.
+
+## Historical Nix audit follow-up (2026-09-26)
 
 Tested implementation: `737f97069288c2c628333f42e57fbfbf8688f5b7`. `pnpm check` passed formatting,
 lint/policy, types, 64 deterministic tests, 28 Firefox tests with no skips, and

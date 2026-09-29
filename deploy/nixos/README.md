@@ -1,5 +1,10 @@
 # ratlas on NixOS (manual, unactivated example)
 
+Legacy NixOS-only example. The current platform is Guix; use the
+[Guix operations guide](../../docs/OPERATIONS.md). No Guix System or Shepherd
+service is supplied. The commands below apply only to an explicitly chosen
+NixOS deployment, not to development on the current machine.
+
 This checkout is the application. `ratlas.nix` is an example module and has not
 been imported into a host configuration or activated. The tested local route is
 the repository's locked `nix develop` shell; the module assumes an operator has

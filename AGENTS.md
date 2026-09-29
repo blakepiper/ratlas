@@ -3,8 +3,10 @@
 Read `RATLAS_IMPLEMENTATION_SPEC.md` and the current `docs/IMPLEMENTATION_STATUS.md`,
 `docs/CHECKPOINTS.md`, and `docs/DECISIONS.md` before resuming work.
 
-- Use `./ratlas-guix` on Guix or this repository's `nix develop` shell on NixOS
-  for development commands and Git after bootstrap. See `docs/GUIX_DEVELOPMENT.md`.
+- Use `./ratlas-guix` for development commands and Git after bootstrap.
+  See `docs/GUIX_DEVELOPMENT.md`. Use prebuilt toolchain packages; never start
+  a Node/compiler source build to enter the environment. Historical Nix records
+  and the legacy NixOS module do not define the current development workflow.
 - Follow the fixed stack and defaults in the specification. Do not substitute dependencies.
 - Firefox only for browser automation. Never install or launch Chromium/Chrome,
   browser installers, or tools that require them. Never access the user's Firefox profile.

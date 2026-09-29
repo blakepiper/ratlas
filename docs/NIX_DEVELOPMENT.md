@@ -1,4 +1,9 @@
-# ratlas development
+# Legacy Nix development
+
+The current development platform is Guix. Follow
+[Guix development](GUIX_DEVELOPMENT.md) and [operations](OPERATIONS.md).
+The instructions below apply only to the retained Nix files and historical
+NixOS checkouts; they are not prerequisites on the current machine.
 
 Run every development command from the repository's locked shell:
 

@@ -1,5 +1,11 @@
 # ratlas target-scale measurements
 
+Historical measurements from the previous NixOS machine. These numbers have
+not been remeasured on Guix. For a new CPU/API measurement, enter
+`./ratlas-guix`, run `pnpm data:target`, then `pnpm benchmark`.
+`pnpm benchmark:browser` currently exits 2 on Guix because the patched Firefox
+runtime is unavailable. See [current validation](VALIDATION.md).
+
 Measured 2026-09-26 on the final audit-follow-up implementation. Synthetic
 Mulberry32 seed `20260925`: 20,000 repositories, 2,000 node identities, 100,000
 relationships, four sources, 2,000 unresolved names. This is not a network

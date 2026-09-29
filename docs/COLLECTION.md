@@ -1,16 +1,23 @@
 # ratlas collection
 
-Run commands inside `nix develop`. The demo and deterministic checks remain offline.
+Run commands inside `./ratlas-guix`, or prefix one command with `./ratlas-guix`.
+The demo and deterministic checks remain offline.
 Configure an existing approved observer and/or unauthenticated HTTPS API in the
 ignored `config/ratlas.local.json`; the committed example enables neither.
 API base URLs include the upstream API prefix (normally `/api/v1/`).
 
-- `pnpm doctor --check-sources --config config/ratlas.local.json` checks configured CLI help/identity/routing and one HTTP node response per source, without persisting observations.
 - `pnpm collect:once --config config/ratlas.local.json` performs one bounded collection round and reports cached public counts and failed sources.
 - `pnpm collect --config config/ratlas.local.json` runs the explicit collector until SIGINT/SIGTERM.
 - `pnpm test:live --config config/ratlas.local.json` runs a bounded 60-second live check. This requires approved source configuration; absent sources return exit 2.
 - `pnpm start:collector --config config/ratlas.local.json` runs the built collector without requiring a development-shell marker.
 - `pnpm experiment --config config/ratlas.local.json --duration 24h` runs an operator-invoked, resumable 24-hour observation experiment. It was not run during implementation.
+
+`pnpm doctor --check-sources` is currently unavailable on Guix: its browser
+smoke test requires the missing patched Playwright Firefox package, so it exits 2
+before source checks. Inspect cached data with `pnpm data:review --config
+config/ratlas.local.json` and use the API health endpoints described in
+[operations](OPERATIONS.md). An explicit collection round is a live write to
+the application database, not a substitute for a read-only source doctor.
 
 The collector holds the application writer lease. It never starts a node or issues
 replication commands. It owns only its subscriber/snapshot children. Shutdown stops
@@ -39,7 +46,7 @@ A bounded live HTTP smoke test passed against the Radicle team's public seed
 on 2026-09-26; see [compatibility](RADICLE_COMPATIBILITY.md). The ignored local
 config is machine-specific and must be supplied explicitly for any later run.
 Other HTTP deployments and the local CLI adapter remain unverified live. See
-the [NixOS runbook](../deploy/nixos/README.md) for dedicated observer,
+the [Guix operations guide](OPERATIONS.md) for dedicated observer,
 permission, backup, restore, shutdown, and update procedures.
 
 Experiment reports use `.ratlas/reports/experiment/last-run.json` plus an

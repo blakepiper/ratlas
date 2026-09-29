@@ -1,23 +1,22 @@
 # ratlas
 ## Implementation specification and execution plan for Codex
 
-Revision 5 · 2026-09-25 UTC · Autonomous completion authorized; local incremental commits; no pushing
+Revision 6 · 2026-09-29 · Guix development; autonomous completion; local commits; no pushing
 
-2026-09-29 platform amendment: the user moved to Guix and requested a project
-manifest. On Guix, `./ratlas-guix` is the authorized development/Git entry point
-in place of `nix develop`; see `docs/GUIX_DEVELOPMENT.md`. Preserve the pinned
-application stack and historical Nix validation records. Following the user's
-prebuilt-package direction, Guix uses its available Node 24.18.0 binary alongside
-the existing Nix 24.21.0; shell entry must not compile the toolchain.
-Guix Firefox automation is an explicit missing prerequisite, not a passed check.
-Nix-specific setup and
-deployment instructions below continue to apply to NixOS.
+The user moved to Guix and requested Guix-specific documentation. This revision
+makes `./ratlas-guix` the current development and Git entry point, with prebuilt
+toolchain packages and the recorded Guix channel. It preserves the application
+architecture, approved dependency choices, and genuine historical approvals.
+The Guix runtime is Node 24.18.0; the retained legacy Nix files use Node 24.21.0.
+The matched patched Firefox runtime remains unavailable on Guix. Historical
+Nix browser tests are not Guix results. Sections 12–14 preserve the original
+milestone evidence and its source references.
 
-Project name: **ratlas**. Development platform: **NixOS, x86_64-linux**. Required environment: **the repository’s `nix develop` shell**. Frontend: **React**. Browser target: **Firefox**. Version control: **initialize or reuse a local Git repository and commit work incrementally; never push**. Execution: **six recorded progress milestones**.
+Project name: **ratlas**. Development platform: **Guix, x86_64-linux**. Required environment: **the repository’s `./ratlas-guix` shell**. Frontend: **React**. Browser target: **Firefox**. Version control: **initialize or reuse a local Git repository and commit work incrementally; never push**. Execution: **six recorded progress milestones**.
 
-This revision incorporates the user's 2026-09-25 instruction to continue autonomously until the work is complete. It preserves local Git setup, incremental commits, recorded R1–R6 progress, the Firefox-only rule, React stack, Nix development shell, and application architecture. R1–R5 approvals remain historical facts; R6 does not require a new check-in. No work may be pushed or published. The choices and safety boundaries below remain binding.
+This revision incorporates the user's 2026-09-25 instruction to continue autonomously until the work is complete. It preserves local Git setup, incremental commits, recorded R1–R6 progress, the Firefox-only rule, React stack, Guix development shell, and application architecture. R1–R5 approvals remain historical facts; R6 does not require a new check-in. No work may be pushed or published. The choices and safety boundaries below remain binding.
 
-**Firefox-only rule:** do not add, download, build, launch, or require a Chrome/Chromium browser, Chromium headless shell, or Chromium-based test tool for this project. This applies to development, tests, CI, screenshots, and debugging. Use the user’s ordinary Firefox for manual review and the isolated, Nix-supplied Playwright Firefox build for automation. Never access or modify the user’s Firefox profile, extensions, preferences, saved sessions, or default-browser setting. Browser trouble is a reported blocker, not permission to fall back to Chromium.
+**Firefox-only rule:** do not add, download, build, launch, or require a Chrome/Chromium browser, Chromium headless shell, or Chromium-based test tool for this project. This applies to development, tests, CI, screenshots, and debugging. Use the user’s ordinary Firefox for manual review and an isolated, version-matched patched Playwright Firefox build for automation when that prerequisite is available. The Guix manifest currently supplies no browser. Never access or modify the user’s Firefox profile, extensions, preferences, saved sessions, or default-browser setting. Browser trouble is a reported blocker, not permission to fall back to Chromium.
 
 This document combines the product specification, technical design, implementation sequence, and acceptance criteria. Build the application described here. Do not respond with another implementation plan instead of implementing it.
 
@@ -33,7 +32,7 @@ Incorporate new user feedback as it arrives, rerun affected checks, and continue
 
 ### 0.2 Persist review state across sessions
 
-Create or carefully extend `AGENTS.md` with the project name, Nix-shell requirement, Firefox-only rule, fixed-stack rule, required incremental local commits, no-push/no-remote-creation rule, and pointers to this document’s review and Git protocols. Do not replace unrelated repository instructions.
+Create or carefully extend `AGENTS.md` with the project name, Guix-shell and prebuilt-toolchain requirements, Firefox-only rule, fixed-stack rule, required incremental local commits, no-push/no-remote-creation rule, and pointers to this document’s review and Git protocols. Do not replace unrelated repository instructions.
 
 Maintain these files from the first stage:
 
@@ -50,7 +49,7 @@ At the start of every resumed session, read these files. Continue unfinished aut
 The final R6 handoff must state:
 
 1. The checkpoint ID and what now works, distinguishing synthetic, fixture-tested, and live-tested behavior.
-2. The exact `nix develop` startup command and local URL, or the terminal command for a data report.
+2. The exact `./ratlas-guix` startup command and local URL, or the terminal command for a data report.
 3. Three to five concrete things for the user to inspect, with actual screenshot/report paths where available.
 4. Checks run, failures or unverified prerequisites, and material deviations awaiting a decision.
 5. The tested implementation commit SHA, the checkpoint-documentation commit SHA, a short summary of commits made in this stage, and the final worktree status with any unrelated pre-existing changes distinguished. Confirm that no push was performed.
@@ -62,10 +61,10 @@ Stop live collector processes after a bounded smoke test. Provide restart comman
 
 ### 0.4 Boundaries
 
-- Work inside the target repository and explicitly configured application data directories. Do not modify the user’s NixOS configuration, Home Manager configuration, dotfiles, other flakes, SSH setup, or personal Radicle profile.
+- Work inside the target repository and explicitly configured application data directories. Do not modify the user’s Guix System or Guix Home configuration, channels, profiles, dotfiles, SSH setup, or personal Radicle profile.
 - Do not read, copy, print, transmit, or commit private keys or passphrases. Do not initialize or replace a Radicle identity.
 - Do not initialize, clone, seed, unseed, block, publish, or fetch Radicle repositories as part of collection. The application observes metadata; it does not manage replication.
-- Do not run privileged commands, install global packages, run `nixos-rebuild`, start a Radicle daemon, or enable services. Dependency installation inside the specified shell is authorized; operating-system changes are not.
+- Do not run privileged commands, install global packages, run `guix system reconfigure` or `guix home reconfigure`, start a Radicle daemon, or enable services. Dependency installation inside the specified shell is authorized; operating-system changes are not.
 - Initialize the project’s local Git repository when needed and commit this project’s work throughout the authorized stages, as required by section 0.6. Do not create or modify remotes, create remote repositories, push commits or tags, publish through Radicle, or deploy publicly. Do not change global Git configuration to make a commit possible.
 - Do not run a day-long experiment during implementation. The bounded live smoke test is at most five minutes. Build the longer experiment command for the user to invoke later.
 - Check the current Radicle security notice before live integration and enforce section 2’s public-only restrictions.
@@ -94,7 +93,7 @@ Apply these rules:
 - **Existing ratlas repository:** reuse its current attached branch, history, and configuration. Do not reinitialize, rename its branch, replace `.git`, or create a new history. Inspect and preserve any existing user changes.
 - **Folder inside a different repository, detached HEAD, unresolved merge/rebase, or ambiguous ownership:** stop and ask the user to identify the intended repository/branch before making Git mutations. Do not silently create a nested repository or commit to an unrelated parent.
 
-Use the existing Git executable only for initial inspection, initialization, and staging the new flake inputs needed to enter the development shell. After the shell is available, run Git inside it, using `nix develop --command git ...` or an active `nix develop` session. The flake already includes `pkgs.git`; no global installation is permitted. If Git is initially unavailable, first write the specified flake and use `nix develop "path:$PWD"` from the project folder to obtain its Git, then perform the same boundary inspection before initialization. The explicit path is a bootstrap-only flake entry point, not a second development environment. Do not assume a successful command in an enclosing repository proves that ratlas has its own repository.
+Use the existing Git executable only for initial repository inspection and bootstrap. After the environment is available, run Git with `./ratlas-guix git ...` or inside an active `./ratlas-guix` shell. The manifest includes Git; no global installation is permitted. If Git is initially unavailable, obtain its prebuilt Guix package with `guix shell --max-jobs=0 git -- git ...` for bootstrap inspection, then use the repository entry point. Never bypass the prebuilt-toolchain requirement or assume an enclosing repository establishes this project's boundary.
 
 Use the user’s configured Git author identity and signing policy. Check author/committer identity resolution without exposing credentials. If identity is missing or signing cannot work, ask the user to resolve it; do not invent an email, use an agent identity, disable signing, or edit global configuration. Repository-local identity settings may be written only with the user’s explicit supplied values and approval. Respect existing hooks; a failing hook is a blocker to investigate, not permission to use `--no-verify`.
 
@@ -135,11 +134,11 @@ config/*.local.json
 /result-*
 ```
 
-Keep `flake.nix`, `flake.lock`, exact package manifests, `pnpm-lock.yaml`, source code, migrations, tests, the implementation specification, sanitized examples, and review/status documentation tracked. Commit only deliberately reviewed, sanitized small fixtures. Do not stage Radicle/SSH keys, browser profiles, local source addresses in captures, live or demo databases, generated screenshots, dependency directories, build artifacts, or runtime logs. Reviewed Markdown reports may refer to ignored screenshot paths without adding the screenshots to history.
+Keep `manifest.scm`, `guix-channels.scm`, `ratlas-guix`, the retained legacy `flake.nix`/`flake.lock`, exact package manifests, `pnpm-lock.yaml`, source code, migrations, tests, the implementation specification, sanitized examples, and review/status documentation tracked. Commit only deliberately reviewed, sanitized small fixtures. Do not stage Radicle/SSH keys, browser profiles, local source addresses in captures, live or demo databases, generated screenshots, dependency directories, build artifacts, or runtime logs. Reviewed Markdown reports may refer to ignored screenshot paths without adding the screenshots to history.
 
 Check representative sensitive/generated paths with `git check-ignore` before the first commit and verify that required lockfiles and source files are not ignored. An ignore rule does not resolve an already tracked sensitive file: stop and notify the user if one is discovered; do not print its contents or rewrite history without authorization.
 
-Create the first local bootstrap commit before substantial feature implementation, once the basic shell, dependency bootstrap, ignore rules, specification, and checkpoint instructions are present and their applicable checks pass. Use the message `chore: bootstrap ratlas repository and development environment`. In an existing repository this is a normal additional commit containing only newly authorized ratlas changes, not a replacement root commit. Do not create an empty commit just to reproduce this message if an equivalent bootstrap already exists.
+Create the first local bootstrap commit before substantial feature implementation, once the basic Guix shell, dependency bootstrap, ignore rules, specification, and checkpoint instructions are present and their applicable checks pass. Use the message `chore: bootstrap ratlas repository and development environment`. In an existing repository this is a normal additional commit containing only newly authorized ratlas changes, not a replacement root commit. Do not create an empty commit just to reproduce this message if an equivalent bootstrap already exists.
 
 #### 0.6.3 Commit throughout each authorized stage
 
@@ -157,7 +156,7 @@ fix(explore): preserve filters when navigating back
 Before each commit:
 
 1. Inspect the worktree and index. Stage only explicit ratlas file paths or deliberately selected ratlas-only hunks. Do not use `git add .`, `git add -A`, or `git commit -a`.
-2. Run the checks applicable to that change inside `nix develop`; run the stage’s complete implemented check set before its review build. Record actual failures or external-prerequisite gaps rather than calling them passes. A documentation-only bootstrap commit does not need tests that have not been implemented yet.
+2. Run the checks applicable to that change inside `./ratlas-guix`; run the stage’s complete implemented check set before its review build. Record actual failures or external-prerequisite gaps rather than calling them passes. A documentation-only bootstrap commit does not need tests that have not been implemented yet.
 3. Inspect `git diff --cached --check`, the staged file list, and the staged diff for accidental unrelated content, generated files, or sensitive data. Include related tests and documentation with the change where practical.
 4. Create the local commit, verify success, and record its SHA for the stage handoff. Recheck `git status --short` afterward.
 
@@ -165,7 +164,7 @@ Preserve user-owned staged and unstaged changes exactly. Never include pre-exist
 
 Do not amend, squash, rebase, reset, delete branches, or otherwise rewrite history under this plan. Fix mistakes and review feedback with new forward commits. Do not create tags automatically. If a session ends unexpectedly, report any unfinished uncommitted work at resumption; do not claim an unmade commit exists.
 
-Git operations belong to the coding agent’s explicit workflow. Do not add commit/push side effects to the flake’s shell entry, package scripts, test runners, timers, or application processes. No helper may silently commit work or publish it while a user is reviewing a checkpoint.
+Git operations belong to the coding agent’s explicit workflow. Do not add commit/push side effects to the development-shell entry, package scripts, test runners, timers, or application processes. No helper may silently commit work or publish it while a user is reviewing a checkpoint.
 
 #### 0.6.4 Commit milestone builds and preserve their identities
 
@@ -278,11 +277,11 @@ Use this stack. Do not add an alternative application framework, persistence lay
 
 | Concern | Required implementation |
 |---|---|
-| Host and architecture | NixOS on `x86_64-linux`; no other platform is a v1 acceptance target. |
-| Development environment | A plain Nix flake with `devShells.x86_64-linux.default` using `pkgs.mkShell`. No devenv, flake-parts, Docker, or FHS environment. |
-| Nix input | `github:NixOS/nixpkgs/nixos-26.05`, resolved once into the committed `flake.lock`. No channel lookup or implicit global nixpkgs. |
-| Runtime | `pkgs.nodejs_24` from that lock. ESM application packages with `"type": "module"`. |
-| Package manager | `pkgs.pnpm_10` from the same lock; pnpm workspaces and committed `pnpm-lock.yaml`. Do not use Corepack to download a different pnpm. |
+| Host and architecture | Guix on `x86_64-linux`; historical NixOS results remain separately recorded. |
+| Development environment | Repository `manifest.scm`, `ratlas-guix`, and `scripts/guix-env.sh`; use prebuilt toolchain packages, with no Docker or FHS environment. |
+| Guix channel | `guix-channels.scm` records the evaluated channel commit. The normal entry point uses the installed channels; use the documented time-machine commands to reproduce the recorded revision. |
+| Runtime | Prebuilt Guix Node 24.18.0; the engine constraint also retains legacy Nix Node 24.21.0. ESM application packages with `"type": "module"`. |
+| Package manager | Hash-pinned pnpm 10.34.0 JavaScript archive in `manifest.scm`; pnpm workspaces and committed `pnpm-lock.yaml`. Do not use Corepack to download a different pnpm. |
 | Language | TypeScript 5.9 family, `strict`, `noUncheckedIndexedAccess`, and `exactOptionalPropertyTypes`. No application JavaScript except bootstrap/config scripts that must run before compilation. |
 | Frontend | React 19, React DOM 19, Vite 7 with `@vitejs/plugin-react` 5; a client-rendered SPA, not Next.js or SSR. |
 | Routing | React Router 7 in declarative browser-router mode. |
@@ -291,11 +290,11 @@ Use this stack. Do not add an alternative application framework, persistence lay
 | Graph | Sigma.js 3, Graphology 0.26, and `graphology-layout-forceatlas2` 0.10. Direct Sigma integration through a React hook; no React graph wrapper. |
 | Backend | Fastify 5; one API entry point and one collector entry point in `@ratlas/service`. |
 | HTTP client | Undici 7 in the collector, using a controlled dispatcher for SSRF-safe resolution. Browser requests use `fetch` through TanStack Query. |
-| Persistence | `better-sqlite3` 12; bundled SQLite; handwritten SQL migrations and prepared statements. No ORM, Postgres, graph database, Redis, or alternative SQLite binding. |
+| Persistence | `better-sqlite3` 13.0.3 (approved 2026-09-25); bundled SQLite; handwritten SQL migrations and prepared statements. No ORM, Postgres, graph database, Redis, or alternative SQLite binding. |
 | Search | Required SQLite FTS5 for name/description plus exact RID lookup. Fail the database capability check if FTS5 is absent; do not silently degrade to a different search implementation. |
 | Backend build | TypeScript project references and `tsc -b`; no backend bundle. Use `tsx` 4 for development entry points. |
-| Tests | Vitest 3, React Testing Library 16, Fastify `inject` integration tests, and Playwright Test with Firefox only, matched exactly to the Nix-supplied Playwright Firefox bundle. |
-| Formatting and linting | ESLint 9 flat config, typescript-eslint 8, Prettier 3, and `pkgs.nixfmt` for Nix files. |
+| Tests | Vitest 3, React Testing Library 16, Fastify `inject` integration tests, and Playwright Test with Firefox only, matched to patched Firefox. The Guix browser prerequisite is currently missing. |
+| Formatting and linting | ESLint 10 flat config (approved 2026-09-25), typescript-eslint 8, Prettier 3, and Guix-provided `nixfmt` for retained Nix files. |
 | Logging and CLI parsing | Fastify’s Pino logger, with the collector pinned to the same exact Pino version; `node:util.parseArgs` for repository CLI scripts. No Commander or separate CLI framework. |
 | Styling | Handwritten CSS Modules plus one global CSS-variable token file. No Tailwind, component suite, CSS-in-JS, remote fonts, or dashboard template. |
 | History chart | A small accessible React/SVG line chart over the three stored count series; no charting dependency. |
@@ -309,9 +308,9 @@ Resolve packages from the official npm registry, write exact numeric direct-depe
 
 For Pino, use the exact version resolved by the selected Fastify dependency tree, rather than introducing another logger major.
 
-The initial dependency resolution is a bootstrap step, not a recurring install action. It must be finished before R1. Thereafter use `pnpm install --frozen-lockfile`; no lockfile refreshes, major-family changes, or dependency auto-updaters during later stages without user approval. `flake.lock` and `pnpm-lock.yaml`, not invented hashes or unverified version strings in a planning document, are the exact resolved version record.
+The initial dependency resolution is a bootstrap step, not a recurring install action. It must be finished before R1. Thereafter use `pnpm install --frozen-lockfile`; no lockfile refreshes, major-family changes, or dependency auto-updaters during later stages without user approval. `manifest.scm`, `guix-channels.scm`, and `pnpm-lock.yaml` record the current toolchain/channel and application versions. Preserve the legacy `flake.lock` as well; never invent source hashes or channel commits.
 
-Playwright is the exception to registry-based selection: use the exact version exposed by the locked `pkgs.playwright-driver.version`, including for `@playwright/test`, `playwright`, and `playwright-core` in the resolved dependency tree. Section 9 fixes a Firefox-only Nix/browser integration. Do not include a default all-browser bundle or a Chromium test project. [S21, S22]
+Retain `@playwright/test`, `playwright`, and `playwright-core` at 1.59.1. This version was originally selected to match the historical Nix Firefox bundle. A future Guix automation package must provide the corresponding patched Firefox and runtime libraries; the current manifest does not. Do not add an all-browser bundle or another engine, and do not claim that browser-dependent checks pass while this prerequisite is missing. [S22]
 
 ### 3.2 Process model
 
@@ -342,7 +341,10 @@ Use short database transactions. Do not perform HTTP calls or wait for subproces
 
 ```text
 .gitignore
-flake.nix
+manifest.scm
+guix-channels.scm
+ratlas-guix
+flake.nix              # Retained legacy Nix environment
 flake.lock
 AGENTS.md
 RATLAS_IMPLEMENTATION_SPEC.md
@@ -383,7 +385,8 @@ docs/
   IMPLEMENTATION_STATUS.md
   VALIDATION.md
   TOOLCHAIN.md
-  NIX_DEVELOPMENT.md
+  GUIX_DEVELOPMENT.md
+  NIX_DEVELOPMENT.md    # Legacy platform instructions
   CHECKPOINTS.md
   DECISIONS.md
   reviews/
@@ -398,7 +401,7 @@ scripts/
   benchmark.ts
   experiment.ts
 deploy/
-  nixos/
+  nixos/               # Retained legacy example; not a Guix service
     README.md           # Manual production runbook
     ratlas.nix          # Unactivated example NixOS module
 ```
@@ -739,106 +742,48 @@ Demo mode has a persistent **Synthetic demo data** label. Never silently enter d
 
 Handle WebGL unavailable/context lost, reduced motion, keyboard navigation, accessible controls, and screen-reader-readable list/detail alternatives. Important actions must not require clicking a tiny canvas vertex.
 
-## 9. NixOS development environment, configuration, and commands
+## 9. Guix development environment, configuration, and commands
 
-### 9.1 Nix is the required entry point
+### 9.1 Required Guix entry point
 
-This application is being built on NixOS. Create `flake.nix` and `flake.lock` before installing application dependencies. Use a repository-local `pkgs.mkShell` as the default development environment. Nix supports both an interactive development shell and an explicit command inside that shell. [S19, S20]
+Use `./ratlas-guix` from the repository. It checks prebuilt toolchain availability with `guix build --max-jobs=0`, then enters `guix shell -m manifest.scm -- bash scripts/guix-env.sh`. Missing substitutes must fail clearly instead of starting a Node, compiler, or other toolchain source build. Only the small pnpm command wrapper and Guix profile are constructed locally.
 
-The normal workflow is:
+For a first install and the offline demo:
 
-```bash
-nix develop
+```sh
+./ratlas-guix
 pnpm install --frozen-lockfile
-pnpm doctor
 pnpm demo
 ```
 
-For Codex tool calls and fresh terminals, use the noninteractive form so a shell from an earlier command is never assumed to persist:
+For separate terminal/tool invocations:
 
-```bash
-nix develop --command pnpm typecheck
-nix develop --command pnpm test
-nix develop --command pnpm test:e2e
-nix develop --command pnpm build
+```sh
+./ratlas-guix pnpm format:check
+./ratlas-guix pnpm lint
+./ratlas-guix pnpm typecheck
+./ratlas-guix pnpm exec vitest run --minWorkers=1 --maxWorkers=2
+./ratlas-guix pnpm build
 ```
 
-Do not fall back to host Node, host pnpm, a downloaded Ubuntu binary, an FHS wrapper, `nix-ld`, Docker, or a global package installation. When a development dependency is missing, add it to this repository’s flake and re-enter the shell. Do not modify the machine’s system flake or install packages with `apt`, `dnf`, `pacman`, `nix-env`, or `nix profile install`.
+Do not assume a shell persists between tool calls. Do not install global packages, alter Guix System/Guix Home configuration, run a system reconfigure, or fall back to a host runtime. The prebuilt manifest is the toolchain source. `docs/GUIX_DEVELOPMENT.md` gives channel reproduction and garbage-collection-root commands. The normal helper uses installed channels; `guix time-machine -C guix-channels.scm` reproduces the recorded definitions. Keep source hashes and channel commits real and verified.
 
-Do not add direnv configuration in v1. `nix develop` is the single documented entry point. Do not require a NixOS rebuild. If `nix-command` or `flakes` is disabled, document a command-scoped `--extra-experimental-features 'nix-command flakes'` invocation; do not edit global Nix settings. If Nix itself is unavailable, report the platform prerequisite as blocked rather than building under another runtime and calling the Nix gate passed.
+### 9.2 Manifest and environment contract
 
-### 9.2 Required flake contract
+`manifest.scm` supplies prebuilt Node 24.18.0, pinned pnpm 10.34.0 JavaScript, Bash/coreutils, Git, curl, jq, Python, GCC 14, Make, pkg-config, SQLite, CA certificates, and nixfmt for the retained Nix files. `ratlas-prebuilt-packages` is checked with `--max-jobs=0` before entering the shell. `scripts/guix-env.sh` exports:
 
-Use this flake structure as the implementation contract. Phase 0 must actually evaluate it, create the real lockfile, and smoke-test the resulting environment. The checked nixpkgs packaging supports a Firefox-only Playwright browser bundle; select it explicitly rather than accepting the default browser set. [S21]
+- `RATLAS_DEV_SHELL=1`, `RATLAS_DEV_PLATFORM=guix`, `RATLAS_NODE_VERSION=24.18.0`, and `RATLAS_PNPM_VERSION=10.34.0`.
+- `RATLAS_PLAYWRIGHT_VERSION=1.59.1`, `RATLAS_TEST_BROWSER=firefox`, and `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`.
+- `PLAYWRIGHT_BROWSERS_PATH` pointing at the unavailable project-local Guix Firefox path, never the user's browser/cache.
+- `npm_config_build_from_source=true`, `npm_config_force_build=1`, `npm_config_jobs=2`, and explicit Guix Node-header and Python paths for the SQLite addon.
 
-```nix
-{
-  description = "ratlas development environment";
+Shell entry must not install workspace dependencies, initialize databases, contact live sources, or start processes. `pnpm doctor` maps to the project script through the pnpm wrapper. On Guix, doctor, E2E, browser benchmark, and combined check commands report the missing patched Firefox prerequisite with exit code 2. Static Firefox-only policy checks still run as part of lint.
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-
-  outputs = { nixpkgs, ... }:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-      node = pkgs.nodejs_24;
-      pnpm = pkgs.pnpm_10;
-      browsers = pkgs.playwright-driver.browsers.override {
-        withChromium = false;
-        withChromiumHeadlessShell = false;
-        withFfmpeg = false;
-        withFirefox = true;
-        withWebkit = false;
-      };
-    in {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = [
-          node
-          pnpm
-          pkgs.git
-          pkgs.curl
-          pkgs.jq
-          pkgs.python3
-          pkgs.gnumake
-          pkgs.pkg-config
-          pkgs.sqlite
-          pkgs.nixfmt
-        ];
-        nativeBuildInputs = [ pkgs.stdenv.cc ];
-
-        RATLAS_DEV_SHELL = "1";
-        RATLAS_NODE_VERSION = node.version;
-        RATLAS_PNPM_VERSION = pnpm.version;
-        RATLAS_PLAYWRIGHT_VERSION = pkgs.playwright-driver.version;
-        RATLAS_TEST_BROWSER = "firefox";
-        PLAYWRIGHT_BROWSERS_PATH = "${browsers}";
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
-        PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
-        npm_config_build_from_source = "true";
-        npm_config_nodedir = "${node}";
-        npm_config_python = "${pkgs.python3}/bin/python3";
-      };
-
-      formatter.${system} = pkgs.nixfmt;
-      packages.${system}.node-runtime = node;
-      packages.${system}.test-browsers = browsers;
-    };
-}
-```
-
-The host-validation override disables Playwright’s generic host-library scan, not the requirement to launch and test Firefox. Nix supplies the Firefox test runtime and its libraries. Do not put the unfiltered `pkgs.playwright-driver.browsers` or the default `pkgs.playwright-test` wrapper in the shell; invoke the version-matched workspace CLI with the explicit Firefox-only bundle. A successful dependency install is not proof that Firefox or WebGL works. [S21, S22]
-
-Before R1, inspect the selected browser bundle and its runtime closure with `nix path-info --recursive "$PLAYWRIGHT_BROWSERS_PATH"`. Record the result in `docs/TOOLCHAIN.md`. The bundle must contain only the selected Firefox browser entry, with no Chrome/Chromium browser executables or headless-shell packages in its runtime closure. If the locked upstream package unexpectedly introduces another browser, stop and report the dependency before building or installing it. This check inspects the project’s dependencies, not the user’s unrelated installed applications.
-
-Add a `checks.x86_64-linux.toolchain` derivation that checks the selected Node major and pnpm major without networking. `nix flake check` validates the flake/toolchain; it does not replace application tests. Shell entry must have no application side effects: no package installation, source probing, migrations, database initialization, collector startup, or background processes in `shellHook`.
-
-Generate `flake.lock` using Nix, never by writing guessed revision hashes. Commit the actual lockfile. In a Git-backed flake, ensure the new flake files are tracked before evaluating when necessary; stage only named project files, never run an indiscriminate `git add .`. Preserve the user’s pre-existing index changes. Freeze the lock at R1. Record the resolved revision and exact tool versions in `docs/TOOLCHAIN.md`. [S24]
-
-Do not put Radicle into the default shell. The live adapter uses an explicitly configured absolute path to the operator’s approved Radicle executable and records its version. This avoids silently introducing or upgrading a Radicle installation just by entering the shell. The synthetic demo and all deterministic tests must run without Radicle.
+Do not put Radicle in the manifest. The live adapter requires an explicitly configured absolute path to an operator-approved executable and dedicated public observer. The demo and deterministic tests require no Radicle process. The legacy flake and NixOS example remain tracked for historical reproducibility; they are not the current setup contract.
 
 ### 9.3 Dependency bootstrap, native SQLite, and build permissions
 
-Provide `scripts/bootstrap.mjs`, executable with Nix-provided Node before dependencies exist. It implements section 3.1’s one-time exact-version resolution, writes exact manifest versions, sets `packageManager` to the actual Nix-provided pnpm version, and generates `pnpm-lock.yaml`. It refuses to alter an existing completed bootstrap unless the user has explicitly approved a dependency update. It does not edit the Nix input or choose a different stack to resolve a conflict.
+Dependency bootstrap was completed before the original R1. A new Guix checkout uses `pnpm install --frozen-lockfile`; do not rerun `scripts/bootstrap.mjs` or refresh dependency versions during platform setup. The initial resolver remains a historical bootstrap tool, not a substitute for the committed manifest and lock. Explicitly approved future dependency updates must record their versions and checks.
 
 Use `pnpm-workspace.yaml` for workspace and build policy. Set these values:
 
@@ -861,21 +806,21 @@ allowBuilds:
   esbuild: true
 ```
 
-`allowBuilds` and strict dependency-build checking are supported by the chosen pnpm 10 family; require pnpm at least 10.26 and fail bootstrap if the locked package does not meet that requirement. Keep the Nix-provided version authoritative. Do not run `corepack enable`, `pnpm setup`, or global `pnpm config` writes. Unexpected lifecycle scripts fail review rather than silently gaining permission. [S23]
+`allowBuilds` and strict dependency-build checking are supported by the chosen pnpm 10 family; require pnpm at least 10.26 and fail bootstrap if the locked package does not meet that requirement. Keep the manifest-provided pnpm version authoritative. Do not run `corepack enable`, `pnpm setup`, or global `pnpm config` writes. Unexpected lifecycle scripts fail review rather than silently gaining permission. [S23]
 
-Compile `better-sqlite3` inside the shell with its bundled SQLite. Use the Nix compiler, Make, Python, and Node headers; `node-gyp` 11 is a pinned development dependency. Do not rely on a prebuilt binary that happens to work on another distribution. The native build tools come from Nix, not the operating-system package manager. [S25]
+Compile `better-sqlite3` inside the shell with its bundled SQLite. Use the Guix-provided compiler, Make, Python, and Node headers with at most two build jobs; `node-gyp` 11 is a pinned development dependency. Do not rely on a prebuilt binary that happens to work on another distribution. Obtain the native build tools as prebuilt packages from the manifest; never compile the toolchain to build this addon. [S25]
 
 Before R1, open a database through the actual `better-sqlite3` binding, create and query an FTS5 table, test WAL with a writer plus read-only reader, close both, and reopen the database. Record the SQLite runtime version from the binding, not only the separate `sqlite3` CLI version. A native-addon or FTS failure is a blocking setup failure, not permission to switch database drivers.
 
-### 9.4 Firefox-only browser integration on NixOS
+### 9.4 Firefox-only browser integration and the Guix prerequisite
 
 #### 9.4.1 Manual use and isolated automation
 
 **Manual use:** the user opens the local ratlas URL in their normal Firefox. Do not install a replacement system browser, change the default browser, attach automation to an existing browsing session, or read the user’s profile. The API and built application have no browser-binary runtime dependency.
 
-**Automation:** retain Playwright Test and use only its Nix-supplied Firefox build selected in section 9.2. Playwright’s automation requires its patched Firefox rather than the ordinary branded Firefox executable. This is a separate testing binary, not a replacement for the user’s browser. Use fresh temporary contexts/profiles owned by the test process. Do not point `executablePath` or a persistent profile at the user’s Firefox installation. [S22]
+**Automation:** retain Playwright Test 1.59.1 and require its version-matched patched Firefox. Guix currently provides no such package in this manifest. `pnpm doctor`, `pnpm test:e2e`, `pnpm benchmark:browser`, and `pnpm check` report incomplete with exit code 2. Do not run a generic browser installer, use ordinary Firefox as an automation substitute, or point any test at a personal profile. [S22]
 
-Obtain the expected Playwright version from `RATLAS_PLAYWRIGHT_VERSION`; pin `@playwright/test` and its resolved Playwright/core dependencies exactly as specified in section 3.1. Nix supplies browser binaries and libraries. Do not run `playwright install`, `playwright install-deps`, an all-browser setup wizard, or a fallback browser installer. Do not add Puppeteer, Cypress, Electron, Chrome DevTools/CDP tooling, or another automation stack.
+The requirements below describe the retained browser tests and the contract for a future available runtime. They are not a claim of Guix browser support. Once supplied, it must use isolated temporary profiles and a Firefox-only closure, preserve the pinned Playwright/core versions, and pass actual launch/WebGL checks before those results can be reported. Do not add Puppeteer, Cypress, Electron, CDP tooling, or another automation stack.
 
 #### 9.4.2 Required test configuration
 
@@ -933,7 +878,7 @@ The runner owns an isolated synthetic test database and test servers; it must no
 
 #### 9.4.3 Required Firefox smoke test and reports
 
-`pnpm doctor` must compare installed Playwright versions with the Nix exports, verify `RATLAS_TEST_BROWSER=firefox`, validate the selected browser-bundle contents, resolve `firefox.executablePath()` into that bundle, and perform an actual headless Firefox page-render smoke test against a locally generated page. Capture a PNG, verify expected page content, and close the context/browser in `finally`. Record the actual Firefox version and executable path in the local toolchain report. A missing executable or launch error is a failed prerequisite, not evidence that Firefox is unsupported generally.
+When the Guix browser prerequisite is supplied, the doctor integration must compare installed Playwright versions with the pinned environment version, verify `RATLAS_TEST_BROWSER=firefox`, validate the selected browser-bundle contents, resolve `firefox.executablePath()` into that bundle, and perform an actual headless Firefox page-render smoke test against a locally generated page. Capture a PNG, verify expected page content, and close the context/browser in `finally`. Record the actual Firefox version and executable path in the local toolchain report. A missing executable or launch error is a failed prerequisite, not evidence that Firefox is unsupported generally.
 
 Run the initial smoke test before R1. At every visual checkpoint, supply desktop and narrow Firefox screenshots and the URL for the user to open in their own Firefox. User review is distinct from an automated test result; never mark it complete on the user’s behalf.
 
@@ -943,11 +888,7 @@ Test reduced motion through Playwright’s Firefox-supported media emulation and
 
 At R4 and R6, exercise the real Sigma canvas in Firefox. Default automation is headless. If the headless Firefox environment cannot create a WebGL context, rerun the affected existing Firefox project with `--headed` in the machine’s existing graphical session. Do not install another browser, create a new desktop session, disable the browser sandbox, or add Chrome/ANGLE/SwiftShader launch flags. Do not add an untested software-rendering project merely to change a blocked result into a pass.
 
-Provide this explicit headed command after graph implementation:
-
-```bash
-nix develop --command pnpm exec playwright test --project=firefox-desktop --headed
-```
+Headed reruns are conditional on a working, matched Firefox automation runtime. On the current Guix setup that prerequisite is missing; do not bypass the command guard with a direct Playwright invocation or describe a manual Firefox session as an automated pass.
 
 Record whether each run was headless or headed and the renderer information actually available. Firefox may use hardware or software rendering; classify the result only when the evidence supports that classification, otherwise record the renderer as unknown. Do not mix software and hardware timing samples or present headless automation timing as the user’s normal Firefox performance.
 
@@ -955,7 +896,7 @@ If neither the available headless nor headed Firefox session renders the real gr
 
 ### 9.5 Runtime configuration and paths
 
-Use Zod to validate the entire config and reject unknown keys. Resolve relative paths against the repository root determined by the application, not the caller’s arbitrary working directory. Keep writable application data out of `/nix/store`.
+Use Zod to validate the entire config and reject unknown keys. Resolve relative paths against the repository root determined by the application, not the caller’s arbitrary working directory. Keep writable application data out of `/gnu/store` and the retained legacy `/nix/store`.
 
 Use these paths:
 
@@ -973,7 +914,7 @@ Use these paths:
 | Local reports and reviews | `.ratlas/reports/` and `.ratlas/reviews/` |
 | pnpm store | `.cache/pnpm/` |
 
-Create `.gitignore` during the initial Git setup, before installing dependencies or generating runtime data, using section 0.6.2’s required rules. Keep `.ratlas/`, `.cache/`, local configurations, databases/WAL files, Firefox test profiles, screenshots, build/coverage outputs, secrets, and package-install directories out of Git. Commit the specification, both real lockfiles, source/tests, safe example configurations, and deliberately sanitized documentation and small fixtures. Runtime directories are mode `0700`; database and log files are `0600` for local development.
+Create `.gitignore` during the initial Git setup, before installing dependencies or generating runtime data, using section 0.6.2’s required rules. Keep `.ratlas/`, `.cache/`, local configurations, databases/WAL files, Firefox test profiles, screenshots, build/coverage outputs, secrets, and package-install directories out of Git. Commit the specification, manifest, recorded channel, application lock and legacy flake lock, source/tests, safe example configurations, and deliberately sanitized documentation and small fixtures. Runtime directories are mode `0700`; database and log files are `0600` for local development.
 
 Config precedence is: explicit `--config` argument, then `RATLAS_CONFIG`, then `config/ratlas.local.json`. `pnpm demo` always uses the demo config and rejects attempts to override it with a live config. There are no per-setting environment overrides in v1. The development-shell/toolchain environment variables are not runtime config overrides.
 
@@ -999,12 +940,12 @@ Do not make a personal profile publishable because the server binds to localhost
 
 ### 9.6 Required command contract
 
-Implement these package scripts. Arguments following the script name go directly to that script; do not require a second `--` separator. All commands below run inside `nix develop`, or with `nix develop --command` prefixed.
+Implement these package scripts. Arguments following the script name go directly to that script; do not require a second `--` separator. All commands below run inside `./ratlas-guix`, or with `./ratlas-guix` prefixed. Browser-dependent commands have the explicit Guix prerequisite behavior shown below.
 
 | Command | Behavior |
 |---|---|
-| `pnpm doctor` | Check toolchain, native SQLite/FTS, browser, and local config validity without contacting sources. Missing implicit live config is reported as unconfigured, not as a failed offline check. |
-| `pnpm doctor --check-sources --config config/ratlas.local.json` | Additionally probe enabled, explicitly approved sources with fixed request limits. |
+| `pnpm doctor` | Currently exits 2 on Guix for missing patched Firefox. Once supported, check toolchain, native SQLite/FTS, browser, and local config without contacting sources. |
+| `pnpm doctor --check-sources --config config/ratlas.local.json` | Currently exits 2 on Guix before any source checks; the retained implementation probes enabled approved sources only after its full toolchain smoke passes. |
 | `pnpm dev --config config/ratlas.local.json` | Verify/migrate the local application DB in a short-lived preparation process, then start API on 3000 and Vite on 5173; no collector. |
 | `pnpm demo` | Prepare the deterministic small demo DB, then launch the same API/frontend with the synthetic-data banner. |
 | `pnpm demo --dataset target` | Launch the target-scale synthetic dataset from `.ratlas/demo/target.sqlite`, using the same UI and demo safety checks. |
@@ -1016,18 +957,18 @@ Implement these package scripts. Arguments following the script name go directly
 | `pnpm collect:once --config config/ratlas.local.json` | One bounded snapshot/source round, report counts and partial failures, then exit. |
 | `pnpm experiment --config config/ratlas.local.json --duration 24h` | Operator-invoked observation run with resumable state and reports. |
 | `pnpm data:review --config config/ratlas.demo.json` | Print the fixture/live distinction, counts, provenance sample, deduplication result, and source health for R2 review. |
-| `pnpm format:check` | Check Prettier and Nix formatting without edits. |
+| `pnpm format:check` | Check Prettier and retained Nix-file formatting using Guix-provided nixfmt, without edits. |
 | `pnpm lint` | Run ESLint. |
 | `pnpm typecheck` | Type-check every workspace package and tool. |
 | `pnpm test` | Unit, scenario, native database, and API integration tests without external Radicle sources. |
-| `pnpm test:e2e` | Run `firefox-desktop` and `firefox-narrow` deterministic tests with the Nix Firefox-only bundle; no browser downloads or alternate engine. |
+| `pnpm test:e2e` | Currently exits 2 on Guix. With a matched Firefox runtime, run `firefox-desktop` and `firefox-narrow`; no browser downloads or alternate engine. |
 | `pnpm test:live --config config/ratlas.local.json` | Explicit, at-most-five-minute integration smoke test against approved enabled sources. |
 | `pnpm benchmark` | Generate the specified target-scale DB, measure it, and write reports without touching the live DB. |
 | `pnpm build` | Build shared packages/backend with `tsc -b`, then the frontend with Vite; no dependency install or network crawl. |
 | `pnpm start:api --config config/ratlas.local.json` | Run built API plus built SPA on port 3000; never migrate or collect. |
 | `pnpm start:collector --config config/ratlas.local.json` | Run the built collector with the same explicit live permissions. |
 | `pnpm db:backup --config config/ratlas.local.json --output .ratlas/backups/ratlas.sqlite` | Use `better-sqlite3`’s online backup method and verify the resulting database. |
-| `pnpm check` | Run format check, lint, typecheck, deterministic tests, E2E tests, and production build in that order; stop on failure. |
+| `pnpm check` | Currently exits 2 on Guix because it includes browser tests. Run format, lint, typecheck, deterministic tests, and build separately; do not count them as browser coverage. |
 
 The Vite server binds to `127.0.0.1:5173`, uses strict port selection, and proxies `/api`, `/healthz`, and `/readyz` to `127.0.0.1:3000`. Do not silently use another port if either is occupied. Do not kill unrelated processes to free a port; report the conflict. Production uses only port 3000.
 
@@ -1037,7 +978,7 @@ The API always opens its database read-only. When the schema is already current,
 
 Keep two clocks in demo/testing: deterministic scenario event times and an injectable reference clock. Use one fixed reference instant per generated dataset so the 24-hour observation window still contains the intended demo records. Never change production time handling to keep fixtures visible.
 
-The development supervisor handles SIGINT/SIGTERM, terminates only its own children, and does not create orphan watchers on restart. An unchanged `nix develop` entry never starts this supervisor.
+The development supervisor handles SIGINT/SIGTERM, terminates only its own children, and does not create orphan watchers on restart. An unchanged `./ratlas-guix` entry never starts this supervisor.
 
 ## 10. Security, privacy, and operations
 
@@ -1065,19 +1006,15 @@ Provide a SQLite online-backup command and restore instructions. Do not recommen
 
 Record database size, source failures, queue growth, event backlog, last reconciliation, and collector heartbeat. Disk-full and database-busy failures must stop unsafe writes, surface an error, and preserve previously committed state.
 
-### 10.3 NixOS deployment deliverables
+### 10.3 Guix operations documentation
 
-Local development is the primary target. Supply `deploy/nixos/README.md` with a tested manual production-mode procedure: enter the locked shell, install with the frozen lock, build, run migrations as a separate command, and start the built API and collector in separate processes. Keep the listener on loopback. A public proxy, domain, and TLS activation require separate operator action.
+Local development and manual production startup are the current targets. `docs/OPERATIONS.md` documents entering `./ratlas-guix`, frozen installation, building, explicit migrations, and separate built API/collector processes. Keep the listener on loopback. Public proxy/TLS, service activation, and system changes remain separate operator actions.
 
-Also supply `deploy/nixos/ratlas.nix` as an **unactivated example NixOS module** defining `ratlas-api` and `ratlas-collector` systemd services. It must require explicit checkout, config, data, observer/socket, and Node-runtime package paths; the Node package is the application flake’s exported `packages.x86_64-linux.node-runtime`. Run the already built `main-api.js` and `main-collector.js` with that Node executable. Do not run `nix develop`, install dependencies, rebuild the application, migrate automatically, or contact package registries at service startup.
+Document the prebuilt-toolchain requirement and a persistent project-local Guix profile root using `guix shell -m manifest.scm --root=.ratlas/guix-dev-profile -- bash scripts/guix-env.sh`, after the entry point's binary-substitute check has succeeded. Keep that root while using the checkout-built native addon. This is a checkout-built application, not a fully packaged Guix application or service.
 
-The example uses one dedicated `ratlas` Unix account; the API service’s filesystem sandbox makes the database read-only and denies the configured observer home and control-socket paths. The collector service receives only the explicit observer access it needs. Document how WAL/SHM files become readable before the API starts. Do not claim process isolation has been validated merely because the module evaluates. An operator must supply permissions appropriate to the already existing observer.
+The runbook covers a dedicated public-only observer, database/WAL/SHM permissions, shutdown, restart, logs, source disablement, verified online backup, restore to a new path, migration rollback from a backup, and updates preserving the manifest, recorded channel, and frozen application lock. It must not prescribe `pnpm doctor` as an available Guix check while the browser prerequisite remains missing.
 
-Document a persistent development-profile GC root using `nix develop --profile .ratlas/dev-profile` when running a checkout-built native addon outside an active interactive shell. Explain that this preserves the locked native toolchain/runtime dependencies; this v1 deliverable is not a fully packaged, sandbox-built Nix application derivation. A full distributable `packages.default` is out of scope; the Node runtime export is not the application package.
-
-Do not import this module into the user’s system configuration, create users, activate services, open firewall ports, or run `nixos-rebuild`. Service evaluation and manual application startup can be reported separately; activation remains untested unless explicitly authorized and performed.
-
-The runbook must cover dedicated public-only observer setup, permissions, shutdown, restart, logs, source disablement, backup, restore, migration rollback by restoring a backup, and application updates with both lockfiles preserved. No Docker files, alternative deployment stack, or package-manager-specific non-NixOS instructions in v1.
+No Guix System or Shepherd service implementation is supplied or activated. The existing `deploy/nixos/ratlas.nix` and its README are a legacy NixOS-only example; preserve them as such. Do not relabel that module as a Guix service or transfer its evaluated filesystem isolation claims to manual Guix processes. Do not change system configuration, create service accounts, enable services, or open firewall ports under this documentation work.
 
 ## 11. Test plan and performance targets
 
@@ -1112,9 +1049,9 @@ Build small scenario fixtures before a large visual demo. Cover at least these c
 
 Also test SQL/FTS input, cross-origin redirects, internal-network fetch denial, HTML/script-like metadata, path traversal attempts, missing files, expired job leases, and cleanup of child processes/workers.
 
-#### 11.1.1 NixOS and checkpoint regression tests
+#### 11.1.1 Guix and checkpoint regression checks
 
-Add tests/checks for exact pnpm and Playwright/Nix version agreement, native SQLite/FTS functionality, writable paths outside `/nix/store`, missing shell variables, a frozen-lock install, and a Firefox launch from the Nix bundle. Assert that browser selection is explicitly Firefox, the selected bundle excludes other browser engines, and no script invokes a browser installer or non-Firefox browser helper. The application’s developer commands must fail with a useful `nix develop` instruction when the required shell is absent; the built production entry points use their explicit runtime and must not require an interactive-shell marker.
+Check the prebuilt Guix Node/pnpm versions, Node headers, native SQLite/FTS/WAL behavior, writable paths outside `/gnu/store`, missing shell variables, and frozen-lock installation. Browser policy stays Firefox-only. Record the current missing patched Firefox prerequisite with exit code 2, and keep historical browser launches separate from Guix checks. Once a matched runtime is available, validate its browser-only closure and actual launch before claiming support. Development commands must direct users to `./ratlas-guix` when the environment is absent; built production entry points do not require an interactive-shell marker.
 
 Test that shell entry has no migrations or network collection side effects; `pnpm dev` never starts a collector; a second collector refuses an active database lease; and a demo command rejects a live database. A process-ownership lease uses an atomic directory lock adjacent to the database, containing PID, process-start identity, and nonce, refreshed every ten seconds. Remove it automatically only when the recorded process is conclusively dead on this host. If ownership cannot be established, refuse and request operator action; do not delete a lock based only on age. Test crash recovery and PID reuse.
 
@@ -1153,6 +1090,8 @@ Engineering targets on the measured local reference machine:
 Treat these as targets to test and optimize, not results to assert. Do not create brittle CI failures around heterogeneous GPU timing. Use deterministic correctness/size limits in ordinary CI and record performance regressions separately. The larger view must remain cancellable and must never lock the application behind an endless layout.
 
 ## 12. Implementation stages and recorded milestones
+
+Historical implementation record: the checked items below were executed on NixOS before the Guix migration. Keep their platforms, commands, revisions, and approval records intact. Current development follows sections 0–11; current Guix results and missing browser prerequisites are in `docs/VALIDATION.md`.
 
 Implement the phases in order. R1–R5 were completed under earlier user-approved review gates. The user's 2026-09-25 autonomous-completion instruction authorizes continuing Stage F through R6 without another check-in. Keep small local commits under section 0.6 and record a tested implementation commit and separate final documentation commit. Automated acceptance, local commits, and historical human approvals remain distinct; none authorizes a push.
 
@@ -1297,7 +1236,9 @@ The R1–R5 stop wording below records the stages as they were originally execut
 
 R1–R5 approval records remain historical. R6 completion is an internal progress record and does not require or imply user approval.
 
-## 13. Release checklist and final handoff
+## 13. Historical release checklist and final handoff
+
+The checked results below describe the original NixOS release candidate. They do not certify the new Guix machine. For a current handoff, report Guix checks actually run, the missing Firefox runtime, and the documented Guix startup commands; preserve this earlier evidence.
 
 Present the first release candidate at R6 only when the following are satisfied or a specific external-prerequisite gap has been explicitly accepted by the user:
 
@@ -1324,7 +1265,7 @@ The user should be able to run the demo immediately from the documented shell, t
 
 ## 14. Primary references
 
-References were checked during preparation. `master` links are intentionally identified as moving targets; pin the actual commit and deployed schema used during implementation. URLs are provided for direct use by the coding agent.
+These references were checked during the original NixOS preparation; S19–S21 and S24 describe the retained legacy setup. Current Guix commands are documented in `docs/GUIX_DEVELOPMENT.md` and `docs/OPERATIONS.md`. `master` links are intentionally identified as moving targets; pin the actual commit and deployed schema used during implementation. URLs are provided for direct use by the coding agent.
 
 **S1. Radicle protocol guide**. Discovery, replication, IDs, delegates, and repository identity. Its general transport-security description must be read alongside the later disclosure in S10.
 `https://radicle.dev/guides/protocol`
