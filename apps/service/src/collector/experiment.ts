@@ -1,3 +1,4 @@
+import { backupBeforeMigration } from '../commands/migration-backup.js';
 import { createHash, randomUUID } from 'node:crypto';
 import {
   appendFileSync,
@@ -169,6 +170,7 @@ export async function runExperiment(
   if (!Number.isSafeInteger(interval) || interval <= 0) throw new Error('Invalid sample interval');
   const directory = resolve(options.directory);
   mkdirSync(directory, { recursive: true, mode: 0o700 });
+  await backupBeforeMigration(config);
   const releaseReport = acquireLease(join(directory, 'experiment'));
   let writer: ReturnType<typeof openWriter>;
   try {

@@ -17,3 +17,5 @@ export * from './maintenance.js';
 export * from './errors.js';
 export * from './demo-reset.js';
 export * from './backup.js';
+export * from './candidates.js';
+export * from './coverage-report.js';

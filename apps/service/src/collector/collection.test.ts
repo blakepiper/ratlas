@@ -17,6 +17,8 @@ import {
   enqueueEvent,
   sourceFailure,
   health,
+  admitCandidate,
+  publicCandidate,
 } from '@ratlas/db';
 import { AdapterError } from '@ratlas/radicle';
 import { Collector } from './runtime.js';
@@ -268,4 +270,110 @@ it('releases an aborted HTTP job for immediate restart without negative caching 
   expect(writer.db.prepare('SELECT last_error FROM metadata_jobs').get()).toEqual({
     last_error: 'collector-stopped',
   });
+});
+
+it('discovers a configured public subject without any existing hosting edge', async () => {
+  const other = syntheticNid(new Uint8Array(32).fill(31));
+  registerSource(
+    writer.db,
+    sourceSchema.parse({
+      id: 'public-candidate',
+      label: 'candidate',
+      adapter: 'http',
+      policy: 'public-http',
+    }),
+  );
+  expect(admitCandidate(writer.db, other, 'public-candidate', 'configured-observer', at)).toBe(
+    true,
+  );
+  expect(summary(writer.db, 'all', at).nodeIdentities).toBe(0);
+  registerSource(
+    writer.db,
+    sourceSchema.parse({
+      id: 'private-candidate',
+      label: 'hidden',
+      adapter: 'cli',
+      policy: 'quarantine',
+    }),
+  );
+  const hidden = syntheticNid(new Uint8Array(32).fill(32));
+  expect(admitCandidate(writer.db, hidden, 'private-candidate', 'public-announcement', at)).toBe(
+    false,
+  );
+  expect(publicCandidate(writer.db, hidden)).toBe(false);
+  let now = at;
+  const paths: string[] = [];
+  const controller = new AbortController();
+  const collector = new Collector(writer.db, config, controller.signal, {
+    now: () => (now += 1001),
+    transport: () => ({
+      get: async (path) => {
+        paths.push(path);
+        if (path === 'node') return { id: nid, state: 'running' };
+        if (path.includes(other)) return [rid];
+        return [];
+      },
+    }),
+  });
+  try {
+    await collector.run(true);
+    expect(paths.some((p) => p.includes(other + '/inventory'))).toBe(true);
+    expect(paths.join(' ')).not.toContain(hidden);
+    expect(summary(writer.db, 'all', now)).toMatchObject({
+      nodeIdentities: 1,
+      hostingRelationships: 1,
+    });
+    expect(writer.db.prepare('SELECT nid FROM eligible_routes').get()).toEqual({ nid: other });
+  } finally {
+    controller.abort();
+    await collector.close();
+  }
+});
+
+it('resumes catalog pages across a source budget and collector restart without losing the tail', async () => {
+  let now = at;
+  const limited = { ...config, collection: { ...config.collection, requestsPerSourcePerHour: 4 } };
+  const pages: number[] = [];
+  const controller = new AbortController();
+  const dependencies = {
+    now: () => (now += 1001),
+    transport: () => ({
+      get: async (path: string) => {
+        if (path === 'node') return { id: nid, state: 'running' };
+        if (!path.startsWith('repos?')) return [];
+        const page = Number(new URL('https://fixture.invalid/' + path).searchParams.get('page'));
+        pages.push(page);
+        if (page === 4) return [];
+        return [
+          {
+            rid: syntheticRid(new Uint8Array(20).fill(page + 20)),
+            payloads: {},
+            delegates: [],
+            visibility: { type: 'public' },
+          },
+        ];
+      },
+    }),
+  };
+  const first = new Collector(writer.db, limited, controller.signal, dependencies);
+  await first.run(true);
+  await first.close();
+  expect(pages).toEqual([0, 1]);
+  now += 3600001;
+  const restarted = new Collector(writer.db, limited, controller.signal, dependencies);
+  try {
+    await restarted.run(true);
+    expect(pages).toEqual([0, 1, 2, 3]);
+    now += 3600001;
+    await restarted.run(true);
+    expect(pages).toEqual([0, 1, 2, 3, 4]);
+    expect(
+      writer.db.prepare('SELECT records,completed_at FROM catalog_progress').get(),
+    ).toMatchObject({ records: 4, completed_at: expect.any(Number) });
+    expect(summary(writer.db, 'all', now).repositories).toBe(4);
+    expect(summary(writer.db, 'all', now).hostingRelationships).toBe(0);
+  } finally {
+    controller.abort();
+    await restarted.close();
+  }
 });

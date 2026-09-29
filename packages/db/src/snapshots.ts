@@ -62,12 +62,11 @@ export function finishSnapshot(
       .prepare('SELECT rid,nid FROM snapshot_routes WHERE run_id=? ORDER BY rid,nid')
       .all(id) as { rid: string; nid: string }[];
     if (outcome === 'success') {
+      const raceCheck = db.prepare(
+        'SELECT 1 FROM observations WHERE source_id=? AND rid=? AND nid=? AND sequence>? AND run_id IS NULL',
+      );
       const touched = (rid: string, nid: string) =>
-        !!db
-          .prepare(
-            'SELECT 1 FROM observations WHERE source_id=? AND rid=? AND nid=? AND sequence>? AND run_id IS NULL',
-          )
-          .get(run.source_id, rid, nid, run.start_sequence);
+        !!raceCheck.get(run.source_id, rid, nid, run.start_sequence);
       for (const row of rows) {
         if (touched(row.rid, row.nid)) continue;
         observe(

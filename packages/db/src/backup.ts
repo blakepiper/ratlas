@@ -24,16 +24,26 @@ export async function backupDatabase(source: string, output: string) {
   if (realpathSync(directory).startsWith('/nix/store/'))
     throw new Error('Backup directory resolves into /nix/store');
   const temporary = resolve(directory, `.backup-${randomUUID()}.sqlite`);
-  const reader = openReader(sourcePath);
+  const reader = openReader(sourcePath, { allowMigration: true });
   try {
     await reader.backup(temporary);
     chmodSync(temporary, 0o600);
-    const restored = openReader(temporary);
+    const restored = openReader(temporary, { allowMigration: true });
     try {
       const checks = restored.pragma('quick_check') as { quick_check: string }[];
       if (checks.length !== 1 || checks[0]?.quick_check !== 'ok')
         throw new Error('Backup failed SQLite quick_check');
-      if (!schemaCurrent(restored)) throw new Error('Backup schema is not current');
+      if (schemaCurrent(restored) !== schemaCurrent(reader))
+        throw new Error('Backup schema changed');
+      if (
+        JSON.stringify(
+          restored.prepare('SELECT number,checksum FROM schema_migrations ORDER BY number').all(),
+        ) !==
+        JSON.stringify(
+          reader.prepare('SELECT number,checksum FROM schema_migrations ORDER BY number').all(),
+        )
+      )
+        throw new Error('Backup migrations changed');
       const counts = summary(restored, 'all');
       const sourceCounts = {
         sources: (

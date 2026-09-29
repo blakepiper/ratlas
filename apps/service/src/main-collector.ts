@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import pino from 'pino';
+import { backupBeforeMigration } from './commands/migration-backup.js';
 import { loadConfig } from './commands/config.js';
 import { migrate, openWriter, summary } from '@ratlas/db';
 import { Collector } from './collector/runtime.js';
@@ -35,6 +36,7 @@ if (!config.radicle.enabled && !config.httpSources.some((s) => s.enabled)) {
     sync: true,
   });
   const logger = pino({ name: 'ratlas', level: config.logging.level }, destination);
+  await backupBeforeMigration(config);
   const writer = openWriter(config.storage.databasePath);
   const controller = new AbortController();
   const stop = () => controller.abort();

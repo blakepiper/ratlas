@@ -50,6 +50,10 @@ const commands = {
     buildBackend();
     buildWeb();
   },
+  'coverage:report': () => {
+    buildBackend();
+    tsx('scripts/coverage-report.ts', ...args);
+  },
   'config:init': () => {
     buildBackend();
     tsx('scripts/config-init.ts', ...args);
@@ -124,6 +128,7 @@ if (
     'doctor',
     'source:probe',
     'config:init',
+    'coverage:report',
     'db:migrate',
     'db:backup',
     'collect',

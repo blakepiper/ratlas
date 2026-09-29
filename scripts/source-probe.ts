@@ -1,3 +1,4 @@
+import { backupBeforeMigration } from '../apps/service/src/commands/migration-backup.js';
 import { parseArgs } from 'node:util';
 import { loadConfig } from '../apps/service/src/commands/config.js';
 import { probeSource } from '../apps/service/src/collector/probe.js';
@@ -19,6 +20,7 @@ const selected = config.httpSources.filter((s) => values.source?.includes(s.id))
 if (!selected.length || values.source!.some((id) => !selected.some((s) => s.id === id)))
   throw new Error('Select configured source IDs with --source');
 const subject = values.subject ? nidSchema.parse(values.subject) : null;
+await backupBeforeMigration(config);
 const writer = openWriter(config.storage.databasePath);
 try {
   migrate(writer.db, 'live', Date.now());

@@ -1,7 +1,9 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { sourceSchema, type Config } from '@ratlas/core';
 import {
+  admitCandidate,
+  publicCandidate,
   sampleSummary,
   pruneExpired,
   measureMaintenance,
@@ -37,6 +39,7 @@ import {
   failureKind,
   CLI_SCHEMA,
   HTTP_SCHEMA,
+  parseHttpCatalog,
   type JsonTransport,
 } from '@ratlas/radicle';
 import { applyPendingEvents, fullJitter, retryAfterTime } from './events.js';
@@ -91,6 +94,11 @@ export class Collector {
   }
   async initialize() {
     const at = this.now();
+    this.db
+      .prepare(
+        'INSERT INTO collector_status(id,started_at,heartbeat) VALUES (1,?,?) ON CONFLICT(id) DO UPDATE SET started_at=excluded.started_at,heartbeat=excluded.heartbeat,stopped_at=NULL',
+      )
+      .run(at, at);
     for (const source of this.config.httpSources)
       registerSource(
         this.db,
@@ -136,6 +144,8 @@ export class Collector {
     applyPendingEvents(this.db, this.config);
     for (const source of this.config.httpSources.filter((s) => s.enabled))
       scheduleJob(this.db, source.id, 'observer', 'probe', at, 0);
+    for (const source of this.config.httpSources.filter((s) => s.enabled && s.expectedNid))
+      admitCandidate(this.db, source.expectedNid!, source.id, 'configured-observer', at);
     if (this.config.radicle.enabled) {
       try {
         this.capabilities = await cliCapabilities(this.config.radicle, this.signal, true);
@@ -315,22 +325,26 @@ export class Collector {
       this.db.prepare('SELECT COUNT(*) count FROM metadata_jobs').get() as { count: number }
     ).count;
     let slots = Math.max(0, 10000 - queued);
+    for (const row of this.db
+      .prepare('SELECT DISTINCT nid,source_id FROM eligible_routes')
+      .all() as { nid: string; source_id: string }[])
+      admitCandidate(this.db, row.nid, row.source_id, 'public-route', at);
     const nodes = this.db
       .prepare(
-        `SELECT DISTINCT r.nid,COALESCE(j.last_success,0) refreshed FROM eligible_routes r
+        `SELECT DISTINCT r.nid,COALESCE(j.last_success,0) refreshed FROM node_candidates r JOIN sources evidence ON evidence.id=r.evidence_source_id AND evidence.publication_policy!='quarantine'
       LEFT JOIN metadata_jobs j ON j.source_id=? AND j.task='other-inventory' AND j.entity_id=r.nid
-      WHERE r.nid!=(SELECT COALESCE(observer_nid,'') FROM sources WHERE id=?) ORDER BY refreshed,r.nid COLLATE BINARY LIMIT ?`,
+      WHERE r.publication_eligible=1 AND r.nid!=(SELECT COALESCE(observer_nid,'') FROM sources WHERE id=?) ORDER BY (j.key IS NOT NULL),COALESCE(j.due_at,0),r.nid COLLATE BINARY LIMIT ?`,
       )
       .all(sourceId, sourceId, Math.min(20, slots)) as { nid: string }[];
     for (const node of nodes) {
-      scheduleJob(this.db, sourceId, node.nid, 'other-inventory', at, 30);
+      scheduleJob(this.db, sourceId, node.nid, 'other-inventory', at, 20);
       slots--;
     }
     const repos = this.db
       .prepare(
         `SELECT r.rid FROM public_repositories r LEFT JOIN selected_metadata m ON m.rid=r.rid
       LEFT JOIN metadata_jobs j ON j.source_id=? AND j.task='metadata' AND j.entity_id=r.rid
-      ORDER BY (m.name IS NOT NULL),COALESCE(j.last_success,0),r.rid COLLATE BINARY LIMIT ?`,
+      ORDER BY (j.key IS NOT NULL),(m.name IS NOT NULL),COALESCE(j.due_at,0),r.rid COLLATE BINARY LIMIT ?`,
       )
       .all(sourceId, Math.min(40, slots)) as { rid: string }[];
     for (const repo of repos) scheduleJob(this.db, sourceId, repo.rid, 'metadata', at, 20);
@@ -376,15 +390,13 @@ export class Collector {
         }),
         source.id,
       );
+      admitCandidate(this.db, node.id, source.id, 'configured-observer', this.now());
       scheduleJob(this.db, source.id, node.id, 'inventory', this.now(), 10);
-      scheduleJob(this.db, source.id, 'catalog', 'catalog', this.now(), 15);
+      scheduleJob(this.db, source.id, 'catalog', 'catalog', this.now(), 20);
       return limits.inventoryRefreshMs;
     }
     if (job.task === 'inventory' || job.task === 'other-inventory') {
-      if (
-        job.task === 'other-inventory' &&
-        !this.db.prepare('SELECT 1 FROM eligible_routes WHERE nid=?').get(job.entity_id)
-      )
+      if (job.task === 'other-inventory' && !publicCandidate(this.db, job.entity_id))
         return limits.inventoryRefreshMs;
       const runId = randomUUID();
       beginSnapshot(this.db, runId, source.id, this.now(), { nid: job.entity_id });
@@ -417,46 +429,75 @@ export class Collector {
       return limits.inventoryRefreshMs;
     }
     if (job.task === 'catalog') {
-      const runId = randomUUID();
-      beginSnapshot(this.db, runId, source.id, this.now());
-      this.db
-        .prepare('UPDATE collector_runs SET adapter_version=?,session_id=? WHERE id=?')
-        .run(HTTP_SCHEMA, this.owner, runId);
-      let count = 0;
-      try {
-        for await (const metadata of adapter.catalog(
-          this.signal,
-          Math.min(limits.requestsPerSourcePerHour, Math.ceil(limits.snapshotMaxRows / 100)),
-        )) {
-          storeMetadata(this.db, { ...metadata, sourceId: source.id, retrievedAt: this.now() });
-          count++;
-        }
-        // Catalog completeness never reconciles routing absence.
-        this.db
-          .prepare(
-            "UPDATE collector_runs SET status='success',ended_at=?,row_count=?,reconciliation_status='metadata-only' WHERE id=?",
-          )
-          .run(this.now(), count, runId);
-        this.db
-          .prepare(
-            "UPDATE sources SET capabilities=json_set(capabilities,'$.catalog',json('true')) WHERE id=?",
-          )
-          .run(source.id);
-      } catch (error) {
-        if (isStorageFailure(error)) throw error;
-        this.db
-          .prepare(
-            "UPDATE collector_runs SET status='partial',ended_at=?,row_count=?,error_category=?,reconciliation_status='metadata-only' WHERE id=?",
-          )
-          .run(
-            this.now(),
-            count,
-            error instanceof Deferred ? 'budget-deferred' : failureKind(error),
-            runId,
-          );
-        throw error;
+      // One atomic page per lease yields fairly to metadata and candidate work.
+      let progress = this.db
+        .prepare('SELECT * FROM catalog_progress WHERE source_id=?')
+        .get(source.id) as
+        | {
+            next_page: number;
+            completed_at: number | null;
+            cycle_started_at: number;
+            records: number;
+          }
+        | undefined;
+      if (!progress || progress.completed_at !== null) {
+        this.db.transaction(() => {
+          this.db.prepare('DELETE FROM catalog_pages WHERE source_id=?').run(source.id);
+          this.db.prepare('DELETE FROM catalog_members WHERE source_id=?').run(source.id);
+          this.db
+            .prepare(
+              'INSERT INTO catalog_progress(source_id,cycle_started_at) VALUES (?,?) ON CONFLICT(source_id) DO UPDATE SET previous_records=records,records=0,next_page=0,cycle_started_at=excluded.cycle_started_at,completed_at=NULL,last_error=NULL',
+            )
+            .run(source.id, this.now());
+        })();
+        progress = { next_page: 0, completed_at: null, cycle_started_at: this.now(), records: 0 };
       }
-      return limits.catalogRefreshMs;
+      if (progress.next_page >= Math.ceil(limits.snapshotMaxRows / 100))
+        throw new AdapterError('page-limit');
+      const rows = parseHttpCatalog(
+        await transport.get(
+          'repos?show=all&page=' + progress.next_page + '&perPage=100',
+          this.signal,
+        ),
+      );
+      const hash = createHash('sha256')
+        .update(JSON.stringify(rows.map((r) => r.rid).sort()))
+        .digest('hex');
+      if (
+        rows.length &&
+        this.db
+          .prepare('SELECT 1 FROM catalog_pages WHERE source_id=? AND content_hash=?')
+          .get(source.id, hash)
+      ) {
+        this.db
+          .prepare("UPDATE catalog_progress SET last_error='repeated-page' WHERE source_id=?")
+          .run(source.id);
+        throw new AdapterError('repeated-page');
+      }
+      this.db.transaction(() => {
+        let added = 0;
+        for (const metadata of rows) {
+          storeMetadata(this.db, { ...metadata, sourceId: source.id, retrievedAt: this.now() });
+          added += this.db
+            .prepare('INSERT OR IGNORE INTO catalog_members VALUES (?,?)')
+            .run(source.id, metadata.rid).changes;
+        }
+        this.db
+          .prepare('INSERT INTO catalog_pages VALUES (?,?,?)')
+          .run(source.id, progress!.next_page, hash);
+        this.db
+          .prepare(
+            'UPDATE catalog_progress SET next_page=next_page+1,records=records+?,completed_at=?,last_error=NULL WHERE source_id=?',
+          )
+          .run(added, rows.length ? null : this.now(), source.id);
+        if (!rows.length)
+          this.db
+            .prepare(
+              "UPDATE sources SET capabilities=json_set(capabilities,'$.catalog',json('true')) WHERE id=?",
+            )
+            .run(source.id);
+      })();
+      return rows.length ? limits.schedulerTickMs : limits.catalogRefreshMs;
     }
     if (job.task === 'metadata') {
       if (!this.db.prepare('SELECT 1 FROM public_repositories WHERE rid=?').get(job.entity_id))
@@ -474,6 +515,21 @@ export class Collector {
   }
   private async execute(job: Job) {
     const limits = this.config.collection;
+    const refresh =
+      job.task === 'inventory'
+        ? Number(
+            this.db
+              .prepare(
+                'INSERT INTO inventory_refreshes(source_id,subject_nid,scheduled_at,started_at) SELECT source_id,entity_id,COALESCE(refresh_due_at,due_at),? FROM metadata_jobs WHERE key=?',
+              )
+              .run(this.now(), job.key).lastInsertRowid,
+          )
+        : null;
+    if (job.task === 'other-inventory')
+      this.db
+        .prepare('UPDATE node_candidates SET attempt_count=attempt_count+1 WHERE nid=?')
+        .run(job.entity_id);
+    let outcome = 'interrupted';
     const timer = setInterval(() => {
       try {
         renewJob(this.db, job.key, this.owner, this.now(), limits.jobLeaseMs);
@@ -483,6 +539,11 @@ export class Collector {
     }, limits.jobRenewMs);
     try {
       const interval = await this.httpJob(job);
+      outcome = 'success';
+      if (job.task === 'other-inventory')
+        this.db
+          .prepare("UPDATE node_candidates SET disposition='observed',next_attempt=? WHERE nid=?")
+          .run(this.now() + interval, job.entity_id);
       sourceSuccess(this.db, job.source_id, this.now());
       finishJob(this.db, job.key, this.owner, this.now() + interval, this.now(), null);
       this.enqueueDiscovery(job.source_id);
@@ -498,6 +559,7 @@ export class Collector {
         return;
       }
       if (error instanceof Deferred) {
+        outcome = 'budget-deferred';
         this.db
           .prepare(
             "UPDATE source_health SET breaker_state='open',retry_at=? WHERE source_id=? AND breaker_state='half-open'",
@@ -506,6 +568,11 @@ export class Collector {
         finishJob(this.db, job.key, this.owner, error.until, null, 'budget-deferred');
         return;
       }
+      outcome = failureKind(error);
+      if (job.task === 'other-inventory')
+        this.db
+          .prepare('UPDATE node_candidates SET disposition=?,next_attempt=? WHERE nid=?')
+          .run(outcome, this.now() + limits.inventoryRefreshMs, job.entity_id);
       const kind = failureKind(error);
       const retryable = ['http-retryable', 'timeout', 'process-failed'].includes(kind);
       const retryAfter = retryAfterTime(
@@ -532,7 +599,7 @@ export class Collector {
         due,
         retryable,
         limits,
-        retryAfter?.paused ?? false,
+        (retryAfter?.paused ?? false) || kind === 'observer-mismatch',
       );
       if (kind === 'unsupported-schema')
         this.db
@@ -543,6 +610,10 @@ export class Collector {
       if (kind !== 'http-not-found') recordGap(this.db, job.source_id, this.now(), kind);
       finishJob(this.db, job.key, this.owner, due, null, kind);
     } finally {
+      if (refresh !== null)
+        this.db
+          .prepare('UPDATE inventory_refreshes SET ended_at=?,outcome=? WHERE id=?')
+          .run(this.now(), outcome, refresh);
       clearInterval(timer);
     }
   }
@@ -553,6 +624,7 @@ export class Collector {
     pruneExpired(this.db, this.config.storage, at);
     measureMaintenance(this.db, at);
     sampleSummary(this.db, at);
+    this.db.prepare('UPDATE collector_status SET heartbeat=? WHERE id=1').run(at);
     this.db
       .prepare(
         'UPDATE source_health SET heartbeat=? WHERE source_id IN (SELECT id FROM sources WHERE enabled=1)',
@@ -599,10 +671,12 @@ export class Collector {
         await Promise.all(this.active.values());
         if (this.fatalError) throw this.fatalError;
         if (
-          !pendingJobs(this.db, this.now()).length ||
+          !pendingJobs(this.db, this.now() + this.config.collection.schedulerTickMs).length ||
           this.now() - start >= this.config.collection.snapshotTimeoutMs
         )
           break;
+        if (!pendingJobs(this.db, this.now()).length)
+          await this.wait(this.config.collection.schedulerTickMs);
       } else {
         try {
           await this.wait(this.config.collection.schedulerTickMs);
@@ -616,6 +690,9 @@ export class Collector {
   async close() {
     await Promise.all(this.active.values());
     await this.stream;
+    this.db
+      .prepare('UPDATE collector_status SET stopped_at=? WHERE id=1 AND stopped_at IS NULL')
+      .run(this.now());
     if (this.config.radicle.enabled)
       this.db
         .prepare('UPDATE source_health SET event_stream_status=? WHERE source_id=?')

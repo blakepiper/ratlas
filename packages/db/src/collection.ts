@@ -109,6 +109,10 @@ export function scheduleJob(
   db.prepare(
     'INSERT OR IGNORE INTO metadata_jobs(key,source_id,entity_id,task,due_at,priority) VALUES (?,?,?,?,?,?)',
   ).run(key, sourceId, entityId, task, dueAt, priority);
+  if (task === 'inventory')
+    db.prepare(
+      'UPDATE metadata_jobs SET refresh_due_at=COALESCE(refresh_due_at,?) WHERE key=?',
+    ).run(dueAt, key);
 }
 export function pendingJobs(db: Db, now: number, limit = 100) {
   db.prepare(
@@ -152,9 +156,9 @@ export function finishJob(
   if (
     !db
       .prepare(
-        "UPDATE metadata_jobs SET status='pending',lease_owner=NULL,lease_expires_at=NULL,due_at=?,last_success=COALESCE(?,last_success),last_error=?,attempts=CASE WHEN ? IS NULL THEN attempts ELSE 0 END WHERE key=? AND lease_owner=?",
+        "UPDATE metadata_jobs SET status='pending',lease_owner=NULL,lease_expires_at=NULL,due_at=?,last_success=COALESCE(?,last_success),last_error=?,attempts=CASE WHEN ? IS NULL THEN attempts ELSE 0 END,refresh_due_at=CASE WHEN ? IS NOT NULL AND task='inventory' THEN ? ELSE refresh_due_at END WHERE key=? AND lease_owner=?",
       )
-      .run(dueAt, successAt, error, successAt, key, owner).changes
+      .run(dueAt, successAt, error, successAt, successAt, dueAt, key, owner).changes
   )
     throw new Error('Job lease lost');
 }
