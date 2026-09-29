@@ -1,6 +1,7 @@
 # ratlas
 
-Read `RATLAS_IMPLEMENTATION_SPEC.md` and the current `docs/IMPLEMENTATION_STATUS.md`,
+Read `DATA_COVERAGE_PLAN.md`, the archived architecture and execution constraints in
+`archive/plans/RATLAS_IMPLEMENTATION_SPEC.md`, and the current `docs/IMPLEMENTATION_STATUS.md`,
 `docs/CHECKPOINTS.md`, and `docs/DECISIONS.md` before resuming work.
 
 - Use `./ratlas-guix` for development commands and Git after bootstrap.

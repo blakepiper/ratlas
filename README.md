@@ -5,6 +5,11 @@ hosting nodes, their relationships, activity, source evidence, and coverage limi
 The React interface runs in Firefox; the API reads a local SQLite database.
 Live collection requires explicitly configured public sources.
 
+The active [data coverage plan](DATA_COVERAGE_PLAN.md) defines the work needed
+for broad real-data exploration. The original
+[implementation specification](archive/plans/RATLAS_IMPLEMENTATION_SPEC.md)
+is archived; its completed milestones do not establish broad network coverage.
+
 From this checkout on Guix, start the offline demo:
 
 ```sh

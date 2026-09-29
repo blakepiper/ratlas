@@ -9,7 +9,8 @@ const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8' 
 assert.equal(git('rev-parse', '--show-toplevel'), resolve('.'));
 for (const path of [
   'AGENTS.md',
-  'RATLAS_IMPLEMENTATION_SPEC.md',
+  'DATA_COVERAGE_PLAN.md',
+  'archive/plans/RATLAS_IMPLEMENTATION_SPEC.md',
   'flake.nix',
   'flake.lock',
   'pnpm-lock.yaml',

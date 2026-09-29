@@ -1,6 +1,6 @@
 # ratlas decisions
 
-The current decisions are defined by revision 6 of `RATLAS_IMPLEMENTATION_SPEC.md`.
+The current decisions are defined by revision 6 of `archive/plans/RATLAS_IMPLEMENTATION_SPEC.md`.
 
 - Guix x86_64-linux, `manifest.scm` and recorded `guix-channels.scm`, prebuilt
   Node 24.18.0 and pnpm 10.34.0 through `./ratlas-guix`. No toolchain source builds.
