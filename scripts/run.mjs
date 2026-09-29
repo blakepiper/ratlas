@@ -50,6 +50,10 @@ const commands = {
     buildBackend();
     buildWeb();
   },
+  'source:probe': () => {
+    buildBackend();
+    tsx('scripts/source-probe.ts', ...args);
+  },
   doctor: () => {
     buildBackend();
     tsx('scripts/doctor.ts', ...args);
@@ -114,6 +118,7 @@ if (
   args.length &&
   ![
     'doctor',
+    'source:probe',
     'db:migrate',
     'db:backup',
     'collect',

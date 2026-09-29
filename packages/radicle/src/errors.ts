@@ -1,4 +1,5 @@
 export type FailureKind =
+  | 'budget-deferred'
   | 'unsupported-schema'
   | 'invalid-json'
   | 'line-limit'
