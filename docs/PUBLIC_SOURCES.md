@@ -29,9 +29,10 @@ Each source used at most 20 requests and 60 seconds, public-address/TLS checks,
 15-second request timeout, decoded-response cap, no redirects, shared persistent
 origin spacing and source budgets. Catalog checks used `show=all`, page 0 then
 page 1, `perPage=100`, with no sampled overlap. Sampling cannot establish a
-complete catalog denominator or an atomic inventory census. Unique contribution
-and overlap require intake and the coverage report; sampled counts are not added
-together as a merged total. No private payload, URL, or diagnostics is published.
+complete catalog denominator or an atomic inventory census. At probe time, unique
+contribution and overlap were not yet measured; the subsequent intake results
+are below. Sampled counts are not added together as a
+merged total. No private payload, URL, or diagnostics is published.
 Explorer mappings are unset until individually verified.
 
 Historical candidates `seed.cloudhead.io` and `seed.alt-clients.radicle.xyz`
@@ -55,3 +56,27 @@ existing local settings; source changes require explicit editing and restart.
 Run `./ratlas-guix pnpm source:probe --config config/coverage.local.json --source iris`
 to recheck a selected source. This command owns the single writer lease for
 budget accounting; stop collection first. It does not run Firefox or full doctor.
+
+## Configured cohort after bounded intake
+
+Measured 2026-09-29T22:05:43.041Z at
+`ebf781c0ad12d3934dc250ef1ea10a312079e897`. All three sources were explicitly
+configured in a separate ignored coverage config/database, preserving the original
+user baseline. Team and Iris most recently collected successfully; Rosa is
+degraded by a catalog/metadata timeout while retaining successful inventories.
+No identity mismatch occurred. The preset does not hide the common operator.
+
+| Source | Evidenced RIDs | Evidenced subjects | Distinct pairs | Unique RIDs relative to others | Unique pairs |
+| ------ | -------------- | ------------------ | -------------- | ------------------------------ | ------------ |
+| team   | 5,396          | 3                  | 5,961          | 0                              | 8            |
+| Iris   | 13,903         | 3                  | 16,396         | 5                              | 10,429       |
+| Rosa   | 15,913         | 3                  | 18,898         | 2,015                          | 12,931       |
+
+These contributions include reports about other configured subject NIDs, so they
+differ from self-inventory counts in the earlier probe table. The merged total is
+15,918 RIDs / three subjects / 29,335 pairs; source totals are not summed.
+All self-inventory bounded references are 100% ingested, the team catalog is
+100% against its bounded reference, and broad catalog denominators remain unknown.
+No separately operated compatible current HTTP source was verified by this
+bounded research. [The ledger](COVERAGE_LEDGER.md) and [C2](reviews/C2.md) record
+this diversity/topology gap and the existing public-observer prerequisite.

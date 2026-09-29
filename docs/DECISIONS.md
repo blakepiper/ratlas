@@ -26,7 +26,7 @@ additional sources, authorize node operation, or start the 24-hour experiment.
 - Read-only API, separate single-writer collector, SQLite WAL, explicit publication
   eligibility, source-specific evidence, and deterministic offline demo data.
 - Firefox-only automation and isolated profiles; no changes to the user's browser.
-  The matching patched Firefox runtime is currently unavailable on Guix.
+  The project-local matched prebuilt Firefox runtime now passes Guix checks.
 - Six progress milestones and incremental local Git commits; no remotes or publication.
 
 User-approved deviation (2026-09-25): ESLint and `@eslint/js` use family 10.
@@ -49,9 +49,9 @@ Command compatibility: pinned pnpm 10 has its own built-in `doctor`, which takes
 precedence over package scripts. The Guix package supplies a tiny `pnpm` dispatcher
 that maps only `pnpm doctor ...` to the same locked pnpm's `run doctor ...`.
 All other arguments go unchanged to the pinned pnpm JavaScript entry point.
-The legacy Nix shell has the equivalent dispatcher. The Guix project doctor
-currently reports its missing Firefox prerequisite rather than running the
-upstream pnpm doctor or claiming a successful project smoke test.
+The legacy Nix shell has the equivalent dispatcher. The dispatcher runs the
+project doctor. With the explicit matched runtime prepared, native/Firefox checks
+pass; missing runtime still exits 2.
 
 User-directed R3 layout revision (2026-09-25): dataset counts move beneath the
 logo on one line; the separate count, demo-mode, and footer bars and the map
@@ -116,3 +116,30 @@ legacy; historical test results and approvals retain their actual platform.
 Current operations are manual Guix processes, with no invented Shepherd service
 or claimed browser runtime. The root Nix launchers are unchanged, so Guix
 startup examples use the existing helpers through `./ratlas-guix`.
+
+2026-09-29 coverage implementation decisions: keep the exact stack and all
+source/origin/task budgets. Durable candidates remain separate from hosting;
+HTTP catalogs retain resumable page state and fair source rotation. Independent
+reference commands consume persistent quotas but never publish observations.
+Unknown or unstable reference denominators remain unknown, and HTTP cached reads
+do not invent independent announcement times or new upstream successes.
+The measured three-observer cohort has only three subjects and one documented
+operator. Preserve 100-node, five-subject, 90% name and 95% reference targets;
+require a supplied existing public-only observer instead of inventing edges or
+starting a node. Section 8's 24-hour run remains an explicit operator action.
+
+2026-09-29 Guix Firefox/runtime follow-up: prepare only the official matched
+patched Firefox 148.0.2/revision 1511 artifact with a pinned SHA-256, prebuilt
+Guix runtime libraries and project GC roots. Patch local ELF interpreter paths;
+use isolated profiles and Mesa software WebGL. No browser installer, source build,
+personal profile or system change. The helper, full doctor and all 28 Firefox
+tests passed. Historical missing-runtime paragraphs above describe bootstrap,
+not the current prerequisite. Details are in [C4](reviews/C4.md).
+
+2026-09-29 production follow-up: root launchers enter Guix; a prebuilt Node bridge
+forwards launcher-PID signals to the owned application group. Continuous mode
+owns one API and collector, retains cached service on collector failure, and
+stops collection on API failure. Actual root SIGINT/SIGTERM cleanup passed;
+no system service was activated. The original local baseline was preserved and
+new coverage data/configuration isolated. [The ledger](COVERAGE_LEDGER.md)
+separates software delivery, live validation, blocked gates and user acceptance.

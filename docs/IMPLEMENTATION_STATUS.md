@@ -1,19 +1,43 @@
 # ratlas implementation status
 
-Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md), C0 `completed`, C1 `completed`, C2 `in_progress`, C3–C5 `pending`.
+Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md). C0/C1 `completed`;
+C2–C5 `blocked` on their remaining live gates. **The plan is not complete.**
 
-2026-09-29: the user instructed autonomous completion. [C0](reviews/C0.md)
-records the current saved live 14/1/14 baseline, discovery/pagination audit,
-and verified backup. Source feasibility/diagnostics and preset initialization are recorded in
-[C1](reviews/C1.md). Iris and Rosa expose 13,408/15,913 self-inventory RIDs;
-all three observers share the Radicle operator. Candidate discovery and
-resumable fair catalog intake are in progress.
-Extended operation remains an explicit operator action; no new approval
-is required for software work or bounded public-source research.
-The user requested this plan on 2026-09-29 after the live application showed
-14 repositories and one node. The original implementation specification is
-[archived](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md) unchanged. Historical
-R6 completion below describes the application foundation, not broad live coverage.
+2026-09-29 autonomous implementation is delivered at
+`ebf781c0ad12d3934dc250ef1ea10a312079e897`. The [coverage ledger](COVERAGE_LEDGER.md)
+records 15,918 hosting repositories, three subjects, 29,335 distinct pairs,
+13,403 multi-host RIDs and 6,315 usable names (39.6721%) in the chosen 24h window.
+All three observers are operated by the Radicle team. HTTP-only discovery cannot
+meet 100 subject NIDs or journeys across five subjects; an explicitly supplied
+existing public-only observer is required. Catalog completeness/available-metadata
+percentages remain unknown for Iris/Rosa, and the 90% name target remains unmet.
+The operator-invoked real 24-hour run and qualified freshness remain unverified.
+No target was reduced and user acceptance has not been received.
+
+Software: explicit public preset, durable candidate provenance, fair resumable
+catalogs/persistent budgets, metadata/cache accounting, independent references,
+coverage reports/UI, continuous foreground supervision, reproducible matched
+prebuilt Guix Firefox and resumable experiment telemetry. Final types/lint and
+72 deterministic tests passed; production build and 28 Firefox tests without skips
+passed. Latest actual desktop/narrow live journeys use the final implementation:
+20 paths across three subjects, with the five-subject gate false. Bounded real
+OS restart, single-writer/API behavior, root signal cleanup and new-path backup
+restore passed. The original user's config and schema-5 14/1/14 database were
+preserved; expanded observations are stored separately. Review API is on
+http://127.0.0.1:3001/ with collection stopped.
+
+Evidence: [C0](reviews/C0.md), [C1](reviews/C1.md), [C2](reviews/C2.md),
+[C3](reviews/C3.md), [C4](reviews/C4.md), [C5](reviews/C5.md),
+[operations](OPERATIONS.md), [validation](VALIDATION.md). Software work and bounded
+public-source research required no new milestone approval. Section 8 reserves
+extended operation for the operator. No Radicle node, replication, service
+activation, personal identity, remote, push, publication or history rewrite occurred.
+
+The original [specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md)
+remains archived unchanged. Historical R6 completion and the dated bootstrap
+paragraphs below describe their actual revisions/platforms and do not establish
+this plan's completion. The earlier Guix Firefox gap has now been resolved for
+isolated automation; its historical failure reports remain intact.
 
 Planning revision `b0ebc9b2e6ef3e69633a5f8a7525eaa3d2444adf` defines source
 feasibility, public node discovery, complete backfill, production collection,

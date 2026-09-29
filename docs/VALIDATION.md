@@ -1,30 +1,35 @@
 # ratlas release validation
 
-## Current Guix validation (2026-09-29)
+## Current Guix coverage validation (2026-09-29)
 
-Tested implementation: `49baebd22b3717a6c7f79751e0782b7b03b90872`.
-The prebuilt Guix Node 24.18.0 / pnpm 10.34.0 environment passed entry,
-version/header checks, frozen installation with native SQLite, formatting,
-lint/policy, typechecking, 64 deterministic tests, and the production build.
-Native addon builds used at most two jobs; Vitest used one to two workers.
-`pnpm doctor` exited 2 for the missing patched Firefox prerequisite. No browser,
-live source, server, or collector was started for this Guix validation.
+Final implementation: `ebf781c0ad12d3934dc250ef1ea10a312079e897`.
+Prebuilt Guix Node 24.18.0 / pnpm 10.34.0, exact dependencies and native SQLite
+passed types, lint/policy and 72 deterministic tests in 17 files. Production
+build passed, with the existing dependency-comment/chunk-size warnings.
+Formatting and repository checks accompany the final documentation commit.
+Native addon builds use at most two jobs; tests use one to two workers.
 
-Current commands run inside `./ratlas-guix`:
+The matched project-local prebuilt Firefox runtime was prepared reproducibly;
+full native/Firefox/PNG doctor and all 28 desktop/narrow E2E tests passed without
+skips on Guix. Real canvas uses Mesa software WebGL and isolated profiles;
+presentation frame rate/native GPU performance are unmeasured. Final actual
+live-data Firefox review at 22:07:21 UTC used the final implementation, matching
+15,918/3/29,335 counts and navigating 20 real paths across three subject nodes
+without application errors. The five-subject target remains unmet.
 
-```sh
-pnpm format:check
-pnpm lint
-pnpm typecheck
-pnpm exec vitest run --minWorkers=1 --maxWorkers=2
-pnpm build
-```
+Three budgeted HTTP doctor identity checks passed against the configured cohort.
+An old unmigrated original user database correctly fails schema checks; it was
+preserved, and migration/recovery were tested on new-path copies. Real bounded
+OS-process restart, API/writer coexistence, root launcher signal cleanup, verified
+online backup and new-path restore passed. No actual 24-hour experiment, live CLI
+observer validation, system service activation or user acceptance is claimed.
 
-`pnpm check`, `pnpm doctor`, `pnpm test:e2e`, and `pnpm benchmark:browser`
-remain unavailable on Guix and report the missing runtime with exit code 2.
-See [Guix development](GUIX_DEVELOPMENT.md) and [operations](OPERATIONS.md).
-The results below are historical Nix results. Old local configs, datasets,
-screenshots, and server processes do not transfer to this machine through Git.
+See [C3](reviews/C3.md), [C4](reviews/C4.md), [C5](reviews/C5.md) and the
+[coverage ledger](COVERAGE_LEDGER.md) for measurements, failures, correction and
+remaining gates. The earlier `49baebd...` Guix bootstrap had 64 deterministic
+tests and no matched Firefox; its dated record remains in implementation status.
+Current browser setup is in [Guix development](GUIX_DEVELOPMENT.md).
+The results below retain their historical Nix revisions and measurement scope.
 
 ## Historical Nix audit follow-up (2026-09-26)
 

@@ -1,10 +1,17 @@
 # ratlas target-scale measurements
 
-Historical measurements from the previous NixOS machine. These numbers have
-not been remeasured on Guix. For a new CPU/API measurement, enter
-`./ratlas-guix`, run `pnpm data:target`, then `pnpm benchmark`.
-`pnpm benchmark:browser` currently exits 2 on Guix because the patched Firefox
-runtime is unavailable. See [current validation](VALIDATION.md).
+Current Guix live-data measurements (2026-09-29) are in [C3](reviews/C3.md)
+and [C5](reviews/C5.md): 15,918 hosting RIDs, three subjects and 29,335 pairs,
+with measured cold/warm API latency and actual bounded collector resources.
+The indexed publication fix reduced a 15,913-row saved-snapshot replay to
+1.5 seconds; that offline replay does not contribute live evidence.
+Matched isolated Firefox now passes with software WebGL; native presentation
+performance remains unmeasured. See [current validation](VALIDATION.md).
+
+The measurements below are historical target-scale Nix results and have not
+been remeasured at that synthetic target scale on Guix. For a new local target
+measurement, enter `./ratlas-guix`, run `pnpm data:target`, then `pnpm benchmark`.
+Keep synthetic counts separate from the live ledger.
 
 Measured 2026-09-26 on the final audit-follow-up implementation. Synthetic
 Mulberry32 seed `20260925`: 20,000 repositories, 2,000 node identities, 100,000

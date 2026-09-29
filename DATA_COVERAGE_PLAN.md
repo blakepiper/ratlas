@@ -1,6 +1,6 @@
 # ratlas data coverage plan
 
-Revision 1 · 2026-09-29 · Status: in progress, C0 baseline recorded
+Revision 1 · 2026-09-29 · Status: software implemented; live completion gates open
 
 This is the active plan for turning ratlas into a useful explorer of public
 Radicle software and its observed hosting network. The original
@@ -8,7 +8,11 @@ Radicle software and its observed hosting network. The original
 is archived unchanged. Its R1–R6 records describe the application foundation;
 they do not establish completion of this plan or broad live coverage.
 
-This document defines future work. Writing it does not start collection, change
+Current measurements and remaining dependencies are in the
+[coverage ledger](docs/COVERAGE_LEDGER.md) and C0–C5 reviews. The contract below
+remains unchanged; software delivery does not establish live-plan completion.
+
+This document defines the work. Writing it does not start collection, change
 the live configuration, operate a Radicle node, or authorize a day-long run.
 Retain the archived architecture, fixed stack, data semantics, resource defaults,
 privacy boundaries, and local commit workflow unless a change is explicitly

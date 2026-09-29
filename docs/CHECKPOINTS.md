@@ -9,14 +9,19 @@ was archived byte-for-byte. Formatting, lint/policy/repository checks, and local
 plan/README links passed. Planning is complete. Autonomous implementation was requested on 2026-09-29;
 C0 is recorded in [its review](reviews/C0.md). No user acceptance is inferred.
 
-| Checkpoint | Status      | Evidence required                                      |
-| ---------- | ----------- | ------------------------------------------------------ |
-| C0         | completed   | Current live baseline and collection audit             |
-| C1         | completed   | Source capability matrix and target feasibility        |
-| C2         | in_progress | Public node discovery and measured topology path       |
-| C3         | pending     | Complete backfill, metadata, and coverage reports      |
-| C4         | pending     | Production collection and real-data Firefox experience |
-| C5         | pending     | Actual 24-hour run and all completion gates evaluated  |
+| Checkpoint | Status    | Evidence and remaining gate                                                                            |
+| ---------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| C0         | completed | [Baseline/audit/backup](reviews/C0.md)                                                                 |
+| C1         | completed | [Source matrix/preset/feasibility](reviews/C1.md); operator diversity gap recorded                     |
+| C2         | blocked   | [Candidate/HTTP topology](reviews/C2.md) implemented; public observer needed for 100 subjects          |
+| C3         | blocked   | [Backfill/reports](reviews/C3.md) implemented; names 39.6721%, broad catalog denominators unknown      |
+| C4         | blocked   | [Production/Firefox](reviews/C4.md) validated; journeys span three subjects, required five unavailable |
+| C5         | blocked   | [Restart/restore/resources](reviews/C5.md) validated in bounded runs; operator 24h evaluation unrun    |
+
+Implementation `ebf781c0ad12d3934dc250ef1ea10a312079e897`; final counts and
+unchanged gates are in the [coverage ledger](COVERAGE_LEDGER.md). Blocked live
+milestones do not mean their independent software is pending. No new approval
+or user acceptance is inferred. Original numeric requirements remain in force.
 
 ## Historical implementation checkpoints
 
