@@ -1,6 +1,17 @@
 # ratlas decisions
 
-The current decisions are defined by revision 6 of `archive/plans/RATLAS_IMPLEMENTATION_SPEC.md`.
+The active coverage work is defined by [DATA_COVERAGE_PLAN.md](../DATA_COVERAGE_PLAN.md).
+The architecture and execution constraints remain defined by revision 6 of the
+[archived implementation specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md).
+
+2026-09-29: the user requested archiving the implementation specification and a
+comprehensive plan for the originally intended real-data experience. The archived
+document is unchanged; the new C0–C5 plan replaces the single-source completion
+criterion with measured breadth, topology, freshness, metadata, and sustained
+operation requirements. Its numeric goals are proposed planning targets pending
+feasibility measurement, not claims about current network size or recorded user
+approval. This was a planning request; it did not start new collection, configure
+additional sources, authorize node operation, or start the 24-hour experiment.
 
 - Guix x86_64-linux, `manifest.scm` and recorded `guix-channels.scm`, prebuilt
   Node 24.18.0 and pnpm 10.34.0 through `./ratlas-guix`. No toolchain source builds.

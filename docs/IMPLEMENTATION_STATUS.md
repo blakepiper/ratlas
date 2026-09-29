@@ -1,5 +1,25 @@
 # ratlas implementation status
 
+Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md), C0–C5 `pending`.
+The user requested this plan on 2026-09-29 after the live application showed
+14 repositories and one node. The original implementation specification is
+[archived](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md) unchanged. Historical
+R6 completion below describes the application foundation, not broad live coverage.
+
+Planning revision `b0ebc9b2e6ef3e69633a5f8a7525eaa3d2444adf` defines source
+feasibility, public node discovery, complete backfill, production collection,
+coverage reporting, and sustained real-data acceptance. Initial numerical targets
+are proposed product goals whose feasibility must be measured, not observed
+network counts or user-approved thresholds. The next implementation task is C0.
+This request produced the plan only; its implementation has not started.
+
+Validation: the archived spec matches its previous committed bytes exactly;
+13 local links in the plan/README resolve; formatting and lint passed, including
+the repository/review-state and Firefox policy checks. The repository check now
+requires both the active plan and archived spec at their new paths. No application
+build, browser, collector, or extended experiment was run for this documentation
+change. Live configuration and running application processes were untouched.
+
 Current platform: Guix. Use `./ratlas-guix` and the current
 [development](GUIX_DEVELOPMENT.md) and [operations](OPERATIONS.md) guides.
 Nix commands below describe historical work on the previous machine.

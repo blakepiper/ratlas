@@ -1,5 +1,25 @@
 # ratlas checkpoints
 
+## Data coverage plan
+
+The active [data coverage plan](../DATA_COVERAGE_PLAN.md) was written at
+`b0ebc9b2e6ef3e69633a5f8a7525eaa3d2444adf` on 2026-09-29 at the user's request.
+The original [specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md)
+was archived byte-for-byte. Formatting, lint/policy/repository checks, and local
+plan/README links passed. Planning is complete; no coverage checkpoint has been
+implemented or live-validated, and no new approval is inferred.
+
+| Checkpoint | Status  | Evidence required                                      |
+| ---------- | ------- | ------------------------------------------------------ |
+| C0         | pending | Current live baseline and collection audit             |
+| C1         | pending | Source capability matrix and target feasibility        |
+| C2         | pending | Public node discovery and measured topology path       |
+| C3         | pending | Complete backfill, metadata, and coverage reports      |
+| C4         | pending | Production collection and real-data Firefox experience |
+| C5         | pending | Actual 24-hour run and all completion gates evaluated  |
+
+## Historical implementation checkpoints
+
 R1–R5 approved on 2026-09-25. The user authorized Stage F after the revised
 R5 handoff, when the Nix Firefox WebGL and live-source checks were still open.
 Both checks subsequently passed. R2 had approved proceeding with the live gap
