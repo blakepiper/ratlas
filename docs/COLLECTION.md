@@ -12,12 +12,29 @@ API base URLs include the upstream API prefix (normally `/api/v1/`).
 - `pnpm start:collector --config config/ratlas.local.json` runs the built collector without requiring a development-shell marker.
 - `pnpm experiment --config config/ratlas.local.json --duration 24h` runs an operator-invoked, resumable 24-hour observation experiment. It was not run during implementation.
 
-`pnpm doctor --check-sources` is currently unavailable on Guix: its browser
-smoke test requires the missing patched Playwright Firefox package, so it exits 2
-before source checks. Inspect cached data with `pnpm data:review --config
-config/ratlas.local.json` and use the API health endpoints described in
-[operations](OPERATIONS.md). An explicit collection round is a live write to
-the application database, not a substitute for a read-only source doctor.
+`pnpm source:probe --config CONFIG --source ID` runs a bounded source-only
+capability check (20 requests / 60 seconds per source) independent of Firefox.
+`pnpm doctor --config CONFIG --check-sources` also performs the full matched
+Firefox/native toolchain smoke; [prepare Firefox](GUIX_DEVELOPMENT.md) first.
+The source probe is not a full doctor pass. Both use persistent request budgets.
+HTTP doctor identity checks require an initialized schema and the writer lease
+for budget accounting; stop collection first. They perform one identity request
+per enabled source, with inventory and catalog explicitly marked unprobed.
+
+`pnpm source:enumerate --config CONFIG --source ID --kind inventory` records an
+independent observer self-inventory reference. Choose `--kind catalog` for catalog
+pages; each invocation stops within five minutes. `--resume` continues the latest
+partial catalog reference after rechecking identity/schema, retaining its prefix
+and original start time. A new enumeration without `--resume` measures another
+bounded set for comparison. Moving/repeated pages, failures and caps leave an
+unknown denominator. These commands hold the writer lease; stop the collector
+first. Reference collection never publishes hosting edges or repository metadata.
+
+`pnpm coverage:report --config CONFIG --output .ratlas/coverage/report` writes
+JSON and Markdown for 24h, 7d and all retained windows without contacting sources.
+Source-relative completeness is measured only against a complete independent
+reference, with timestamps, stability and omissions. It is never a global-network
+percentage. Catalog entries cannot stand in for hosting evidence.
 
 The collector holds the application writer lease. It never starts a node or issues
 replication commands. It owns only its subscriber/snapshot children. Shutdown stops
@@ -29,7 +46,12 @@ budgets and origin spacing, including multiple source configurations at one orig
 Discovery considers only independently public IDs; the queue is capped at 10,000
 jobs. Deferred work records `budget-deferred`; metadata-only listings never remove
 routes. A catalog interrupted by a budget or repeated page preserves validated
-metadata and records a partial run. Re-running starts its pages again idempotently.
+metadata and records a partial run. Re-running resumes its next page.
+A completed catalog starts a new bounded
+enumeration after the 12-hour interval; empty terminal pages are required.
+Sources rotate fairly and exhausted task budgets defer entire pending batches,
+so thousands of metadata jobs do not hide eligible catalog work. HTTP metadata
+and other-subject 404 responses are entity-local and do not freeze a whole source.
 
 Five consecutive retryable failures open the breaker for five minutes. One probe
 is admitted after that interval. Retry-After is honored up to 24 hours; a longer
@@ -45,7 +67,8 @@ intake can contain quarantined observations and is never a public API response.
 A bounded live HTTP smoke test passed against the Radicle team's public seed
 on 2026-09-26; see [compatibility](RADICLE_COMPATIBILITY.md). The ignored local
 config is machine-specific and must be supplied explicitly for any later run.
-Other HTTP deployments and the local CLI adapter remain unverified live. See
+On 2026-09-29 the reviewed team/Iris/Rosa HTTP cohort was probed and ingested.
+The local CLI adapter remains unverified live without a supplied observer. See
 the [Guix operations guide](OPERATIONS.md) for dedicated observer,
 permission, backup, restore, shutdown, and update procedures.
 
@@ -65,7 +88,12 @@ Configuration changes are detected by a fingerprint. Archive the report director
 before starting a different or completed experiment; old pre-telemetry state is
 rejected rather than presented as a complete measurement.
 
-The report includes baseline/latest values and growth. Dedicated observer storage
+The report includes baseline/latest values, growth, sessions, downtime, sampled
+peak RSS, and application revision. `coverage.json` and `coverage.md` accompany
+the final/interrupted run with active elapsed time and coverage gates. A short
+completed smoke never sets the 24-hour gate. Freshness counts distinguish actual
+successful refreshes from a still-unverified reachability-qualified denominator.
+Dedicated observer storage
 is measured using directory/stat metadata only when the CLI is enabled with
 `public-only-observer`; symlinks are not followed. Otherwise it explicitly says
 not measured. Storage changes can include independent daemon/operator activity.

@@ -16,11 +16,24 @@ pnpm install --frozen-lockfile
 pnpm build
 ```
 
-Create `config/ratlas.local.json` from the committed example only if it is
-absent. Edit that ignored file before collection: retain `mode: "live"` and
-loopback binding, set the database/log paths, and configure only approved public
-sources. The example enables none. Local configs and data from the old machine
-are not part of the repository.
+The committed example enables no live sources. Preview the reviewed public
+cohort and create new settings only if the selected config does not exist:
+
+```sh
+pnpm config:init --output config/ratlas.coverage.local.json --mode continuous
+pnpm config:init --output config/ratlas.coverage.local.json --mode continuous --write
+```
+
+The preview includes identities, URLs, budgets, database path and whether that
+database already exists. The preset database defaults to
+`.ratlas/public-v1/ratlas.sqlite`, separate from an older `.ratlas/live` baseline.
+Initialization writes only the config, refuses overwrite and contacts no source.
+Review loopback port and storage/log paths before starting. Multiple preset
+configs share that default database and its budget accounting; choose a separate
+path only for a separate dataset, never to evade source quotas. The published
+[registry](PUBLIC_SOURCES.md) records the cohort's single-operator limitation.
+Existing hand-edited configs remain usable. Examples below use
+`config/ratlas.local.json`; substitute the config you selected consistently.
 
 Prepare the database, then start the built read-only API:
 
@@ -45,18 +58,47 @@ Ctrl-C stops each foreground process; the collector releases its writer lease
 and closes its own children. Restart processes after configuration changes.
 The API writes to stdout; collector logs use the private configured directory.
 
-For a combined build, preparation, one refresh, and API start, use
-`./ratlas-guix bash scripts/start-production.sh config/ratlas.local.json` from
-outside the shell. A failed refresh is reported and the helper serves cached
-observations; it does not keep a collector running.
+For a combined build, verified pre-migration backup, one bounded refresh and
+API start, use `./ratlas --config config/ratlas.local.json` outside the shell.
+A failed refresh is reported and cached observations remain available. This
+mode ends collection before serving. For continuous foreground operation:
 
-`pnpm doctor` and its `--check-sources` variant currently exit 2 on Guix because
-their smoke test requires patched Playwright Firefox. Use the local API health
-endpoints and `pnpm data:review --config config/ratlas.local.json` to inspect
-stored observations; the latter also writes a report and exercises a separate
-synthetic failure fixture. These checks do not replace a browser smoke test or
-a live source compatibility check. A collection round contacts configured sources
-and writes observations, so it is an explicit operational step.
+```sh
+./ratlas --config config/ratlas.local.json --continuous
+```
+
+The supervisor owns only its API and collector children. Ctrl-C/SIGTERM stops
+both, releases the writer lease, and leaves WAL data for SQLite recovery. If
+collection fails, stderr reports it and the read-only API continues; the UI
+shows collector stale/stopped state and cached observations. Restart the
+supervisor to resume. An unexpected API exit stops its collector. A second
+collector fails clearly on the lease; it never competes for database writes.
+Do not manually remove an active lease. Graceful shutdown gives children
+15 seconds before terminating owned process groups.
+The root launchers also forward PID-directed signals through Guix and wait for
+the application group to drain. SIGINT/SIGTERM yield the conventional launcher
+exit statuses 130/143; these do not indicate failed cleanup.
+
+First backfill can publish inventories before repository names are resolved.
+The Activity coverage panel separates hosting and metadata-only repositories,
+multi-host counts, public candidates, catalog pages and bounded independent
+reference percentages. With the unchanged defaults, per source there are
+300 requests/hour, 40 unresolved metadata attempts/hour and 20 other-subject
+inventory attempts/hour. Catalog pages deliver metadata in batches of 100 and
+resume across restarts. Persistent quota deferrals and retry delays can make a
+brief refresh advance little; the report displays pending work and minimum
+catch-up hours. Rosa's catalog timed out in the measured cohort; counts retained
+from successful inventory reads remain usable without claiming catalog coverage.
+
+Use `pnpm coverage:report --config CONFIG` for cached JSON/Markdown and
+`pnpm benchmark --config CONFIG --samples 20 --warmup 3` for read-only local API
+latency measurements. `pnpm coverage:browser --config CONFIG` owns a temporary
+loopback API and isolated Firefox, saves desktop/narrow screenshots and actual
+journeys, and never contacts upstream. Prepare the matched Firefox runtime per
+[Guix development](GUIX_DEVELOPMENT.md). `pnpm doctor --config CONFIG` includes
+native SQLite, Firefox-only closure, isolated browser render and configured
+schema checks. An old user database requiring migration fails schema checks
+until explicitly migrated with its verified backup; that is not a browser gap.
 
 ## Observer and process permissions
 
@@ -111,9 +153,9 @@ point its `storage.databasePath` at the restored file, and inspect it with
 opens the selected database read-only and checks its schema; it does not collect.
 Start the built API with that config and check readiness, counts, and source
 health before restarting collection. Retain the old database and companions
-until verification is complete. Historical synthetic backup/restore checks are
-recorded in [validation](VALIDATION.md); this documentation change does not claim
-a new Guix live-recovery drill.
+until verification is complete. A current live-data drill restored a verified
+backup to a new path and compared
+public counts and integrity; see the [C5 review](reviews/C5.md).
 
 For an update, take and verify an online backup first, then stop both processes.
 Use the intended locally supplied application revision and its manifest, recorded
@@ -124,7 +166,9 @@ the pre-migration backup with both processes stopped, using the compatible
 application revision; never edit applied migration history. This procedure does
 not authorize pulling, pushing, or rewriting repository history.
 
-Disable an unhealthy source in the ignored config and restart the collector.
+Add a source only after reviewing its published endpoint, pinned identity,
+publication policy and bounded probe. Never derive an HTTPS origin from a gossip
+address. Disable an unhealthy source in the ignored config and restart the collector.
 Previously committed observations remain available as cached history. Inspect
 collector logs, source health, and local API readiness when troubleshooting.
 
@@ -143,7 +187,7 @@ pnpm experiment --config config/ratlas.local.json --duration 24h
 
 It resumes active runtime after interruption; downtime does not count toward
 24 hours. Reports under `.ratlas/reports/experiment/` contain `state.json`,
-`last-run.json`, and five-second collector CPU/memory and per-source/merged
+`last-run.json`, `coverage.json`, `coverage.md`, and five-second collector CPU/memory and per-source/merged
 count samples in `samples.ndjson`. Archive the whole directory before a new
 completed run or a changed configuration. See [collection](COLLECTION.md).
 No day-long run or service activation is part of development validation.

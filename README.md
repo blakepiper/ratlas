@@ -30,13 +30,22 @@ JavaScript. Entry refuses missing binary substitutes instead of compiling the
 toolchain. Workspace installation builds the SQLite addon with at most two jobs.
 See [Guix development](docs/GUIX_DEVELOPMENT.md) for setup and channel pinning.
 
-To use real observations, create `config/ratlas.local.json` from
-`config/ratlas.example.json` if it does not already exist, and configure an
-approved public source. The example enables no sources and accesses no personal
-Radicle profile. Start the built application with:
+To use real observations, preview the reviewed public-source preset, then create
+a new ignored config explicitly:
 
 ```sh
-./ratlas-guix bash scripts/start-production.sh config/ratlas.local.json
+./ratlas-guix pnpm config:init --output config/ratlas.coverage.local.json
+./ratlas-guix pnpm config:init --output config/ratlas.coverage.local.json --write
+```
+
+Initialization never overwrites settings. The preset contains three verified
+observer identities operated by the Radicle team; it improves repository breadth
+but supplies only three hosting hubs. See the [source registry](docs/PUBLIC_SOURCES.md).
+The default example enables no sources and accesses no personal Radicle profile.
+Start the built application with:
+
+```sh
+./ratlas --config config/ratlas.coverage.local.json
 ```
 
 This installs missing dependencies, builds the app, prepares the database,
@@ -46,8 +55,21 @@ a failed refresh reports the error and serves previously stored observations.
 Missing configuration never falls back to synthetic data. Ctrl-C stops the API.
 Stop the demo first because both use API port 3000. Pass another config path
 to select another dataset; `config/ratlas.demo.json` explicitly selects the
-synthetic dataset. The short `./ratlas` and `./ratlas-demo` scripts are legacy
-Nix entry points; use the Guix commands above on this machine.
+synthetic dataset. The short `./ratlas` and `./ratlas-demo` scripts enter Guix.
+For continuous collection and serving, use:
+
+```sh
+./ratlas --config config/ratlas.coverage.local.json --continuous
+```
+
+This foreground supervisor owns the API and collector. Ctrl-C stops both. A
+collector failure is reported while the API keeps serving cached data. Restart
+after changing sources. Catalog pages and budgets survive restart; large catalogs
+may need several bounded rounds. Inspect progress without upstream requests:
+
+```sh
+./ratlas-guix pnpm coverage:report --config config/ratlas.coverage.local.json
+```
 
 Search names, descriptions, or an exact RID. Filters, sorting, pagination,
 selection, and the observation window persist in the URL. Repository details
@@ -66,13 +88,13 @@ pnpm exec vitest run --minWorkers=1 --maxWorkers=2
 pnpm build
 ```
 
-The Guix setup passed these checks, including 64 deterministic tests and the
-production build. Guix currently lacks the matching patched Playwright Firefox
-package. `pnpm doctor`, `pnpm test:e2e`, `pnpm benchmark:browser`, and the combined
-`pnpm check` report that prerequisite with exit code 2. Manual Firefox use works
-independently of automation. Do not run a browser installer or use a personal
-Firefox profile for tests. [Validation](docs/VALIDATION.md) separates current
-Guix results from the earlier browser checks.
+The coverage implementation passes 72 deterministic tests and the production
+build. [Prepare the matched Firefox runtime](docs/GUIX_DEVELOPMENT.md) to run
+`pnpm doctor` and `pnpm test:e2e`; all 28 desktop/narrow tests passed on Guix.
+The live-data review command `pnpm coverage:browser --config CONFIG` saves
+isolated Firefox screenshots and actual journeys under `.ratlas/reviews/C4/`.
+It reports the five-subject gate separately from successful navigation.
+Do not run a browser installer or use a personal Firefox profile for tests.
 
 For the offline outage/recovery walkthrough, stop the demo before resetting it.
 Enter `./ratlas-guix` in each terminal:

@@ -18,8 +18,12 @@ its processes. To run a single command, use `./ratlas-guix pnpm build`.
 For the existing startup helpers, use
 `./ratlas-guix bash scripts/start-demo.sh` or, after explicitly configuring
 a public live source, `./ratlas-guix bash scripts/start-production.sh config/ratlas.local.json`.
-The root `./ratlas` and `./ratlas-demo` shortcuts still target NixOS.
-Use the Guix helpers above for this machine. The first install is needed only
+The root `./ratlas` and `./ratlas-demo` shortcuts use Guix too.
+They use the prebuilt Node signal bridge via `./ratlas-guix --supervise` so a
+signal sent to the launcher's PID reaches the owned application processes.
+Ordinary development/Git commands and interactive shell entry retain their
+existing Guix execution path.
+The first install is needed only
 for a new checkout or changed dependencies; the startup helpers install missing
 dependencies automatically. The explicit test command limits concurrency to
 two workers. `pnpm test` runs the same suite using its default worker count.
@@ -56,14 +60,34 @@ when checking reproducibility; changes to it require revalidating the toolchain.
 Keep generated Guix profiles, logs and other outputs in `.ratlas/`.
 Use `./ratlas-guix git ...` for Git after the environment is built.
 
-Firefox automation remains a separate missing prerequisite on Guix. The
-manifest installs no browser. Playwright 1.59.1 needs its matched patched
-Firefox; ordinary Firefox cannot substitute for it. `pnpm doctor`,
-`pnpm test:e2e`, `pnpm benchmark:browser`, and `pnpm check` report this gap
-with exit code 2 on Guix. Run format, lint, typecheck, deterministic tests,
-and build separately; these do not claim browser coverage. Never run browser
-installers or point automation at a personal Firefox profile. The existing
-Nix Firefox environment and its checks remain available on NixOS.
+The manifest installs no browser. Prepare the project-local, matched patched
+Firefox binary for Playwright 1.59.1 explicitly:
+
+```sh
+./ratlas-guix bash scripts/prepare-firefox-runtime.sh
+./ratlas-guix pnpm doctor --config config/ratlas.demo.json
+./ratlas-guix pnpm test:e2e
+```
+
+The helper fetches only Firefox 148.0.2, revision 1511, from Playwright's
+official CDN and verifies SHA-256
+`cca34e60c472e94fc8f664cbaf8f286f62f78e9ca21ac2643cf95c932f099607`.
+It obtains runtime libraries with `guix build --max-jobs=0`, retains local Guix
+GC roots, and patches only ELF interpreter paths in the ignored Firefox bundle.
+It refuses an existing bundle; preserve or remove only that generated bundle
+when rebuilding it. No browser installer, browser source build, personal profile,
+or system configuration is used. Ordinary Firefox cannot replace this patched
+binary. Missing binary substitutes fail setup instead of starting source builds.
+
+The generated `.ratlas/firefox-artifact/runtime.json` records the library roots,
+interpreter, artifact hash and versions. Browser commands validate that runtime
+and launch isolated Firefox with prebuilt Mesa software WebGL. They supply these
+libraries only to the browser command and its children. Native GPU performance
+is not implied. The doctor verifies the Firefox-only closure, real content page
+and PNG capture; E2E tests exercise actual WebGL separately. The complete Guix
+doctor and all 28 desktop/narrow tests passed on this machine on 2026-09-29.
+Without preparation, browser-dependent commands still exit 2. The legacy Nix
+Firefox environment remains available on NixOS.
 
 For a persistent project-local garbage-collection root, first enter and exit
 `./ratlas-guix` so its prebuilt-package check has succeeded, then run:
