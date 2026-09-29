@@ -4,6 +4,12 @@ The active coverage work is defined by [DATA_COVERAGE_PLAN.md](../DATA_COVERAGE_
 The architecture and execution constraints remain defined by revision 6 of the
 [archived implementation specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md).
 
+2026-09-29 implementation authorization: the user instructed “Autonomously
+complete the data coverage plan”. Proceed through all independent software and
+bounded live work without milestone approval stops. Preserve numeric targets
+and external-dependency gaps; the plan still reserves the 24-hour operation
+for an explicit operator invocation.
+
 2026-09-29: the user requested archiving the implementation specification and a
 comprehensive plan for the originally intended real-data experience. The archived
 document is unchanged; the new C0–C5 plan replaces the single-source completion

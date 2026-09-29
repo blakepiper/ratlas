@@ -1,6 +1,12 @@
 # ratlas implementation status
 
-Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md), C0–C5 `pending`.
+Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md), C0 `completed`, C1 `in_progress`, C2–C5 `pending`.
+
+2026-09-29: the user instructed autonomous completion. [C0](reviews/C0.md)
+records the current saved live 14/1/14 baseline, discovery/pagination audit,
+and verified backup. Source feasibility and diagnostics are in progress.
+Extended operation remains an explicit operator action; no new approval
+is required for software work or bounded public-source research.
 The user requested this plan on 2026-09-29 after the live application showed
 14 repositories and one node. The original implementation specification is
 [archived](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md) unchanged. Historical
@@ -10,8 +16,8 @@ Planning revision `b0ebc9b2e6ef3e69633a5f8a7525eaa3d2444adf` defines source
 feasibility, public node discovery, complete backfill, production collection,
 coverage reporting, and sustained real-data acceptance. Initial numerical targets
 are proposed product goals whose feasibility must be measured, not observed
-network counts or user-approved thresholds. The next implementation task is C0.
-This request produced the plan only; its implementation has not started.
+network counts or user-approved thresholds. The first implementation task was C0.
+The original request produced the plan only; the subsequent autonomous request started implementation.
 
 Validation: the archived spec matches its previous committed bytes exactly;
 13 local links in the plan/README resolve; formatting and lint passed, including
