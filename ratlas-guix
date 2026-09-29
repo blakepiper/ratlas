@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
+guix build --max-jobs=0 \
+  -e '(begin (load "manifest.scm") ratlas-prebuilt-packages)' >/dev/null
 exec guix shell -m manifest.scm -- bash scripts/guix-env.sh "$@"

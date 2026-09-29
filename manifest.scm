@@ -1,8 +1,6 @@
 ;; Enter with ./ratlas-guix; see docs/GUIX_DEVELOPMENT.md.
 (use-modules (gnu packages)
              (gnu packages bash)
-             (gnu packages node)
-             (guix base16)
              (guix build-system copy)
              (guix download)
              (guix gexp)
@@ -10,20 +8,8 @@
              (guix packages)
              (guix profiles))
 
-;; Keep package.json and pnpm-lock.yaml authoritative.  The channel's older
-;; Node recipe supplies the Guix patches, shared libraries, headers and tests.
-(define ratlas-node
-  (package
-    (inherit node)
-    (version "24.21.0")
-    (source
-     (origin
-       (inherit (package-source node))
-       (uri (string-append "https://nodejs.org/dist/v" version
-                           "/node-v" version ".tar.gz"))
-       (sha256
-        (base16-string->bytevector
-         "622424efb5dc0c26c93fbb619ff10737ee289c605b837c88778e186925d82777"))))))
+;; Use the channel's prebuilt runtime, not a custom Node source build.
+(define ratlas-node (specification->package "node@24.18.0"))
 
 ;; The upstream npm archive includes pnpm's JS dependency bundle.  It runs
 ;; with Guix Node, not a downloaded standalone executable or Corepack.
@@ -62,9 +48,13 @@
     (description "Project-local pnpm with the ratlas doctor command dispatcher.")
     (license license:expat)))
 
-(packages->manifest
- (append (list ratlas-node ratlas-pnpm)
-         (map specification->package
-              '("bash" "coreutils" "git" "curl" "jq" "python"
-                "gcc-toolchain@14" "make" "pkg-config" "sqlite"
-                "nss-certs" "nixfmt"))))
+;; The entry point checks these with --max-jobs=0 before constructing the
+;; pnpm wrapper/profile, so unavailable substitutes cannot start a compiler.
+(define ratlas-prebuilt-packages
+  (cons ratlas-node
+        (map specification->package
+             '("bash" "coreutils" "git" "curl" "jq" "python"
+               "gcc-toolchain@14" "make" "pkg-config" "sqlite"
+               "nss-certs" "nixfmt"))))
+
+(packages->manifest (cons ratlas-pnpm ratlas-prebuilt-packages))

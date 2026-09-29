@@ -8,7 +8,7 @@ fi
 
 export RATLAS_DEV_SHELL=1
 export RATLAS_DEV_PLATFORM=guix
-export RATLAS_NODE_VERSION=24.21.0
+export RATLAS_NODE_VERSION=24.18.0
 export RATLAS_PNPM_VERSION=10.34.0
 export RATLAS_PLAYWRIGHT_VERSION=1.59.1
 export RATLAS_TEST_BROWSER=firefox
@@ -18,6 +18,7 @@ export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 export PLAYWRIGHT_BROWSERS_PATH="$PWD/.ratlas/unavailable-guix-firefox"
 export npm_config_build_from_source=true
 export npm_config_force_build=1
+export npm_config_jobs=2
 export npm_config_nodedir
 npm_config_nodedir=$(dirname -- "$(dirname -- "$(readlink -f -- "$(command -v node)")")")
 export npm_config_python
