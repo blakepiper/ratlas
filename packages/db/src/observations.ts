@@ -35,12 +35,21 @@ export function refreshPublication(db: Db, rid: string) {
     db,
     'UPDATE repositories SET publication_state=?,publication_provenance=? WHERE rid=?',
   ).run(publicRow ? 'public' : 'quarantine', JSON.stringify(provenance), rid);
-  prepared(db, 'DELETE FROM repositories_fts WHERE rid=?').run(rid);
-  if (publicRow)
+  prepared(
+    db,
+    'DELETE FROM repositories_fts WHERE rowid=(SELECT fts_rowid FROM repository_search_rows WHERE rid=?)',
+  ).run(rid);
+  prepared(db, 'DELETE FROM repository_search_rows WHERE rid=?').run(rid);
+  if (publicRow) {
     prepared(
       db,
       'INSERT INTO repositories_fts(rid,name,description) SELECT rid,name,description FROM selected_metadata WHERE rid=?',
     ).run(rid);
+    prepared(
+      db,
+      'INSERT INTO repository_search_rows SELECT rid,rowid FROM repositories_fts WHERE rowid=last_insert_rowid() AND rid=?',
+    ).run(rid);
+  }
 }
 export function incrementRevision(db: Db) {
   prepared(
@@ -51,8 +60,10 @@ export function incrementRevision(db: Db) {
 export function registerSource(db: Db, input: Source) {
   const s = sourceSchema.parse(input);
   db.transaction(() => {
-    const previous = prepared(db, 'SELECT publication_policy FROM sources WHERE id=?').get(s.id) as
-      { publication_policy: string } | undefined;
+    const previous = prepared(
+      db,
+      'SELECT publication_policy,metadata_priority FROM sources WHERE id=?',
+    ).get(s.id) as { publication_policy: string; metadata_priority: number } | undefined;
     prepared(
       db,
       'INSERT INTO sources(id,adapter,label,origin,observer_nid,publication_policy,metadata_priority,enabled) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET label=excluded.label,origin=excluded.origin,publication_policy=excluded.publication_policy,metadata_priority=excluded.metadata_priority,enabled=excluded.enabled,observer_nid=excluded.observer_nid',
@@ -67,8 +78,16 @@ export function registerSource(db: Db, input: Source) {
       Number(s.enabled),
     );
     prepared(db, 'INSERT OR IGNORE INTO source_health(source_id) VALUES (?)').run(s.id);
-    for (const { rid } of prepared(db, 'SELECT rid FROM repositories').all() as { rid: string }[])
-      refreshPublication(db, rid);
+    if (
+      previous &&
+      (previous.publication_policy !== s.policy ||
+        previous.metadata_priority !== s.metadataPriority)
+    )
+      for (const { rid } of prepared(
+        db,
+        'SELECT rid FROM source_route_state WHERE source_id=? UNION SELECT rid FROM repository_metadata WHERE source_id=?',
+      ).all(s.id, s.id) as { rid: string }[])
+        refreshPublication(db, rid);
     if (s.policy === 'quarantine' && previous?.publication_policy !== 'quarantine')
       db.exec('DELETE FROM stats_samples');
     if (s.policy !== 'quarantine' || (previous && previous.publication_policy !== 'quarantine'))
@@ -270,6 +289,8 @@ export function publishDeferredDemo(db: Db) {
       DELETE FROM repositories_fts;
       INSERT INTO repositories_fts(rid,name,description)
         SELECT rid,name,description FROM selected_metadata WHERE rid IN (SELECT rid FROM deferred_demo_provenance);
+      DELETE FROM repository_search_rows;
+      INSERT INTO repository_search_rows SELECT rid,rowid FROM repositories_fts;
       DROP TABLE deferred_demo_provenance;`);
     incrementRevision(db);
   })();

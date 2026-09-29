@@ -120,11 +120,40 @@ export function pendingJobs(db: Db, now: number, limit = 100) {
   ).run(now);
   return db
     .prepare(
-      `SELECT j.* FROM metadata_jobs j JOIN sources s ON s.id=j.source_id JOIN source_health h ON h.source_id=s.id
+      `WITH ready AS (SELECT j.*,ROW_NUMBER() OVER (PARTITION BY j.source_id ORDER BY j.priority,j.due_at,j.key COLLATE BINARY) rotation FROM metadata_jobs j JOIN sources s ON s.id=j.source_id JOIN source_health h ON h.source_id=s.id
     WHERE j.status='pending' AND j.due_at<=? AND s.enabled=1 AND h.paused=0 AND (h.retry_at IS NULL OR h.retry_at<=?)
-    ORDER BY j.priority,j.due_at,j.key COLLATE BINARY LIMIT ?`,
+    ) SELECT * FROM ready ORDER BY rotation,priority,due_at,key COLLATE BINARY LIMIT ?`,
     )
     .all(now, now, limit) as Job[];
+}
+/** Batch budget deferral prevents thousands of ineligible jobs hiding catalog work. */
+export function deferExhaustedBudgets(db: Db, now: number, limits: Config['collection']) {
+  const sourceIds = db.prepare('SELECT id FROM sources WHERE enabled=1').all() as { id: string }[];
+  for (const { id } of sourceIds) {
+    const usage = db
+      .prepare('SELECT COUNT(*) count,MIN(at) oldest FROM request_usage WHERE source_id=? AND at>?')
+      .get(id, now - 3600000) as { count: number; oldest: number | null };
+    if (usage.count >= limits.requestsPerSourcePerHour) {
+      db.prepare(
+        "UPDATE metadata_jobs SET due_at=MAX(due_at,?),last_error='budget-deferred' WHERE source_id=? AND status='pending' AND due_at<=?",
+      ).run(usage.oldest! + 3600000, id, now);
+      continue;
+    }
+    for (const [task, limit] of [
+      ['metadata', limits.unresolvedMetadataPerHour],
+      ['other-inventory', limits.otherInventoriesPerHour],
+    ] as const) {
+      const used = db
+        .prepare(
+          'SELECT COUNT(*) count,MIN(at) oldest FROM request_usage WHERE source_id=? AND task=? AND at>?',
+        )
+        .get(id, task, now - 3600000) as typeof usage;
+      if (used.count >= limit)
+        db.prepare(
+          "UPDATE metadata_jobs SET due_at=MAX(due_at,?),last_error='budget-deferred' WHERE source_id=? AND task=? AND status='pending' AND due_at<=?",
+        ).run(used.oldest! + 3600000, id, task, now);
+    }
+  }
 }
 export function claimJob(db: Db, key: string, owner: string, now: number, leaseMs: number) {
   return (

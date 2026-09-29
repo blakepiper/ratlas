@@ -41,6 +41,11 @@ function sourceState(info: Summary | undefined) {
     return 'Source interface unsupported';
   if (info.coverage.collectionStatus === 'degraded') return 'Collection gap · cached observations';
   if (info.coverage.collectionStatus === 'idle') return 'Collection idle · cached observations';
+  if (
+    info.mode === 'live' &&
+    ['stopped', 'stale', 'never-started'].includes(info.coverage.collector.state)
+  )
+    return `Collector ${info.coverage.collector.state} · cached observations`;
   return 'Source observations cached';
 }
 

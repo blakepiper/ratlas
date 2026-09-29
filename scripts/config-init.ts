@@ -28,7 +28,7 @@ const preset = z
   .parse(JSON.parse(readFileSync('config/presets/public-v1.json', 'utf8')));
 const config = configSchema.parse({
   mode: 'live',
-  storage: { databasePath: '.ratlas/live/ratlas.sqlite' },
+  storage: { databasePath: '.ratlas/public-v1/ratlas.sqlite' },
   sourcePreset: { version: preset.version, lastChecked: preset.lastChecked },
   httpSources: preset.sources,
 });
@@ -39,6 +39,8 @@ console.log(
       preset: config.sourcePreset,
       endpoints: config.httpSources,
       budgets: config.collection,
+      storage: config.storage,
+      existingDatabase: existsSync(config.storage.databasePath),
       collectionMode: values.mode,
       startup: `./ratlas-guix bash scripts/start-production.sh ${values.output}${values.mode === 'continuous' ? ' --continuous' : ''}`,
       writing: values.write,

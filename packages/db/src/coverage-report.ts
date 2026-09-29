@@ -1,3 +1,5 @@
+import { referenceCompleteness } from './references.js';
+export { referenceCompleteness } from './references.js';
 import { createHash } from 'node:crypto';
 import { windowStart, type Config, type ObservationWindow } from '@ratlas/core';
 import type { Db } from './connection.js';
@@ -85,6 +87,17 @@ function windowReport(db: Db, window: ObservationWindow, now: number) {
         (nid) => !others.some((o) => o.nodes.has(nid)),
       ).length;
       const uniquePairs = [...s.pairs].filter((key) => pairs.get(key)!.sources.size === 1).length;
+      const metadata = db
+        .prepare(
+          `SELECT name,description FROM eligible_metadata WHERE source_id=$source AND rid IN (SELECT DISTINCT rid FROM (${routeSql}) WHERE source_id=$source)`,
+        )
+        .all({ ...params, source: id }) as { name: string | null; description: string | null }[];
+      const sourceDegrees = new Map<string, Set<string>>();
+      for (const row of rows.filter((row) => row.source_id === id)) {
+        const hosts = sourceDegrees.get(row.rid) ?? new Set<string>();
+        hosts.add(row.nid);
+        sourceDegrees.set(row.rid, hosts);
+      }
       return {
         sourceId: id,
         repositories: s.repos.size,
@@ -94,6 +107,11 @@ function windowReport(db: Db, window: ObservationWindow, now: number) {
         overlappingRepositories: s.repos.size - uniqueRids,
         uniqueSubjectNodes: uniqueNodes,
         uniqueHostingPairs: uniquePairs,
+        multiHostRepositories: [...sourceDegrees.values()].filter((hosts) => hosts.size >= 2)
+          .length,
+        usableNames: metadata.filter((m) => m.name?.trim()).length,
+        missingNames: s.repos.size - metadata.filter((m) => m.name?.trim()).length,
+        missingDescriptions: s.repos.size - metadata.filter((m) => m.description?.trim()).length,
       };
     });
   const journeys = [...nodeRepos]
@@ -208,8 +226,22 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
         outcome: string | null;
       }[];
       const completed = refreshes.filter((r) => r.outcome === 'success');
+      const announcements = db
+        .prepare(
+          "SELECT COUNT(*) total,COUNT(last_announced_at) known,MAX(last_announced_at) latest FROM eligible_routes WHERE source_id=? AND state='present'",
+        )
+        .get(source.id) as { total: number; known: number; latest: number | null };
       return {
         ...source,
+        announcementKnowledge: {
+          presentSourceRoutes: announcements.total,
+          withIndependentTimestamp: announcements.known,
+          unknownTimestamp: announcements.total - announcements.known,
+          latestAgeMs:
+            announcements.latest === null ? null : Math.max(0, ref - announcements.latest),
+          meaning:
+            'Independent announcement age; successful cached HTTP reads only refresh observation time',
+        },
         catalog: catalog
           ? {
               status: catalog.completed_at ? 'bounded-enumeration' : 'partial',
@@ -228,10 +260,8 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
             }
           : { status: 'unknown' },
         referenceCompleteness: {
-          catalog: null,
-          inventory: null,
-          metadata: null,
-          reason: 'Independent reference enumeration not supplied',
+          catalog: referenceCompleteness(db, source.id, 'catalog'),
+          inventory: referenceCompleteness(db, source.id, 'inventory'),
         },
         backlog: {
           jobs: pending.count,
@@ -241,7 +271,42 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
           candidateSubjects: candidates,
           minimumCandidateDrainHours: candidates / config.collection.otherInventoriesPerHour,
           maximumSubjectRequestsPerDay: 24 * config.collection.otherInventoriesPerHour,
+          minimumUnresolvedMetadataDrainHours:
+            count(
+              db,
+              "SELECT COUNT(*) count FROM metadata_jobs WHERE source_id=? AND task='metadata' AND last_success IS NULL",
+              source.id,
+            ) / config.collection.unresolvedMetadataPerHour,
         },
+        metadata: {
+          variants: count(
+            db,
+            'SELECT COUNT(*) count FROM eligible_metadata WHERE source_id=?',
+            source.id,
+          ),
+          conflictingRepositories: count(
+            db,
+            'SELECT COUNT(*) count FROM (SELECT rid FROM eligible_metadata GROUP BY rid HAVING COUNT(DISTINCT content_hash)>1) WHERE rid IN (SELECT rid FROM eligible_metadata WHERE source_id=?)',
+            source.id,
+          ),
+          permanentEntityErrors: count(
+            db,
+            "SELECT COUNT(*) count FROM metadata_jobs WHERE source_id=? AND last_error IN ('http-not-found','unsupported-schema','unsupported-cli')",
+            source.id,
+          ),
+          retryableJobs: count(
+            db,
+            "SELECT COUNT(*) count FROM metadata_jobs WHERE source_id=? AND last_error IN ('timeout','http-retryable','process-failed')",
+            source.id,
+          ),
+        },
+        outageMs: (
+          db
+            .prepare(
+              'SELECT COALESCE(SUM(MAX(0,MIN(COALESCE(ended_at,?),?)-MAX(started_at,?))),0) total FROM coverage_gaps WHERE source_id=? AND started_at<? AND (ended_at IS NULL OR ended_at>?)',
+            )
+            .get(ref, ref, ref - 86400000, source.id, ref, ref - 86400000) as { total: number }
+        ).total,
         freshness: {
           selfInventoryAttempts: refreshes.length,
           successfulAttempts: completed.length,
@@ -251,6 +316,15 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
               r.ended_at !== null &&
               r.ended_at - r.scheduled_at <= 2 * config.collection.inventoryRefreshMs,
           ).length,
+          successfulScheduledPercentWithinTwoIntervals: completed.length
+            ? (100 *
+                completed.filter(
+                  (r) =>
+                    r.ended_at !== null &&
+                    r.ended_at - r.scheduled_at <= 2 * config.collection.inventoryRefreshMs,
+                ).length) /
+              completed.length
+            : null,
           reachableSupportedDenominator: null,
           reason:
             'Reachability-qualified schedule denominator requires completed experiment evaluation',
@@ -267,7 +341,7 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
       evaluation: {
         from: new Date(ref - 86400000).toISOString(),
         to: new Date(ref).toISOString(),
-        activeCollectionHours: null,
+        activeCollectionHours: null as number | null,
         wallElapsedSinceCollectorStartHours: collector
           ? (ref - collector.started_at) / 3600000
           : null,
@@ -338,7 +412,35 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
           met: (current.metadata.namePercent ?? 0) >= 90,
         },
         sustained24Hours: 'unverified',
-        sourceRelativeCompleteness: 'unknown',
+        sourceRelativeCompleteness: sourceReports.map((s) => ({
+          sourceId: s.id,
+          catalog: {
+            targetPercent: 95,
+            observedPercent: s.referenceCompleteness.catalog.percent,
+            met:
+              s.referenceCompleteness.catalog.percent === null
+                ? null
+                : s.referenceCompleteness.catalog.percent >= 95,
+          },
+          inventory: {
+            targetPercent: 95,
+            observedPercent: s.referenceCompleteness.inventory.percent,
+            met:
+              s.referenceCompleteness.inventory.percent === null
+                ? null
+                : s.referenceCompleteness.inventory.percent >= 95,
+          },
+          metadata: {
+            targetPercent: 95,
+            observedPercent: s.referenceCompleteness.catalog.metadataPercent,
+            met:
+              s.referenceCompleteness.catalog.metadataPercent === null
+                ? null
+                : s.referenceCompleteness.catalog.metadataPercent >= 95,
+          },
+          qualification:
+            'Single bounded references; stability and source timing must be reviewed before acceptance',
+        })),
         operatorDiversity: 'consult reviewed registry',
         userAcceptance: 'not received',
       },
@@ -347,5 +449,5 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
 }
 
 export function renderCoverageMarkdown(report: ReturnType<typeof coverageReport>) {
-  return `# ratlas public coverage\n\nRevision: ${report.applicationRevision}\n\nEvaluation: ${report.evaluation.from} to ${report.evaluation.to}; mode: ${report.dataMode}.\n\nCollector: ${report.collector.state}. Successful distinct observers: ${report.distinctSuccessfulObserverNids}.\n\n| Window | Header repositories | Hosting RIDs | Subjects | Pairs | Multi-host RIDs | Metadata-only | Name coverage |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n${report.windows.map((w) => `| ${w.window} | ${w.header.repositories} | ${w.hostingRepositories} | ${w.subjectNodes} | ${w.hostingPairs} | ${w.multiHostRepositories} | ${w.metadataOnly} | ${w.metadata.namePercent?.toFixed(1) ?? 'unknown'}% |`).join('\n')}\n\n| Source | Observer | Catalog | Page progress | Reference completeness | Deferred jobs |\n| --- | --- | --- | --- | --- | --- |\n${report.sourceCohort.map((s) => `| ${s.id} | ${s.observerNid ?? 'unknown'} | ${s.catalog.status} | ${'nextPage' in s.catalog ? s.catalog.nextPage : 'unknown'} | unknown | ${s.backlog.budgetDeferred} |`).join('\n')}\n\nIndependent completeness denominators, reachability-qualified freshness and 24-hour active collection remain unverified unless separately evaluated. Counts describe observed public evidence, not verified uptime or global network coverage. Candidates create no hosting edges.\n`;
+  return `# ratlas public coverage\n\nRevision: ${report.applicationRevision}\n\nEvaluation: ${report.evaluation.from} to ${report.evaluation.to}; mode: ${report.dataMode}.\n\nCollector: ${report.collector.state}. Successful distinct observers: ${report.distinctSuccessfulObserverNids}.\n\n| Window | Header repositories | Hosting RIDs | Subjects | Pairs | Multi-host RIDs | Metadata-only | Name coverage |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n${report.windows.map((w) => `| ${w.window} | ${w.header.repositories} | ${w.hostingRepositories} | ${w.subjectNodes} | ${w.hostingPairs} | ${w.multiHostRepositories} | ${w.metadataOnly} | ${w.metadata.namePercent?.toFixed(1) ?? 'unknown'}% |`).join('\n')}\n\n| Source | Observer | Catalog | Page progress | Reference completeness | Deferred jobs |\n| --- | --- | --- | --- | --- | --- |\n${report.sourceCohort.map((s) => `| ${s.id} | ${s.observerNid ?? 'unknown'} | ${s.catalog.status} | ${'nextPage' in s.catalog ? s.catalog.nextPage : 'unknown'} | catalog ${s.referenceCompleteness.catalog.percent?.toFixed(1) ?? 'unknown'}%; inventory ${s.referenceCompleteness.inventory.percent?.toFixed(1) ?? 'unknown'}% | ${s.backlog.budgetDeferred} |`).join('\n')}\n\nIndependent completeness denominators, reachability-qualified freshness and 24-hour active collection remain unverified unless separately evaluated. Counts describe observed public evidence, not verified uptime or global network coverage. Candidates create no hosting edges.\n`;
 }

@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { execFileSync } from 'node:child_process';
 import { loadConfig } from '../apps/service/src/commands/config.js';
 import { runExperiment } from '../apps/service/src/collector/experiment.js';
 import { checkToolchain } from './check-toolchain.mjs';
@@ -27,6 +28,7 @@ try {
     directory: resolve('.ratlas/reports/experiment'),
     durationMs: 86400000,
     signal: controller.signal,
+    applicationRevision: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
   });
   console.log(
     JSON.stringify({

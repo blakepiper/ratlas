@@ -35,7 +35,9 @@
     "demo:reset": "node scripts/run.mjs demo:reset",
     "source:probe": "node scripts/run.mjs source:probe",
     "config:init": "node scripts/run.mjs config:init",
-    "coverage:report": "node scripts/run.mjs coverage:report"
+    "coverage:report": "node scripts/run.mjs coverage:report",
+    "coverage:browser": "node scripts/run.mjs coverage:browser",
+    "source:enumerate": "node scripts/run.mjs source:enumerate"
   },
   "devDependencies": {
     "typescript": "5.9.3",

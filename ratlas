@@ -3,19 +3,20 @@ set -euo pipefail
 
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
-if (( $# == 0 )); then
-  config=config/ratlas.local.json
-elif (( $# == 2 )) && [[ "$1" == --config && -n "$2" ]]; then
-  config=$2
-else
-  printf 'Usage: ./ratlas [--config path]\n' >&2
-  exit 2
-fi
+config=config/ratlas.local.json
+collection_mode=refresh
+while (( $# )); do
+  case "$1" in
+    --config) (( $# >= 2 )) || exit 2; config=$2; shift 2 ;;
+    --continuous) collection_mode=--continuous; shift ;;
+    *) printf 'Usage: ./ratlas [--config path] [--continuous]\n' >&2; exit 2 ;;
+  esac
+done
 
 if [[ ! -f "$config" ]]; then
   printf 'ratlas live config is missing: %s\n' "$config" >&2
-  printf 'Copy config/ratlas.example.json to config/ratlas.local.json and configure an approved public source.\n' >&2
+  printf 'Preview public sources with ./ratlas-guix pnpm config:init; add --write to create new local settings.\n' >&2
   exit 2
 fi
 
-exec nix develop --command bash scripts/start-production.sh "$config"
+exec ./ratlas-guix --supervise bash scripts/start-production.sh "$config" "$collection_mode"

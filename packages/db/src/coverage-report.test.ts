@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { configSchema, sourceSchema, syntheticRid, syntheticNid } from '@ratlas/core';
 import { openWriter, migrate } from './connection.js';
 import { registerSource, observe, storeMetadata } from './observations.js';
-import { coverageReport } from './coverage-report.js';
+import { coverageReport, referenceCompleteness } from './coverage-report.js';
 import { admitCandidate } from './candidates.js';
 
 it('reports source overlap, multi-host topology, metadata-only and quarantine separately', () => {
@@ -92,8 +92,53 @@ it('reports source overlap, multi-host topology, metadata-only and quarantine se
     expect(json).not.toContain(rid(9));
     expect(json).not.toContain(nid(9));
     expect(json).not.toContain('private/path');
-    expect(report.sourceCohort.every((s) => s.referenceCompleteness.catalog === null)).toBe(true);
+    expect(
+      report.sourceCohort.every((s) => s.referenceCompleteness.catalog.status === 'unknown'),
+    ).toBe(true);
     expect(report.collector.state).toBe('never-started');
+    for (const [id, started, status] of [
+      ['older', now - 1000, 'complete'],
+      ['latest', now, 'complete'],
+    ] as const)
+      writer.db
+        .prepare(
+          "INSERT INTO reference_enumerations(id,source_id,kind,observer_nid,schema_version,started_at,ended_at,status,pages) VALUES (?,'a','catalog',?,'fixture',?,?,?,1)",
+        )
+        .run(id, nid(1), started, started + 1, status);
+    writer.db.prepare('INSERT INTO reference_members VALUES (?, ?, ?)').run('older', rid(2), null);
+    const hash = (
+      writer.db
+        .prepare("SELECT content_hash FROM repository_metadata WHERE source_id='a' AND rid=?")
+        .get(rid(1)) as { content_hash: string }
+    ).content_hash;
+    writer.db.prepare('INSERT INTO reference_members VALUES (?, ?, ?)').run('latest', rid(1), hash);
+    writer.db.prepare('INSERT INTO reference_members VALUES (?, ?, ?)').run('latest', rid(2), null);
+    expect(referenceCompleteness(writer.db, 'a', 'catalog')).toMatchObject({
+      status: 'unstable-reference',
+      denominator: null,
+      ingested: 1,
+      percent: null,
+      metadataPercent: null,
+      consecutiveDifference: { added: 1, removed: 0 },
+      stability: 'changed',
+      omissions: { unavailableOrPending: 1 },
+    });
+    writer.db.prepare('INSERT INTO reference_members VALUES (?, ?, ?)').run('older', rid(1), hash);
+    expect(referenceCompleteness(writer.db, 'a', 'catalog')).toMatchObject({
+      status: 'bounded-reference',
+      denominator: 2,
+      percent: 50,
+      metadataPercent: 50,
+      stability: 'same bounded set',
+    });
+    writer.db.prepare("UPDATE reference_enumerations SET status='partial' WHERE id='latest'").run();
+    expect(referenceCompleteness(writer.db, 'a', 'catalog')).toMatchObject({
+      status: 'partial',
+      denominator: null,
+      percent: null,
+      metadataPercent: null,
+      sampledMembers: 2,
+    });
   } finally {
     writer.close();
   }

@@ -19,6 +19,8 @@ import {
   migrate,
   openWriter,
   publicSummary,
+  coverageReport,
+  renderCoverageMarkdown,
   sources,
   type Db,
 } from '@ratlas/db';
@@ -122,6 +124,8 @@ type State = {
   before: StorageMeasurement;
   baseline: Sample;
   samples: number;
+  peakRss?: number;
+  sessions?: { id: string; startedAt: string; stoppedAt?: string; activeMs?: number }[];
 };
 export function readExperimentState(
   path: string,
@@ -161,6 +165,7 @@ export async function runExperiment(
     signal: AbortSignal;
     sampleIntervalMs?: number;
     collectorDependencies?: ConstructorParameters<typeof Collector>[3];
+    applicationRevision?: string;
   },
 ) {
   if (config.mode !== 'live') throw new Error('Experiment requires live configuration');
@@ -215,6 +220,14 @@ export async function runExperiment(
     let failure: unknown;
     let reachedDeadline = false;
     const sessionId = randomUUID();
+    const session = {
+      id: sessionId,
+      startedAt: new Date().toISOString(),
+      stoppedAt: '',
+      activeMs: 0,
+    };
+    state.sessions ??= [];
+    state.sessions.push(session);
     let latest = state.baseline;
     const sample = () => {
       latest = experimentSample(writer.db);
@@ -228,6 +241,8 @@ export async function runExperiment(
         { mode: 0o600 },
       );
       state.samples++;
+      state.peakRss = Math.max(state.peakRss ?? 0, latest.collectorMemory.rss);
+      session.activeMs = state.completedMs - initial;
       save(statePath, state);
     };
     sample();
@@ -276,6 +291,8 @@ export async function runExperiment(
     }
     if (samplingError) throw samplingError;
     sample();
+    session.stoppedAt = latest.at;
+    save(statePath, state);
     const failedSources = latest.perSource.filter((source) => source.error || source.paused).length;
     const status = failure
       ? 'failed'
@@ -293,6 +310,14 @@ export async function runExperiment(
       status,
       sampleIntervalMs: interval,
       samples: state.samples,
+      sessions: state.sessions,
+      sampledPeakRssBytes: state.peakRss,
+      wallElapsedMs: Date.parse(latest.at) - Date.parse(state.startedAt),
+      downtimeMs: Math.max(
+        0,
+        Date.parse(latest.at) - Date.parse(state.startedAt) - state.completedMs,
+      ),
+      applicationRevision: options.applicationRevision ?? 'unknown',
       timeSeries: 'samples.ndjson',
       latest,
       baseline: state.baseline,
@@ -314,6 +339,24 @@ export async function runExperiment(
         'All-retained public evidence; per-source counts use that source evidence. CPU values are process-cumulative microseconds within each sessionId; memory is bytes. Samples target five-second intervals; timestamps expose scheduler delays. Decoded bytes are not wire traffic. Restart downtime is excluded.',
     };
     save(join(directory, 'last-run.json'), report);
+    const coverage = coverageReport(
+      writer.db,
+      config,
+      Date.parse(latest.at),
+      options.applicationRevision,
+    );
+    coverage.evaluation.activeCollectionHours = state.completedMs / 3600000;
+    coverage.gates.sustained24Hours =
+      state.completedMs >= 86400000 && !failure
+        ? 'elapsed-time-met; review freshness and source errors'
+        : 'unverified';
+    save(join(directory, 'coverage.json'), { ...coverage, experiment: report });
+    writeFileSync(
+      join(directory, 'coverage.md'),
+      renderCoverageMarkdown(coverage) +
+        `\nActive collection: ${state.completedMs / 3600000} hours. Experiment status: ${status}. Sampled peak RSS: ${state.peakRss} bytes. Restart downtime is excluded.\n`,
+      { mode: 0o600 },
+    );
     return { report, exitCode: status === 'completed' ? 0 : 1 };
   } finally {
     clearInterval(timer);

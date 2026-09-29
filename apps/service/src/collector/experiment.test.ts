@@ -64,6 +64,12 @@ it('persists telemetry, resumes an interrupted collector, and refuses mismatched
   expect(resumed.report.completedMs).toBe(2400);
   expect(resumed.report.samples).toBeGreaterThan(first.report.samples);
   expect(resumed.report.baseline).toEqual(first.report.baseline);
+  expect(resumed.report.sessions).toHaveLength(2);
+  expect(resumed.report.sessions?.every((s) => s.stoppedAt && s.activeMs! >= 0)).toBe(true);
+  const coverage = JSON.parse(readFileSync(join(directory, 'coverage.json'), 'utf8'));
+  expect(coverage.evaluation.activeCollectionHours).toBe(2400 / 3600000);
+  expect(coverage.gates.sustained24Hours).toBe('unverified');
+  expect(coverage.experiment.sampledPeakRssBytes).toBeGreaterThan(0);
   const samples = readFileSync(join(directory, 'samples.ndjson'), 'utf8')
     .trim()
     .split('\n')

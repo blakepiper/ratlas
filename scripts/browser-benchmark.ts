@@ -6,7 +6,7 @@ import { configSchema } from '../packages/core/src/index.js';
 import { dataset, openReader } from '../packages/db/src/index.js';
 import { createApi } from '../apps/service/src/api/server.js';
 import { checkToolchain } from './check-toolchain.mjs';
-import { firefoxLaunchEnvironment } from './firefox-env.js';
+import { firefoxLaunchEnvironment, firefoxUserPreferences } from './firefox-env.js';
 
 async function measureWebglInteraction(page: Page, map: Locator) {
   const canvas = map.locator('[data-graph-renderer="webgl"] canvas').first();
@@ -75,7 +75,11 @@ let browser: Awaited<ReturnType<typeof firefox.launch>> | undefined;
 const samples = [];
 try {
   const launchStart = performance.now();
-  browser = await firefox.launch({ headless: true, env: firefoxLaunchEnvironment() });
+  browser = await firefox.launch({
+    headless: true,
+    env: firefoxLaunchEnvironment(),
+    firefoxUserPrefs: firefoxUserPreferences(),
+  });
   const launchMs = performance.now() - launchStart;
   mkdirSync('.ratlas/reviews/R6', { recursive: true, mode: 0o700 });
   for (const viewport of [

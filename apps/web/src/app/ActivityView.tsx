@@ -247,6 +247,32 @@ export function ActivityView({
           <h2>Source coverage</h2>
           <p>{coverage?.limitations ?? 'Loading source coverage…'}</p>
           <p>Collection status: {coverage?.collectionStatus ?? 'Loading'}</p>
+          <p>
+            Collector: {coverage?.collector.state ?? 'Loading'}. Last heartbeat:{' '}
+            {dateLabel(coverage?.collector.heartbeat)}.
+          </p>
+          {coverage && (
+            <p>
+              {coverage.metrics.hostingRepositories} repositories with hosting evidence;{' '}
+              {coverage.metrics.metadataOnlyRepositories} metadata-only records;{' '}
+              {coverage.metrics.multiHostRepositories} repositories on multiple nodes.{' '}
+              {coverage.metrics.publicCandidates} public candidates (separate from hosting nodes).
+            </p>
+          )}
+          {coverage?.metrics.catalogs.map((catalog) => (
+            <p key={catalog.sourceId}>
+              {catalog.sourceId} catalog: {catalog.status}, {catalog.records} records through{' '}
+              {catalog.nextPage} pages. Independent reference ingestion: catalog{' '}
+              {catalog.catalogPercent === null
+                ? 'unknown'
+                : `${catalog.catalogPercent.toFixed(1)}%`}
+              ; self-inventory{' '}
+              {catalog.inventoryPercent === null
+                ? 'unknown'
+                : `${catalog.inventoryPercent.toFixed(1)}%`}
+              . These are bounded source references.
+            </p>
+          ))}
           <p>{summary?.unresolvedMetadata ?? '—'} repository names unresolved.</p>
           {coverage && (
             <dl className={styles.metrics}>

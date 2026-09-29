@@ -14,6 +14,7 @@ import { firefox } from '@playwright/test';
 import type Database from 'better-sqlite3';
 import { nativeDatabase, nativeBinding } from '../packages/db/src/native.js';
 import { checkToolchain } from './check-toolchain.mjs';
+import { firefoxLaunchEnvironment, firefoxUserPreferences } from './firefox-env.js';
 
 export async function toolchainSmoke() {
   process.umask(0o077);
@@ -40,14 +41,37 @@ export async function toolchainSmoke() {
     );
   }
   const bundle = process.env.PLAYWRIGHT_BROWSERS_PATH;
-  assert.ok(typeof bundle === 'string' && bundle.startsWith('/nix/store/'));
+  const guix = process.env.RATLAS_DEV_PLATFORM === 'guix';
+  assert.ok(
+    typeof bundle === 'string' &&
+      (guix ? bundle === resolve('.ratlas/firefox-runtime') : bundle.startsWith('/nix/store/')),
+  );
   const entries = readdirSync(bundle);
   assert.equal(entries.length, 1);
   assert.match(entries[0] ?? '', /^firefox-\d+$/u);
   const executable = firefox.executablePath();
   assert.ok(executable.startsWith(`${bundle}/`));
   assert.ok(realpathSync(executable).startsWith(realpathSync(resolve(bundle, entries[0]!))));
-  const closure = execFileSync('nix', ['path-info', '--recursive', bundle], { encoding: 'utf8' });
+  const runtime = guix
+    ? (JSON.parse(readFileSync('.ratlas/firefox-artifact/runtime.json', 'utf8')) as {
+        archiveSha256: string;
+        roots: string[];
+        revision: string;
+        playwrightVersion: string;
+      })
+    : null;
+  if (runtime) {
+    assert.equal(runtime.playwrightVersion, versions.playwright);
+    assert.equal(runtime.revision, '1511');
+    assert.equal(
+      runtime.archiveSha256,
+      'cca34e60c472e94fc8f664cbaf8f286f62f78e9ca21ac2643cf95c932f099607',
+    );
+    assert.ok(runtime.roots.every((p) => p.startsWith('/gnu/store/')));
+  }
+  const closure = runtime
+    ? execFileSync('guix', ['gc', '--requisites', ...runtime.roots], { encoding: 'utf8' })
+    : execFileSync('nix', ['path-info', '--recursive', bundle], { encoding: 'utf8' });
   assert.doesNotMatch(
     closure,
     /\/(?:[^/\n]*-)(?:chromium|google-chrome|chrome-headless-shell|webkitgtk)(?:-|\n)/iu,
@@ -102,7 +126,11 @@ export async function toolchainSmoke() {
   } finally {
     reopened.close();
   }
-  const browser = await firefox.launch({ headless: true });
+  const browser = await firefox.launch({
+    headless: true,
+    env: firefoxLaunchEnvironment(),
+    firefoxUserPrefs: firefoxUserPreferences(),
+  });
   let browserVersion: string;
   try {
     browserVersion = browser.version();

@@ -13,9 +13,8 @@ export RATLAS_PNPM_VERSION=10.34.0
 export RATLAS_PLAYWRIGHT_VERSION=1.59.1
 export RATLAS_TEST_BROWSER=firefox
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-# There is no approved Guix Playwright Firefox package yet. Never discover a
-# host browser or use a browser left in the user's Playwright cache.
-export PLAYWRIGHT_BROWSERS_PATH="$PWD/.ratlas/unavailable-guix-firefox"
+# Only the explicitly prepared, matched project-local Firefox bundle is used.
+export PLAYWRIGHT_BROWSERS_PATH="$PWD/.ratlas/firefox-runtime"
 export npm_config_build_from_source=true
 export npm_config_force_build=1
 export npm_config_jobs=2

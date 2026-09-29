@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import { firefoxLaunchEnvironment } from './scripts/firefox-env.js';
+import { firefoxLaunchEnvironment, firefoxUserPreferences } from './scripts/firefox-env.js';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -11,7 +11,7 @@ export default defineConfig({
   use: {
     browserName: 'firefox',
     headless: true,
-    launchOptions: { env: firefoxLaunchEnvironment() },
+    launchOptions: { env: firefoxLaunchEnvironment(), firefoxUserPrefs: firefoxUserPreferences() },
     deviceScaleFactor: 1,
     locale: 'en-US',
     timezoneId: 'UTC',

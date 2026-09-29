@@ -102,6 +102,28 @@ export const maintenanceViewSchema = z.strictObject({
   eventBacklogHighWater: count,
 });
 export const coverageSchema = z.strictObject({
+  collector: z.strictObject({
+    state: z.enum(['running', 'stopped', 'stale', 'never-started', 'offline-demo']),
+    heartbeat: z.string().nullable(),
+  }),
+  metrics: z.strictObject({
+    hostingRepositories: z.number().int().nonnegative(),
+    metadataOnlyRepositories: z.number().int().nonnegative(),
+    multiHostRepositories: z.number().int().nonnegative(),
+    publicCandidates: z.number().int().nonnegative(),
+    catalogs: z.array(
+      z.strictObject({
+        sourceId: z.string(),
+        status: z.enum(['unknown', 'partial', 'bounded-enumeration']),
+        nextPage: z.number().int().nonnegative(),
+        records: z.number().int().nonnegative(),
+        completedAt: z.string().nullable(),
+        catalogPercent: z.number().min(0).max(100).nullable(),
+        inventoryPercent: z.number().min(0).max(100).nullable(),
+        metadataPercent: z.number().min(0).max(100).nullable(),
+      }),
+    ),
+  }),
   sources: z.array(sourceViewSchema),
   retainedHistoryFrom: iso,
   limitations: z.string(),

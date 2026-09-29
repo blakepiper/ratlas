@@ -43,6 +43,11 @@ export function pruneExpired(db: Db, retention: Retention, now: number) {
     if (deleted < batchSize) break;
   }
   deleteBatch(
+    `DELETE FROM inventory_refreshes WHERE id IN
+    (SELECT id FROM inventory_refreshes WHERE ended_at<? ORDER BY ended_at,id LIMIT ${batchSize})`,
+    observationCutoff,
+  );
+  deleteBatch(
     `DELETE FROM route_changes WHERE id IN
     (SELECT id FROM route_changes WHERE observed_at<? ORDER BY observed_at,id LIMIT ${batchSize})`,
     transitionCutoff,

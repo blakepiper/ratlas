@@ -2,4 +2,4 @@
 set -euo pipefail
 
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
-exec nix develop --command bash scripts/start-demo.sh "$@"
+exec ./ratlas-guix --supervise bash scripts/start-demo.sh "$@"

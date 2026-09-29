@@ -17,6 +17,7 @@ import {
   type Config,
 } from '@ratlas/core';
 import type { Db } from './connection.js';
+import { referenceCompleteness } from './references.js';
 import { dataset, referenceTime, ftsLiteral } from './queries.js';
 export const iso = (value: number | null) =>
   value === null ? null : new Date(value).toISOString();
@@ -176,7 +177,114 @@ export function retentionBoundary(db: Db) {
   }
   return iso(meta.retention_boundary)!;
 }
-export function coverage(db: Db) {
+const coverageCounts = new WeakMap<Db, Map<string, object>>();
+const coverageReferences = new WeakMap<
+  Db,
+  {
+    at: number;
+    items: Map<
+      string,
+      {
+        catalogPercent: number | null;
+        inventoryPercent: number | null;
+        metadataPercent: number | null;
+      }
+    >;
+  }
+>();
+function coverageMetrics(db: Db, query: Filters, now: number) {
+  const ref = referenceTime(db, now);
+  const state = db
+    .prepare('SELECT heartbeat,stopped_at,scheduler_tick_ms FROM collector_status WHERE id=1')
+    .get() as
+    { heartbeat: number; stopped_at: number | null; scheduler_tick_ms: number } | undefined;
+  const { sql, parameters } = filterSql(db, query, now);
+  const key = JSON.stringify([dataRevision(db), Math.floor(ref / 15000), parameters]);
+  let cache = coverageCounts.get(db);
+  if (!cache) {
+    cache = new Map();
+    coverageCounts.set(db, cache);
+  }
+  let counts = cache.get(key);
+  if (!counts) {
+    counts = db
+      .prepare(
+        sql +
+          ` SELECT (SELECT COUNT(DISTINCT rid) FROM filtered_routes) hostingRepositories,(SELECT COUNT(*) FROM filtered_repos WHERE observedSeederCount=0) metadataOnlyRepositories,(SELECT COUNT(*) FROM filtered_repos WHERE observedSeederCount>=2) multiHostRepositories`,
+      )
+      .get(parameters) as object;
+    cache.set(key, counts);
+    if (cache.size > 8) cache.delete(cache.keys().next().value!);
+  }
+  const publicCandidates = (
+    db
+      .prepare(
+        "SELECT COUNT(DISTINCT c.nid) count FROM node_candidates c JOIN sources s ON s.id=c.evidence_source_id WHERE s.publication_policy!='quarantine'",
+      )
+      .get() as { count: number }
+  ).count;
+  let references = coverageReferences.get(db);
+  if (!references || Math.abs(ref - references.at) >= 15000) {
+    references = {
+      at: ref,
+      items: new Map(
+        sources(db).map((s) => {
+          const catalog = referenceCompleteness(db, s.id, 'catalog');
+          const inventory = referenceCompleteness(db, s.id, 'inventory');
+          return [
+            s.id,
+            {
+              catalogPercent: catalog.percent,
+              inventoryPercent: inventory.percent,
+              metadataPercent: catalog.metadataPercent,
+            },
+          ];
+        }),
+      ),
+    };
+    coverageReferences.set(db, references);
+  }
+  const catalogs = (
+    db
+      .prepare(
+        "SELECT p.* FROM catalog_progress p JOIN sources s ON s.id=p.source_id WHERE s.publication_policy!='quarantine' ORDER BY source_id",
+      )
+      .all() as {
+      source_id: string;
+      next_page: number;
+      records: number;
+      completed_at: number | null;
+    }[]
+  ).map((p) => ({
+    sourceId: p.source_id,
+    status: p.completed_at ? 'bounded-enumeration' : 'partial',
+    nextPage: p.next_page,
+    records: p.records,
+    completedAt: iso(p.completed_at),
+    ...(references!.items.get(p.source_id) ?? {
+      catalogPercent: null,
+      inventoryPercent: null,
+      metadataPercent: null,
+    }),
+  }));
+  return {
+    collector: {
+      state:
+        dataset(db).kind === 'demo'
+          ? 'offline-demo'
+          : !state
+            ? 'never-started'
+            : state.stopped_at !== null
+              ? 'stopped'
+              : ref - state.heartbeat > 3 * state.scheduler_tick_ms
+                ? 'stale'
+                : 'running',
+      heartbeat: iso(state?.heartbeat ?? null),
+    },
+    metrics: { ...counts, publicCandidates, catalogs },
+  };
+}
+export function coverage(db: Db, query: Filters = defaultQuery(), now = Date.now()) {
   const items = sources(db),
     enabled = items.filter((s) => s.enabled);
   const metrics = db.prepare('SELECT * FROM maintenance_state WHERE id=1').get() as Record<
@@ -184,6 +292,7 @@ export function coverage(db: Db) {
     number | null
   >;
   return coverageSchema.parse({
+    ...coverageMetrics(db, query, now),
     sources: items,
     retainedHistoryFrom: retentionBoundary(db),
     limitations:
@@ -237,7 +346,7 @@ export function publicSummary(db: Db, query: Filters, now = Date.now()) {
     observationWindow: query.window,
     referenceTime: iso(ref),
     datasetRevision: revision(db),
-    coverage: coverage(db),
+    coverage: coverage(db, query, now),
     windowBucket: Math.floor(ref / 15000),
   });
 }

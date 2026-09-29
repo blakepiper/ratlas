@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import { checkToolchain } from './check-toolchain.mjs';
 
 checkToolchain();
@@ -7,7 +8,8 @@ process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const [command, ...args] = process.argv.slice(2);
 if (
   process.env.RATLAS_DEV_PLATFORM === 'guix' &&
-  ['doctor', 'test:e2e', 'benchmark:browser', 'check'].includes(command)
+  !existsSync('.ratlas/firefox-runtime/firefox-1511/firefox/firefox') &&
+  ['doctor', 'test:e2e', 'benchmark:browser', 'coverage:browser', 'check'].includes(command)
 ) {
   console.error(
     'Guix Firefox automation is not configured. See docs/GUIX_DEVELOPMENT.md; browser checks were not run.',
@@ -44,7 +46,7 @@ const commands = {
   'test:e2e': () => {
     buildBackend();
     buildWeb();
-    tsx('scripts/e2e.ts');
+    tsx('scripts/firefox-run.ts', 'scripts/e2e.ts');
   },
   build: () => {
     buildBackend();
@@ -54,9 +56,18 @@ const commands = {
     buildBackend();
     tsx('scripts/coverage-report.ts', ...args);
   },
+  'coverage:browser': () => {
+    buildBackend();
+    buildWeb();
+    tsx('scripts/firefox-run.ts', 'scripts/coverage-browser.ts', ...args);
+  },
   'config:init': () => {
     buildBackend();
     tsx('scripts/config-init.ts', ...args);
+  },
+  'source:enumerate': () => {
+    buildBackend();
+    tsx('scripts/source-enumerate.ts', ...args);
   },
   'source:probe': () => {
     buildBackend();
@@ -64,7 +75,7 @@ const commands = {
   },
   doctor: () => {
     buildBackend();
-    tsx('scripts/doctor.ts', ...args);
+    tsx('scripts/firefox-run.ts', 'scripts/doctor.ts', ...args);
   },
   'db:migrate': () => {
     buildBackend();
@@ -89,7 +100,7 @@ const commands = {
   'benchmark:browser': () => {
     buildBackend();
     buildWeb();
-    tsx('scripts/browser-benchmark.ts');
+    tsx('scripts/firefox-run.ts', 'scripts/browser-benchmark.ts');
   },
   'demo:scenario': () => {
     buildBackend();
@@ -127,8 +138,10 @@ if (
   ![
     'doctor',
     'source:probe',
+    'source:enumerate',
     'config:init',
     'coverage:report',
+    'coverage:browser',
     'db:migrate',
     'db:backup',
     'collect',

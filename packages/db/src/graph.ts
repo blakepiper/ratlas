@@ -182,6 +182,6 @@ export function graphProjection(
           : 'all eligible entities within configured hard limits',
     datasetRevision: revision(db),
     generatedAt: iso(referenceTime(db, now)),
-    coverage: coverage(db),
+    coverage: coverage(db, query, now),
   });
 }

@@ -19,6 +19,7 @@ import {
   health,
   admitCandidate,
   publicCandidate,
+  deferExhaustedBudgets,
 } from '@ratlas/db';
 import { AdapterError } from '@ratlas/radicle';
 import { Collector } from './runtime.js';
@@ -49,6 +50,33 @@ beforeEach(() => {
   );
 });
 afterEach(() => writer.close());
+it('defers an exhausted metadata backlog in one batch while preserving catalog and source fairness', () => {
+  const db = writer.db;
+  registerSource(
+    db,
+    sourceSchema.parse({ id: 'other', label: 'other', adapter: 'http', policy: 'public-http' }),
+  );
+  for (let i = 0; i < 250; i++) scheduleJob(db, 'fixture', 'entity-' + i, 'metadata', at, 20);
+  scheduleJob(db, 'fixture', 'catalog', 'catalog', at + 1, 20);
+  scheduleJob(db, 'other', 'catalog', 'catalog', at + 1, 20);
+  const limits = { ...config.collection, unresolvedMetadataPerHour: 1 };
+  expect(
+    reserveRequest(db, 'fixture', 'https://fixture.invalid', 'metadata', at, limits),
+  ).toBeNull();
+  deferExhaustedBudgets(db, at + 1000, limits);
+  expect(pendingJobs(db, at + 1000, 2).map((j) => j.task)).toEqual(['catalog', 'catalog']);
+  expect(
+    (
+      db
+        .prepare(
+          "SELECT COUNT(*) n FROM metadata_jobs WHERE task='metadata' AND due_at=? AND last_error='budget-deferred'",
+        )
+        .get(at + 3600000) as { n: number }
+    ).n,
+  ).toBe(250);
+  expect((db.prepare('SELECT COUNT(*) n FROM request_usage').get() as { n: number }).n).toBe(1);
+  expect(pendingJobs(db, at + 3600000).some((j) => j.task === 'metadata')).toBe(true);
+});
 it('reclaims expired leases, prevents stale completion, and preserves stable job keys', () => {
   const db = writer.db;
   scheduleJob(db, 'fixture', rid, 'metadata', at, 1);
@@ -375,5 +403,39 @@ it('resumes catalog pages across a source budget and collector restart without l
   } finally {
     controller.abort();
     await restarted.close();
+  }
+});
+
+it('keeps catalog and self-inventory runnable after an entity metadata 404', async () => {
+  let now = at;
+  const controller = new AbortController();
+  const requested: string[] = [];
+  const collector = new Collector(writer.db, config, controller.signal, {
+    now: () => (now += 1001),
+    transport: () => ({
+      get: async (path) => {
+        requested.push(path);
+        if (path === 'node') return { id: nid, state: 'running' };
+        if (path.includes('/inventory')) return [rid];
+        if (path.startsWith('repos?')) return [];
+        throw new AdapterError('http-not-found');
+      },
+    }),
+  });
+  try {
+    await collector.run(true);
+    expect(requested.some((p) => p.startsWith('repos?'))).toBe(true);
+    expect(
+      writer.db
+        .prepare('SELECT current_error,retry_at FROM source_health WHERE source_id=?')
+        .get('fixture'),
+    ).toEqual({ current_error: null, retry_at: null });
+    expect(
+      writer.db.prepare("SELECT last_error FROM metadata_jobs WHERE task='metadata'").get(),
+    ).toEqual({ last_error: 'http-not-found' });
+    expect(summary(writer.db, 'all', now).hostingRelationships).toBe(1);
+  } finally {
+    controller.abort();
+    await collector.close();
   }
 });

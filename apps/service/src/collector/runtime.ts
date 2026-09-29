@@ -20,6 +20,7 @@ import {
   sourceFailure,
   scheduleJob,
   pendingJobs,
+  deferExhaustedBudgets,
   claimJob,
   renewJob,
   finishJob,
@@ -99,6 +100,9 @@ export class Collector {
         'INSERT INTO collector_status(id,started_at,heartbeat) VALUES (1,?,?) ON CONFLICT(id) DO UPDATE SET started_at=excluded.started_at,heartbeat=excluded.heartbeat,stopped_at=NULL',
       )
       .run(at, at);
+    this.db
+      .prepare('UPDATE collector_status SET scheduler_tick_ms=? WHERE id=1')
+      .run(this.config.collection.schedulerTickMs);
     for (const source of this.config.httpSources)
       registerSource(
         this.db,
@@ -136,6 +140,11 @@ export class Collector {
       this.db
         .prepare('UPDATE sources SET enabled=? WHERE id=?')
         .run(Number(enabled.has(source.id)), source.id);
+    // Older builds applied entity 404s to the whole source. Preserve job errors,
+    // but release that invalid source-wide negative cache for verified observers.
+    this.db.exec(
+      "UPDATE source_health SET current_error=NULL,retry_at=NULL WHERE current_error='http-not-found' AND source_id IN (SELECT id FROM sources WHERE observer_nid IS NOT NULL) AND EXISTS (SELECT 1 FROM metadata_jobs j WHERE j.source_id=source_health.source_id AND j.task IN ('metadata','other-inventory') AND j.last_error='http-not-found')",
+    );
     const interrupted = this.db
       .prepare("SELECT DISTINCT source_id FROM collector_runs WHERE status='running'")
       .all() as { source_id: string }[];
@@ -346,7 +355,9 @@ export class Collector {
       LEFT JOIN metadata_jobs j ON j.source_id=? AND j.task='metadata' AND j.entity_id=r.rid
       ORDER BY (j.key IS NOT NULL),(m.name IS NOT NULL),COALESCE(j.due_at,0),r.rid COLLATE BINARY LIMIT ?`,
       )
-      .all(sourceId, Math.min(40, slots)) as { rid: string }[];
+      .all(sourceId, Math.min(40, slots, Math.max(0, 9000 - queued - nodes.length))) as {
+      rid: string;
+    }[];
     for (const repo of repos) scheduleJob(this.db, sourceId, repo.rid, 'metadata', at, 20);
   }
   private async httpJob(job: Job) {
@@ -558,6 +569,10 @@ export class Collector {
         finishJob(this.db, job.key, this.owner, this.now(), null, 'collector-stopped');
         return;
       }
+      if (job.task === 'catalog')
+        this.db
+          .prepare('UPDATE catalog_progress SET last_error=? WHERE source_id=?')
+          .run(error instanceof Deferred ? 'budget-deferred' : failureKind(error), job.source_id);
       if (error instanceof Deferred) {
         outcome = 'budget-deferred';
         this.db
@@ -575,6 +590,21 @@ export class Collector {
           .run(outcome, this.now() + limits.inventoryRefreshMs, job.entity_id);
       const kind = failureKind(error);
       const retryable = ['http-retryable', 'timeout', 'process-failed'].includes(kind);
+      if (
+        !retryable &&
+        (job.task === 'metadata' || job.task === 'other-inventory') &&
+        kind !== 'observer-mismatch'
+      ) {
+        finishJob(
+          this.db,
+          job.key,
+          this.owner,
+          this.now() + limits.negativeMetadataTtlMs,
+          null,
+          kind,
+        );
+        return;
+      }
       const retryAfter = retryAfterTime(
         error instanceof AdapterError ? error.retryAfter : null,
         this.now(),
@@ -636,6 +666,7 @@ export class Collector {
         .finally(() => this.active.delete('cli'));
       this.active.set('cli', promise);
     }
+    deferExhaustedBudgets(this.db, at, limits);
     for (const job of pendingJobs(this.db, at)) {
       if (this.signal.aborted || this.active.size >= limits.globalConcurrency) break;
       const source = this.config.httpSources.find((s) => s.id === job.source_id && s.enabled);

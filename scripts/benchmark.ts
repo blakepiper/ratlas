@@ -7,6 +7,7 @@ import { configSchema } from '../packages/core/src/index.js';
 import { dataset, openReader, summary } from '../packages/db/src/index.js';
 import { createApi } from '../apps/service/src/api/server.js';
 import { checkToolchain } from './check-toolchain.mjs';
+import { loadConfig } from '../apps/service/src/commands/config.js';
 
 checkToolchain();
 const freeMemoryBytesAtStart = freemem();
@@ -16,6 +17,7 @@ const { values } = parseArgs({
     warmup: { type: 'string', default: '20' },
     case: { type: 'string' },
     'writer-churn': { type: 'boolean', default: false },
+    config: { type: 'string' },
   },
   strict: true,
   allowPositionals: false,
@@ -31,7 +33,12 @@ if (
   warmup > 100
 )
   throw new Error('Benchmark samples must be 1–1000 and warmup 0–100');
-const databasePath = resolve('.ratlas/demo/target.sqlite');
+const liveConfig = values.config ? loadConfig(values.config) : null;
+if (liveConfig && (liveConfig.mode !== 'live' || values['writer-churn']))
+  throw new Error(
+    'A configured live benchmark is read-only; synthetic writer churn is unavailable',
+  );
+const databasePath = resolve(liveConfig?.storage.databasePath ?? '.ratlas/demo/target.sqlite');
 const reader = openReader(databasePath);
 let details: {
   summary: ReturnType<typeof summary>;
@@ -41,7 +48,7 @@ let details: {
 };
 let distinctRids: string[];
 try {
-  if (dataset(reader).kind !== 'demo' || dataset(reader).generator_version !== 2)
+  if (!liveConfig && (dataset(reader).kind !== 'demo' || dataset(reader).generator_version !== 2))
     throw new Error('Generate the deterministic target workload with pnpm data:target first');
   details = {
     summary: summary(reader, 'all'),
@@ -63,17 +70,23 @@ try {
 } finally {
   reader.close();
 }
-const app = await createApi(configSchema.parse({ mode: 'demo', storage: { databasePath } }), {
-  production: true,
-  rateLimitMax: 100000,
-});
+const app = await createApi(
+  liveConfig ?? configSchema.parse({ mode: 'demo', storage: { databasePath } }),
+  {
+    production: true,
+    rateLimitMax: 100000,
+  },
+);
 const cases = [
   { name: 'summary', path: '/api/v1/summary?window=all' },
-  { name: 'catalog-search', path: '/api/v1/repos?window=all&q=synthetic&limit=25' },
+  {
+    name: 'catalog-search',
+    path: `/api/v1/repos?window=all&q=${liveConfig ? 'rad' : 'synthetic'}&limit=25`,
+  },
   {
     name: 'catalog-broad-varied',
     path: (index: number) =>
-      `/api/v1/repos?window=all&q=${['project', 'graph', 'performance', 'review', 'synthetic'][index % 5]}&limit=25`,
+      `/api/v1/repos?window=all&q=${(liveConfig ? ['rad', 'git', 'test', 'heartwood', 'explorer'] : ['project', 'graph', 'performance', 'review', 'synthetic'])[index % 5]}&limit=25`,
     distinct: true,
     pattern: 'five broad text queries repeated',
   },
@@ -88,7 +101,7 @@ const cases = [
   {
     name: 'catalog-text-distinct',
     path: (index: number) =>
-      `/api/v1/repos?window=all&q=synthetic%20project%20${String(index + 1).padStart(5, '0')}&limit=25`,
+      `/api/v1/repos?window=all&q=${liveConfig ? encodeURIComponent('radicle ' + index) : 'synthetic%20project%20' + String(index + 1).padStart(5, '0')}&limit=25`,
     distinct: true,
   },
   {
@@ -200,7 +213,13 @@ const report = {
     freeMemoryBytesAtStart,
   },
   runtime: { node: process.version, sqlite: details.sqliteVersion, platform: process.platform },
-  workload: { seed: 20260925, databasePath: '.ratlas/demo/target.sqlite', ...details },
+  workload: {
+    mode: liveConfig ? 'live' : 'demo',
+    seed: liveConfig ? null : 20260925,
+    databaseBytes: details.bytes,
+    summary: details.summary,
+    sqliteVersion: details.sqliteVersion,
+  },
   note: 'Fastify injection into the built API with an open read-only SQLite database. The first request per case has no response-cache entry; compatible graph cases can share a bounded eligible projection. Repeated-query cases use the bounded response cache; distinct cases use different searches or RIDs for cold, warm-up, c1 and c4 requests. No network, browser, layout, or frame-rate timing is included.',
   writer: {
     enabled: !!writer,
@@ -212,7 +231,7 @@ const report = {
   measurements,
 };
 mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });
-const suffix = values['writer-churn'] ? '-writer-churn' : '';
+const suffix = liveConfig ? '-live' : values['writer-churn'] ? '-writer-churn' : '';
 const reportPath = values.case
   ? `.ratlas/reports/benchmark-${values.case}${suffix}.json`
   : `.ratlas/reports/benchmark${suffix}.json`;
