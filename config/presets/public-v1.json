@@ -1,0 +1,30 @@
+{
+  "version": "public-v1",
+  "lastChecked": "2026-09-29",
+  "sources": [
+    {
+      "id": "radicle-team",
+      "label": "Radicle team public seed",
+      "enabled": true,
+      "apiBaseUrl": "https://seed.radicle.dev/api/v1/",
+      "expectedNid": "z6MksmpU5b1dS7oaqF2bHXhQi1DWy2hB7Mh9CuN7y1DN6QSz",
+      "metadataPriority": 10
+    },
+    {
+      "id": "iris",
+      "label": "Radicle community Iris",
+      "enabled": true,
+      "apiBaseUrl": "https://iris.radicle.network/api/v1/",
+      "expectedNid": "z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7",
+      "metadataPriority": 20
+    },
+    {
+      "id": "rosa",
+      "label": "Radicle community Rosa",
+      "enabled": true,
+      "apiBaseUrl": "https://rosa.radicle.network/api/v1/",
+      "expectedNid": "z6Mkmqogy2qEM2ummccUthFEaaHvyYmYBYh3dbe9W4ebScxo",
+      "metadataPriority": 30
+    }
+  ]
+}

@@ -18,6 +18,10 @@ const graphBudget = z.strictObject({
 export const configSchema = z
   .strictObject({
     mode: z.enum(['live', 'demo']),
+    sourcePreset: z
+      .strictObject({ version: z.string().max(80), lastChecked: z.string().max(40) })
+      .nullable()
+      .default(null),
     server: z
       .strictObject({
         host: z.literal('127.0.0.1').default('127.0.0.1'),

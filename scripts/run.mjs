@@ -50,6 +50,10 @@ const commands = {
     buildBackend();
     buildWeb();
   },
+  'config:init': () => {
+    buildBackend();
+    tsx('scripts/config-init.ts', ...args);
+  },
   'source:probe': () => {
     buildBackend();
     tsx('scripts/source-probe.ts', ...args);
@@ -119,6 +123,7 @@ if (
   ![
     'doctor',
     'source:probe',
+    'config:init',
     'db:migrate',
     'db:backup',
     'collect',

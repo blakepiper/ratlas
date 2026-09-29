@@ -33,7 +33,8 @@
     "benchmark:browser": "node scripts/run.mjs benchmark:browser",
     "demo:scenario": "node scripts/run.mjs demo:scenario",
     "demo:reset": "node scripts/run.mjs demo:reset",
-    "source:probe": "node scripts/run.mjs source:probe"
+    "source:probe": "node scripts/run.mjs source:probe",
+    "config:init": "node scripts/run.mjs config:init"
   },
   "devDependencies": {
     "typescript": "5.9.3",
