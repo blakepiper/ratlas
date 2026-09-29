@@ -3,6 +3,13 @@
 
 Revision 5 · 2026-09-25 UTC · Autonomous completion authorized; local incremental commits; no pushing
 
+2026-09-29 platform amendment: the user moved to Guix and requested a project
+manifest. On Guix, `./ratlas-guix` is the authorized development/Git entry point
+in place of `nix develop`; see `docs/GUIX_DEVELOPMENT.md`. Preserve the pinned
+application stack and historical Nix validation records. Guix Firefox automation
+is an explicit missing prerequisite, not a passed check. Nix-specific setup and
+deployment instructions below continue to apply to NixOS.
+
 Project name: **ratlas**. Development platform: **NixOS, x86_64-linux**. Required environment: **the repository’s `nix develop` shell**. Frontend: **React**. Browser target: **Firefox**. Version control: **initialize or reuse a local Git repository and commit work incrementally; never push**. Execution: **six recorded progress milestones**.
 
 This revision incorporates the user's 2026-09-25 instruction to continue autonomously until the work is complete. It preserves local Git setup, incremental commits, recorded R1–R6 progress, the Firefox-only rule, React stack, Nix development shell, and application architecture. R1–R5 approvals remain historical facts; R6 does not require a new check-in. No work may be pushed or published. The choices and safety boundaries below remain binding.

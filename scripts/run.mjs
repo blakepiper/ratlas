@@ -5,6 +5,15 @@ import { checkToolchain } from './check-toolchain.mjs';
 checkToolchain();
 process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const [command, ...args] = process.argv.slice(2);
+if (
+  process.env.RATLAS_DEV_PLATFORM === 'guix' &&
+  ['doctor', 'test:e2e', 'benchmark:browser', 'check'].includes(command)
+) {
+  console.error(
+    'Guix Firefox automation is not configured. See docs/GUIX_DEVELOPMENT.md; browser checks were not run.',
+  );
+  process.exit(2);
+}
 const pnpm = (...values) => execFileSync('pnpm', values, { stdio: 'inherit' });
 const tsx = (file, ...values) => pnpm('exec', 'tsx', file, ...values);
 const tsxWithGc = (file, ...values) =>

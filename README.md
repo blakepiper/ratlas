@@ -7,6 +7,10 @@ the committed configuration starts none. The user authorized autonomous
 completion after R5, and [checkpoint status](docs/CHECKPOINTS.md) records
 validation progress.
 
+On Guix, enter `./ratlas-guix`, then run `pnpm install --frozen-lockfile`
+and `pnpm demo`. See [Guix development](docs/GUIX_DEVELOPMENT.md) for the
+manifest, reproducible channel, checks, and Firefox automation limitation.
+
 From this checkout on NixOS:
 
 ```sh
