@@ -1,6 +1,37 @@
 # ratlas release validation
 
-## Current Guix coverage validation (2026-09-29)
+## Current native Linux validation (2026-10-03)
+
+Implementation: `1d60deeed648344c5c9a9744edc15e3cfb63a0c4`. On Gentoo Linux x86_64, verified prebuilt Node
+24.18.0 and pnpm 10.34.0 installed frozen workspace dependencies and compiled
+better-sqlite3 with the installed native compiler/Python/Make and at most two jobs.
+Formatting, lint/policy/repository checks, types, all 74 deterministic tests in
+17 files and production build passed. Native formatting checks Prettier; retained
+legacy Nix files were unchanged and did not require nixfmt.
+
+The native doctor passed SQLite 3.53.4 binding, FTS5, WAL writer/read-only reader,
+rejected reader write, reopen and real isolated Firefox 148.0.2 content/PNG checks.
+All 28 desktop/narrow Firefox E2E tests passed with no skips, including real
+Sigma WebGL, context loss, fallback, navigation/worker cleanup and polling stability.
+Automation used the matched official hash-pinned Firefox artifact, native host
+libraries and Mesa software rendering. GPU presentation performance is unmeasured.
+
+Root production startup was tested twice with an explicitly selected synthetic
+demo config on loopback port 46567. SPA and API returned HTTP 200 and the exact
+100 repositories/20 node identities/300 hosting relationships/two-source fixture.
+SIGINT and SIGTERM sent to the root launcher PID stopped its API, returned 130/143
+and released the port. Its temporary config was removed. The default demo
+correctly refused occupied port 3000, preserving the unrelated application.
+No ratlas test server was left running. Live refresh/continuous collection was
+not exercised on this host; the source initializer was previewed without writing.
+
+Evidence: `.ratlas/reports/toolchain.json`, `.ratlas/reports/firefox-smoke.png`,
+`.ratlas/reports/firefox-linked-libraries.txt`, `.ratlas/tests/browser-results/`
+and `.ratlas/reports/native-startup/`. See [native review](reviews/NATIVE_LINUX.md).
+Earlier Guix/Nix results below remain historical; current setup is documented in
+[native development](DEVELOPMENT.md).
+
+## Historical Guix coverage validation (2026-09-29)
 
 Final implementation: `ebf781c0ad12d3934dc250ef1ea10a312079e897`.
 Prebuilt Guix Node 24.18.0 / pnpm 10.34.0, exact dependencies and native SQLite
@@ -28,7 +59,7 @@ See [C3](reviews/C3.md), [C4](reviews/C4.md), [C5](reviews/C5.md) and the
 [coverage ledger](COVERAGE_LEDGER.md) for measurements, failures, correction and
 remaining gates. The earlier `49baebd...` Guix bootstrap had 64 deterministic
 tests and no matched Firefox; its dated record remains in implementation status.
-Current browser setup is in [Guix development](GUIX_DEVELOPMENT.md).
+That platform's browser setup is in [legacy Guix development](GUIX_DEVELOPMENT.md).
 The results below retain their historical Nix revisions and measurement scope.
 
 ## Historical Nix audit follow-up (2026-09-26)

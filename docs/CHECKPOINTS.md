@@ -1,5 +1,16 @@
 # ratlas checkpoints
 
+## Native Linux setup (2026-10-03)
+
+Completed at implementation `1d60deeed648344c5c9a9744edc15e3cfb63a0c4` in response to the user's request
+to remove Guix. Verified prebuilt project-local Node/pnpm, native SQLite install,
+all 74 deterministic and 28 Firefox tests, build/doctor and isolated production
+startup/SIGINT/SIGTERM cleanup passed. The fixed-port demo correctly reports
+port 3000 occupied by another application; that process was preserved.
+[Native review](reviews/NATIVE_LINUX.md) records evidence and startup commands.
+This does not reopen historical R milestones, close live coverage gates or imply
+new user acceptance. Current development uses `./ratlas-env`.
+
 ## Data coverage plan
 
 The active [data coverage plan](../DATA_COVERAGE_PLAN.md) was written at

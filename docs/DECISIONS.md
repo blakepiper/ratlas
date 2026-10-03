@@ -4,6 +4,18 @@ The active coverage work is defined by [DATA_COVERAGE_PLAN.md](../DATA_COVERAGE_
 The architecture and execution constraints remain defined by revision 6 of the
 [archived implementation specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md).
 
+2026-10-03 user-directed platform change: “We are not on Guix anymore, retool
+it so we don't need Guix”. Native Linux through `./ratlas-env` supersedes the
+Guix development/Git entry requirement for this machine. Keep the exact
+application dependencies, Node 24.18.0 and pnpm 10.34.0. Download verified
+prebuilt project-local tools; use the installed host compiler/Python/Make for
+the small SQLite addon. Native Firefox automation uses the existing hash-pinned
+patched artifact and the host's libraries with isolated profiles. Default
+launchers, active setup/operations docs and source-init hints use this environment.
+Retain Guix/Nix manifests and prior approval/results as historical records;
+no system package/profile changes, alternate browser, live source enrollment,
+node operation, remote changes or publication are part of this platform change.
+
 2026-09-29 implementation authorization: the user instructed “Autonomously
 complete the data coverage plan”. Proceed through all independent software and
 bounded live work without milestone approval stops. Preserve numeric targets

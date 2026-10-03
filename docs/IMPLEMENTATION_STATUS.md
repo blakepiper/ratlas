@@ -1,5 +1,25 @@
 # ratlas implementation status
 
+Current platform: native Gentoo Linux x86_64, through `./ratlas-env`.
+The user requested removing Guix on 2026-10-03. Implementation `1d60deeed648344c5c9a9744edc15e3cfb63a0c4`
+removes that runtime/development dependency using verified prebuilt project-local
+Node 24.18.0 and pnpm 10.34.0, the host native compiler, and matched isolated
+Firefox with native host libraries. The application stack/lockfile is unchanged.
+
+Native checks passed: frozen install, native SQLite/FTS5/WAL/reopen doctor,
+formatting, lint/policy/repository checks, types, 74 deterministic tests,
+production build and all 28 desktop/narrow Firefox tests with real WebGL and no
+skips. Root production startup with an explicitly selected synthetic demo config
+on an available loopback port returned 100/20/300 counts and stopped its API on
+both root-PID SIGINT and SIGTERM, releasing the port. Fixed-port demo startup
+correctly refused occupied port 3000, owned by an unrelated application.
+No test server remains running; no live source was contacted or configured.
+
+See [native setup review](reviews/NATIVE_LINUX.md), [development](DEVELOPMENT.md)
+and [validation](VALIDATION.md). Earlier live databases, server URLs and Guix/Nix
+results below describe their original handoffs, not this machine. The data
+coverage gates remain open; use the native environment when continuing them.
+
 Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md). C0/C1 `completed`;
 C2–C5 `blocked` on their remaining live gates. **The plan is not complete.**
 
@@ -23,7 +43,7 @@ passed. Latest actual desktop/narrow live journeys use the final implementation:
 20 paths across three subjects, with the five-subject gate false. Bounded real
 OS restart, single-writer/API behavior, root signal cleanup and new-path backup
 restore passed. The original user's config and schema-5 14/1/14 database were
-preserved; expanded observations are stored separately. Review API is on
+preserved; expanded observations are stored separately. At that Guix handoff, the review API was on
 http://127.0.0.1:3001/ with collection stopped.
 
 Evidence: [C0](reviews/C0.md), [C1](reviews/C1.md), [C2](reviews/C2.md),
@@ -75,7 +95,7 @@ requires both the active plan and archived spec at their new paths. No applicati
 build, browser, collector, or extended experiment was run for this documentation
 change. Live configuration and running application processes were untouched.
 
-Current platform: Guix. Use `./ratlas-guix` and the current
+Historical platform record (2026-09-29): Guix. That revision used `./ratlas-guix` and the
 [development](GUIX_DEVELOPMENT.md) and [operations](OPERATIONS.md) guides.
 Nix commands below describe historical work on the previous machine.
 
