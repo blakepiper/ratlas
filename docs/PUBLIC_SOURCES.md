@@ -48,12 +48,12 @@ was rechecked on 2026-09-29. Public-only HTTP collection requires neither a
 Radicle daemon nor a personal identity. No fix, CLI compatibility or private
 transport property is inferred from the successful HTTP probes.
 
-Preview initialization with `./ratlas-guix pnpm config:init --output config/coverage.local.json`.
+Preview initialization with `./ratlas-env pnpm config:init --output config/coverage.local.json`.
 Add `--write` to create that new ignored configuration exclusively; existing
 settings are never overwritten. `--mode continuous` previews continuous startup.
 The example configuration stays offline. Updating this preset never changes
 existing local settings; source changes require explicit editing and restart.
-Run `./ratlas-guix pnpm source:probe --config config/coverage.local.json --source iris`
+Run `./ratlas-env pnpm source:probe --config config/coverage.local.json --source iris`
 to recheck a selected source. This command owns the single writer lease for
 budget accounting; stop collection first. It does not run Firefox or full doctor.
 

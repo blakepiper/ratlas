@@ -1,4 +1,8 @@
-# Guix development
+# Legacy Guix development
+
+Historical setup for the previous Guix machine. Current development uses
+[the native Linux environment](DEVELOPMENT.md); Guix is not required.
+Commands and validation below describe that earlier platform.
 
 From the repository root:
 
@@ -18,7 +22,7 @@ its processes. To run a single command, use `./ratlas-guix pnpm build`.
 For the existing startup helpers, use
 `./ratlas-guix bash scripts/start-demo.sh` or, after explicitly configuring
 a public live source, `./ratlas-guix bash scripts/start-production.sh config/ratlas.local.json`.
-The root `./ratlas` and `./ratlas-demo` shortcuts use Guix too.
+On that revision, the root `./ratlas` and `./ratlas-demo` shortcuts used Guix too.
 They use the prebuilt Node signal bridge via `./ratlas-guix --supervise` so a
 signal sent to the launcher's PID reaches the owned application processes.
 Ordinary development/Git commands and interactive shell entry retain their

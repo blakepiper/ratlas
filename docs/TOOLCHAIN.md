@@ -1,13 +1,20 @@
 # ratlas toolchain
 
-Current Guix channel: `5ceffb60e55b86920fd720817dd24b0e1f900ac1`, recorded in
+Current setup: native Linux x86_64 through `./ratlas-env`, hash-pinned prebuilt
+Node 24.18.0 and pnpm 10.34.0 from `toolchain.json`, plus the host compiler,
+Python and Make for better-sqlite3. Guix/Nix are unnecessary. Direct application
+versions below remain unchanged. See [native development](DEVELOPMENT.md).
+
+## Historical Guix setup (2026-09-29)
+
+Recorded Guix channel: `5ceffb60e55b86920fd720817dd24b0e1f900ac1`, recorded in
 `guix-channels.scm`. Prebuilt Node 24.18.0; pnpm 10.34.0 JavaScript package;
 GCC 14.3.0, Python 3.12.12, and Make 4.4.1. Playwright remains pinned at 1.59.1,
 and its matched Firefox 148.0.2 (revision 1511) can be prepared locally with
 `scripts/prepare-firefox-runtime.sh`; see [Guix development](GUIX_DEVELOPMENT.md).
 The official archive is hash-pinned and its Guix libraries are prebuilt.
-Real isolated content and software WebGL tests now pass on Guix.
-Enter with `./ratlas-guix`; see [Guix development](GUIX_DEVELOPMENT.md).
+Real isolated content and software WebGL tests passed on that Guix machine.
+That revision used `./ratlas-guix`; see [legacy Guix development](GUIX_DEVELOPMENT.md).
 
 At implementation `49baebd22b3717a6c7f79751e0782b7b03b90872`, Guix environment
 entry, Node/pnpm and header checks, frozen install/native SQLite, formatting,
@@ -93,4 +100,4 @@ not the ratlas application or a live-data screenshot.
 An inherited deleted TMPDIR in the agent environment was worked around with
 command-scoped env -u TMPDIR nix develop --command; no user settings changed.
 See [legacy Nix development](NIX_DEVELOPMENT.md) for those platform-specific
-commands; current commands are in [Guix development](GUIX_DEVELOPMENT.md).
+commands; current commands are in [native development](DEVELOPMENT.md).

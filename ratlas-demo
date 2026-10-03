@@ -2,4 +2,4 @@
 set -euo pipefail
 
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
-exec ./ratlas-guix --supervise bash scripts/start-demo.sh "$@"
+exec ./ratlas-env --supervise bash scripts/start-demo.sh "$@"

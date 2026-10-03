@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 export function firefoxUserPreferences() {
-  return process.env.RATLAS_DEV_PLATFORM === 'guix'
+  return ['native', 'guix'].includes(process.env.RATLAS_DEV_PLATFORM ?? '')
     ? { 'webgl.force-enabled': true, 'gfx.webrender.all': true }
     : {};
 }
@@ -11,6 +11,31 @@ export function firefoxUserPreferences() {
 // libglvnd's loader plus the host's matching NixOS graphics driver to render
 // a real WebGL canvas; the development shell itself remains untouched.
 export function firefoxLaunchEnvironment() {
+  if (process.env.RATLAS_DEV_PLATFORM === 'native') {
+    // Use the host's Mesa libraries only in the isolated automation process.
+    const runtime = JSON.parse(readFileSync('.ratlas/firefox-artifact/runtime.json', 'utf8')) as {
+      platform: string;
+      revision: string;
+      playwrightVersion: string;
+    };
+    if (
+      runtime.platform !== 'native' ||
+      runtime.revision !== '1511' ||
+      runtime.playwrightVersion !== '1.59.1'
+    )
+      throw new Error('Prepare the matched native Firefox runtime; see docs/DEVELOPMENT.md');
+    return {
+      ...process.env,
+      LD_LIBRARY_PATH: [
+        resolve('.ratlas/firefox-runtime/firefox-1511/firefox'),
+        process.env.LD_LIBRARY_PATH,
+      ]
+        .filter(Boolean)
+        .join(':'),
+      LIBGL_ALWAYS_SOFTWARE: '1',
+      MOZ_X11_EGL: '1',
+    };
+  }
   if (process.env.RATLAS_DEV_PLATFORM === 'guix') {
     if (!existsSync('.ratlas/firefox-artifact/runtime.json')) return process.env;
     const runtime = JSON.parse(readFileSync('.ratlas/firefox-artifact/runtime.json', 'utf8')) as {

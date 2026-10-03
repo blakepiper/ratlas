@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
-if [[ ${RATLAS_DEV_PLATFORM:-} != guix ]]; then
-  printf 'Use ./ratlas-guix bash scripts/prepare-firefox-runtime.sh\n' >&2
+if [[ ${RATLAS_DEV_PLATFORM:-} != native && ${RATLAS_DEV_PLATFORM:-} != guix ]]; then
+  printf 'Use ./ratlas-env bash scripts/prepare-firefox-runtime.sh\n' >&2
   exit 2
 fi
+umask 077
 mkdir -p .ratlas/firefox-artifact
-guix build --max-jobs=0 --root=.ratlas/firefox-artifact/runtime-root patchelf gtk+ nss nspr alsa-lib libxt libx11 libxcb \
-  libxcomposite libxcursor libxdamage libxext libxfixes libxi libxrandr \
-  libxrender libxshmfence mesa > .ratlas/firefox-artifact/lib-paths.txt
+if [[ ${RATLAS_DEV_PLATFORM:-} == guix ]]; then
+  guix build --max-jobs=0 --root=.ratlas/firefox-artifact/runtime-root patchelf gtk+ nss nspr alsa-lib libxt libx11 libxcb \
+    libxcomposite libxcursor libxdamage libxext libxfixes libxi libxrandr \
+    libxrender libxshmfence mesa > .ratlas/firefox-artifact/lib-paths.txt
+fi
 archive=.ratlas/firefox-artifact/firefox-1511.zip
 if [[ ! -f "$archive" ]]; then
   curl --fail --location --max-time 120 --silent --show-error \

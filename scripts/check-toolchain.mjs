@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 export function checkToolchain() {
   if (process.env.RATLAS_DEV_SHELL !== '1') {
-    throw new Error('Enter the ratlas development environment with ./ratlas-guix or nix develop.');
+    throw new Error('Enter the ratlas development environment with ./ratlas-env.');
   }
   const pnpm = execFileSync('pnpm', ['--version'], { encoding: 'utf8' }).trim();
   if (

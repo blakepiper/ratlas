@@ -49,10 +49,10 @@ and an explicit full mode use server-enforced vertex/edge limits. Sigma and
 Graphology render the returned graph, with a short-lived ForceAtlas2 worker.
 Pointer pan/zoom and click selection work when WebGL is available. The
 accessible entity list and catalog/details stay available if it is not.
-Guix currently lacks the matching patched Playwright Firefox runtime, so
-automated canvas checks have not run on this machine. Earlier Nix Firefox
-canvas, cleanup, and timing results are recorded in [validation](VALIDATION.md)
-and [performance](PERFORMANCE.md); they are historical measurements.
+Isolated automation uses a hash-pinned patched Firefox and the host's native
+libraries; see [development](DEVELOPMENT.md). Current and historical checks
+are distinguished in [validation](VALIDATION.md). Earlier platform timings in
+[performance](PERFORMANCE.md) are historical measurements.
 
 The deterministic small and target demo datasets are isolated from live
 configuration. The small fixture has 100 repositories, 20 node identities,

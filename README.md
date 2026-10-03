@@ -10,10 +10,10 @@ for broad real-data exploration. The original
 [implementation specification](archive/plans/RATLAS_IMPLEMENTATION_SPEC.md)
 is archived; its completed milestones do not establish broad network coverage.
 
-From this checkout on Guix, start the offline demo:
+From this checkout on Linux x86_64, start the offline demo:
 
 ```sh
-./ratlas-guix bash scripts/start-demo.sh
+./ratlas-demo
 ```
 
 Open http://127.0.0.1:5173 in Firefox. The helper installs frozen workspace
@@ -23,19 +23,19 @@ and 20 unresolved names. It never contacts upstream sources. Ports 3000 and
 5173 must be free. Ctrl-C stops the supervisor and its API, Vite, and TypeScript
 watchers; later starts reuse the demo database.
 
-`./ratlas-guix` enters an interactive development shell. Prefix a command with
-it for a single invocation, such as `./ratlas-guix pnpm build`. The manifest
-uses prebuilt Guix Node 24.18.0 and toolchain packages, plus pinned pnpm 10.34.0
-JavaScript. Entry refuses missing binary substitutes instead of compiling the
-toolchain. Workspace installation builds the SQLite addon with at most two jobs.
-See [Guix development](docs/GUIX_DEVELOPMENT.md) for setup and channel pinning.
+`./ratlas-env` enters a native development shell, or runs one command such as
+`./ratlas-env pnpm build`. It downloads verified prebuilt Node 24.18.0 and pinned
+pnpm 10.34.0 into this checkout. Guix and Nix are unnecessary. Bash, curl,
+Python 3.12+, Make and a C/C++ compiler are the host prerequisites; the SQLite
+addon builds with at most two jobs. Application packages stay locked by
+`pnpm-lock.yaml`. See [native development](docs/DEVELOPMENT.md) for setup.
 
 To use real observations, preview the reviewed public-source preset, then create
 a new ignored config explicitly:
 
 ```sh
-./ratlas-guix pnpm config:init --output config/ratlas.coverage.local.json
-./ratlas-guix pnpm config:init --output config/ratlas.coverage.local.json --write
+./ratlas-env pnpm config:init --output config/ratlas.coverage.local.json
+./ratlas-env pnpm config:init --output config/ratlas.coverage.local.json --write
 ```
 
 Initialization never overwrites settings. The preset contains three verified
@@ -55,7 +55,7 @@ a failed refresh reports the error and serves previously stored observations.
 Missing configuration never falls back to synthetic data. Ctrl-C stops the API.
 Stop the demo first because both use API port 3000. Pass another config path
 to select another dataset; `config/ratlas.demo.json` explicitly selects the
-synthetic dataset. The short `./ratlas` and `./ratlas-demo` scripts enter Guix.
+synthetic dataset. The short `./ratlas` and `./ratlas-demo` scripts use the native environment.
 For continuous collection and serving, use:
 
 ```sh
@@ -68,7 +68,7 @@ after changing sources. Catalog pages and budgets survive restart; large catalog
 may need several bounded rounds. Inspect progress without upstream requests:
 
 ```sh
-./ratlas-guix pnpm coverage:report --config config/ratlas.coverage.local.json
+./ratlas-env pnpm coverage:report --config config/ratlas.coverage.local.json
 ```
 
 Search names, descriptions, or an exact RID. Filters, sorting, pagination,
@@ -78,7 +78,7 @@ neighborhoods and a larger dataset view; a list remains available if Firefox
 cannot create a WebGL context. Activity shows recorded counts, changes, gaps,
 and coverage limits. Cached observations do not prove that a node is online.
 
-Run the supported development checks inside `./ratlas-guix`:
+Run the supported development checks inside `./ratlas-env`:
 
 ```sh
 pnpm format:check
@@ -88,21 +88,22 @@ pnpm exec vitest run --minWorkers=1 --maxWorkers=2
 pnpm build
 ```
 
-The coverage implementation passes 72 deterministic tests and the production
-build. [Prepare the matched Firefox runtime](docs/GUIX_DEVELOPMENT.md) to run
-`pnpm doctor` and `pnpm test:e2e`; all 28 desktop/narrow tests passed on Guix.
+The native Linux setup passes 74 deterministic tests, the production build,
+and all 28 desktop/narrow Firefox tests with real WebGL.
+[Prepare the matched Firefox runtime](docs/DEVELOPMENT.md) to run `pnpm doctor`
+and `pnpm test:e2e`. Earlier platform results remain in the validation report.
 The live-data review command `pnpm coverage:browser --config CONFIG` saves
 isolated Firefox screenshots and actual journeys under `.ratlas/reviews/C4/`.
 It reports the five-subject gate separately from successful navigation.
 Do not run a browser installer or use a personal Firefox profile for tests.
 
 For the offline outage/recovery walkthrough, stop the demo before resetting it.
-Enter `./ratlas-guix` in each terminal:
+Enter `./ratlas-env` in each terminal:
 
 ```sh
 pnpm demo:reset
 pnpm demo
-# In the second Guix shell while the UI is open:
+# In the second native shell while the UI is open:
 pnpm demo:scenario --name source-outage
 pnpm demo:scenario --name source-recovery
 ```
@@ -113,7 +114,7 @@ Reset archives only the dedicated demo database and refuses a live or in-use
 database. Use `pnpm demo --dataset target` for the larger synthetic dataset;
 `pnpm demo:reset --dataset target` resets only that separate dataset.
 
-Inspect stored data or create a verified online backup from the Guix shell:
+Inspect stored data or create a verified online backup from the native shell:
 
 ```sh
 pnpm data:review --config config/ratlas.demo.json
@@ -125,11 +126,11 @@ each time. Runtime data, local configs, logs, and reports remain ignored by Git.
 The old machine's live-review configuration, database, running server, and
 screenshots are not supplied with this checkout.
 
-See [Guix operations](docs/OPERATIONS.md) for manual production startup,
+See [operations](docs/OPERATIONS.md) for manual production startup,
 collection, permissions, shutdown, backup, restore, and updates;
 [collection commands](docs/COLLECTION.md) for source budgets and experiments;
 [data semantics](docs/DATA_SEMANTICS.md), [architecture](docs/ARCHITECTURE.md),
 [API contracts](docs/API.md), and [toolchain versions](docs/TOOLCHAIN.md) for
 implementation details. The [performance report](docs/PERFORMANCE.md) records
-measurements from the earlier machine, not Guix benchmarks. Historical approvals
+measurements from the earlier machine, not benchmarks for this machine. Historical approvals
 and tested revisions remain in [checkpoints](docs/CHECKPOINTS.md).

@@ -7,12 +7,12 @@ checkToolchain();
 process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const [command, ...args] = process.argv.slice(2);
 if (
-  process.env.RATLAS_DEV_PLATFORM === 'guix' &&
+  ['native', 'guix'].includes(process.env.RATLAS_DEV_PLATFORM) &&
   !existsSync('.ratlas/firefox-runtime/firefox-1511/firefox/firefox') &&
   ['doctor', 'test:e2e', 'benchmark:browser', 'coverage:browser', 'check'].includes(command)
 ) {
   console.error(
-    'Guix Firefox automation is not configured. See docs/GUIX_DEVELOPMENT.md; browser checks were not run.',
+    'Matched Firefox automation is not configured. See docs/DEVELOPMENT.md; browser checks were not run.',
   );
   process.exit(2);
 }
@@ -25,9 +25,10 @@ const buildWeb = () => pnpm('--filter', '@ratlas/web', 'exec', 'vite', 'build');
 const commands = {
   'format:check': () => {
     pnpm('exec', 'prettier', '--check', '.');
-    execFileSync('nixfmt', ['--check', 'flake.nix', 'deploy/nixos/ratlas.nix'], {
-      stdio: 'inherit',
-    });
+    if (process.env.RATLAS_DEV_PLATFORM !== 'native')
+      execFileSync('nixfmt', ['--check', 'flake.nix', 'deploy/nixos/ratlas.nix'], {
+        stdio: 'inherit',
+      });
   },
   lint: () => {
     pnpm('exec', 'eslint', '.');

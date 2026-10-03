@@ -42,7 +42,7 @@ console.log(
       storage: config.storage,
       existingDatabase: existsSync(config.storage.databasePath),
       collectionMode: values.mode,
-      startup: `./ratlas-guix bash scripts/start-production.sh ${values.output}${values.mode === 'continuous' ? ' --continuous' : ''}`,
+      startup: `./ratlas --config ${values.output}${values.mode === 'continuous' ? ' --continuous' : ''}`,
       writing: values.write,
     },
     null,

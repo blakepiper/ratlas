@@ -1,6 +1,6 @@
 # ratlas collection
 
-Run commands inside `./ratlas-guix`, or prefix one command with `./ratlas-guix`.
+Run commands inside `./ratlas-env`, or prefix one command with `./ratlas-env`.
 The demo and deterministic checks remain offline.
 Configure an existing approved observer and/or unauthenticated HTTPS API in the
 ignored `config/ratlas.local.json`; the committed example enables neither.
@@ -15,7 +15,7 @@ API base URLs include the upstream API prefix (normally `/api/v1/`).
 `pnpm source:probe --config CONFIG --source ID` runs a bounded source-only
 capability check (20 requests / 60 seconds per source) independent of Firefox.
 `pnpm doctor --config CONFIG --check-sources` also performs the full matched
-Firefox/native toolchain smoke; [prepare Firefox](GUIX_DEVELOPMENT.md) first.
+Firefox/native toolchain smoke; [prepare Firefox](DEVELOPMENT.md) first.
 The source probe is not a full doctor pass. Both use persistent request budgets.
 HTTP doctor identity checks require an initialized schema and the writer lease
 for budget accounting; stop collection first. They perform one identity request
@@ -69,7 +69,7 @@ on 2026-09-26; see [compatibility](RADICLE_COMPATIBILITY.md). The ignored local
 config is machine-specific and must be supplied explicitly for any later run.
 On 2026-09-29 the reviewed team/Iris/Rosa HTTP cohort was probed and ingested.
 The local CLI adapter remains unverified live without a supplied observer. See
-the [Guix operations guide](OPERATIONS.md) for dedicated observer,
+the [operations guide](OPERATIONS.md) for dedicated observer,
 permission, backup, restore, shutdown, and update procedures.
 
 Experiment reports use `.ratlas/reports/experiment/last-run.json` plus an

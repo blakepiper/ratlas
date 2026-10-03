@@ -1,15 +1,14 @@
-# ratlas operations on Guix
+# ratlas operations on native Linux
 
 Run from a writable checkout on the same host as the SQLite database. Enter
-`./ratlas-guix` in each terminal, or prefix a single command with it. This uses
-the repository manifest and refuses toolchain source builds. Keep
-`manifest.scm`, `guix-channels.scm`, package manifests, and `pnpm-lock.yaml`
-together when updating. The [development guide](GUIX_DEVELOPMENT.md) describes
-reproducing the recorded channel and retaining a Guix profile.
+`./ratlas-env` in each terminal, or prefix a command with it. Keep `toolchain.json`,
+package manifests and `pnpm-lock.yaml` together when updating. The
+[development guide](DEVELOPMENT.md) describes the verified project-local Node/pnpm
+setup and native build tools. Guix and Nix are not required.
 
 ## Prepare and start
 
-For a new checkout, install and build inside the Guix shell:
+For a new checkout, install and build inside the native shell:
 
 ```sh
 pnpm install --frozen-lockfile
@@ -42,7 +41,7 @@ pnpm db:migrate --config config/ratlas.local.json
 pnpm start:api --config config/ratlas.local.json
 ```
 
-Open http://127.0.0.1:3000 in Firefox. In a second Guix shell, check the local
+Open http://127.0.0.1:3000 in Firefox. In a second native shell, check the local
 endpoints and, after approving/configuring a source, collect a bounded round:
 
 ```sh
@@ -75,7 +74,7 @@ supervisor to resume. An unexpected API exit stops its collector. A second
 collector fails clearly on the lease; it never competes for database writes.
 Do not manually remove an active lease. Graceful shutdown gives children
 15 seconds before terminating owned process groups.
-The root launchers also forward PID-directed signals through Guix and wait for
+The root launchers also forward PID-directed signals through the native supervisor and wait for
 the application group to drain. SIGINT/SIGTERM yield the conventional launcher
 exit statuses 130/143; these do not indicate failed cleanup.
 
@@ -95,8 +94,8 @@ Use `pnpm coverage:report --config CONFIG` for cached JSON/Markdown and
 latency measurements. `pnpm coverage:browser --config CONFIG` owns a temporary
 loopback API and isolated Firefox, saves desktop/narrow screenshots and actual
 journeys, and never contacts upstream. Prepare the matched Firefox runtime per
-[Guix development](GUIX_DEVELOPMENT.md). `pnpm doctor --config CONFIG` includes
-native SQLite, Firefox-only closure, isolated browser render and configured
+[native development](DEVELOPMENT.md). `pnpm doctor --config CONFIG` includes
+native SQLite, Firefox linked libraries and bundle, isolated browser render and configured
 schema checks. An old user database requiring migration fails schema checks
 until explicitly migrated with its verified backup; that is not a browser gap.
 
@@ -117,15 +116,15 @@ to the database and its existing `-wal` and `-shm` companions. Keep SQLite WAL
 on a local filesystem. Do not infer OS-level isolation from the API's read-only
 database connection: the manual processes have the permissions of their user.
 
-No Guix System or Shepherd service definition is supplied or activated. Public
+No system service definition is supplied or activated for this host. Public
 hosting, service accounts, filesystem isolation, proxy/TLS, firewall changes,
 and service activation require separate operator setup. The retained
 [NixOS module](../deploy/nixos/README.md) is a legacy platform-specific example,
-not a Guix service or evidence of isolation on this machine.
+not a native service or evidence of isolation on this machine.
 
 ## Backup, restore, and updates
 
-Create a new private online backup from the Guix shell:
+Create a new private online backup from the native shell:
 
 ```sh
 pnpm db:backup --config config/ratlas.local.json --output .ratlas/backups/ratlas-before-update.sqlite
@@ -153,13 +152,13 @@ point its `storage.databasePath` at the restored file, and inspect it with
 opens the selected database read-only and checks its schema; it does not collect.
 Start the built API with that config and check readiness, counts, and source
 health before restarting collection. Retain the old database and companions
-until verification is complete. A current live-data drill restored a verified
+until verification is complete. The earlier Guix live-data drill restored a verified
 backup to a new path and compared
 public counts and integrity; see the [C5 review](reviews/C5.md).
 
 For an update, take and verify an online backup first, then stop both processes.
-Use the intended locally supplied application revision and its manifest, recorded
-channel, and frozen dependency lock. Enter its Guix shell, install frozen
+Use the intended locally supplied application revision and its pinned toolchain
+and frozen dependency lock. Enter its native shell, install frozen
 dependencies, build, and run `pnpm db:migrate --config config/ratlas.local.json`.
 Restart the collector and API and check health. Migration rollback means restoring
 the pre-migration backup with both processes stopped, using the compatible

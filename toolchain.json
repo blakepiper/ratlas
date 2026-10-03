@@ -1,0 +1,13 @@
+{
+  "node": {
+    "version": "24.18.0",
+    "url": "https://nodejs.org/dist/v24.18.0/node-v24.18.0-linux-x64.tar.xz",
+    "sha256": "55aa7153f9d88f28d765fcdad5ae6945b5c0f98a36881703817e4c450fa76742"
+  },
+  "pnpm": {
+    "version": "10.34.0",
+    "url": "https://registry.npmjs.org/pnpm/-/pnpm-10.34.0.tgz",
+    "sha512": "hzYWnFb9tuJq+11+K9X0yZzCmWINi9wojLNU5t0JNr1OpiJ20aay3ktulxoApTDg4Iu+7aY9pdggEY09fiH/aQ=="
+  },
+  "playwright": "1.59.1"
+}

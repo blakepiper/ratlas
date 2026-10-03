@@ -1,6 +1,6 @@
 # ratlas data coverage plan
 
-Revision 1 · 2026-09-29 · Status: software implemented; live completion gates open
+Revision 1 · 2026-09-29 · Native setup amendment 2026-10-03 · Status: software implemented; live completion gates open
 
 This is the active plan for turning ratlas into a useful explorer of public
 Radicle software and its observed hosting network. The original
@@ -232,8 +232,8 @@ to other sources for enrichment. Identity mismatches pause intake for that sourc
 without reassigning old evidence to the new identity.
 
 Measure collector CPU, peak RSS, requests, decoded bytes, queue growth, database/WAL
-size, and API latency during backfill and steady operation. Use prebuilt Guix
-dependencies, at most two native-build jobs, and one or two test workers. Do not
+size, and API latency during backfill and steady operation. Use prebuilt project-local Node/pnpm and installed host
+build tools, at most two native-build jobs, and one or two test workers. Do not
 compile Node or a browser to complete this work. Retain existing latency/graph
 budgets and report actual cold and warm performance at the acquired dataset size.
 
@@ -270,7 +270,7 @@ must stay stable through collector updates. Keep the accessible list fallback.
 
 ## 8. Production lifecycle
 
-Provide documented Guix entry points for two explicit modes: serve cached data
+Provide documented native Linux entry points for two explicit modes: serve cached data
 after a bounded refresh, and serve while a separately supervised collector keeps
 the database current. The present startup helper implements the first mode only.
 
@@ -299,7 +299,7 @@ work. Use incremental local commits and separate review/status documentation.
 | C1 — Source feasibility    | Cited candidate registry; source-only diagnostic; bounded capability matrix; proposed source cohort and preset workflow.                | C0 and explicitly selected public endpoints. Distinct observer identities, actual schema support, measured catalog/inventory sizes, rejected candidates, and feasibility of every target documented.                     |
 | C2 — Topology path         | Candidate-NID intake; provenance/publication tests; inventory discovery; HTTP-only breadth report; observer dependency decision.        | C1. Demonstrate new subject discovery without preexisting hosting edges, request-budget calculations, and real relationship evidence. If HTTP cannot meet topology targets, identify the concrete observer prerequisite. |
 | C3 — Complete backfill     | Resumable/fair scheduling, large-catalog progress, metadata enrichment, contribution/completeness reports, safe migrations.             | C2, compatible sources, and any required observer. No lost tail under budgets/restarts; real-data breadth/metadata gates measured with explicit denominators.                                                            |
-| C4 — Production experience | Continuous mode, preset initialization, coverage/freshness UI, operational guide, Firefox live-data journeys.                           | C3 and prebuilt matched Firefox prerequisite. Built UI and reports agree, real neighborhoods are useful, collection failures preserve navigation, and actual Guix browser results are saved.                             |
+| C4 — Production experience | Continuous mode, preset initialization, coverage/freshness UI, operational guide, Firefox live-data journeys.                           | C3 and prebuilt matched Firefox prerequisite. Built UI and reports agree, real neighborhoods are useful, collection failures preserve navigation, and actual current-platform browser results are saved.                 |
 | C5 — Sustained coverage    | Operator-invoked 24-hour experiment, restart/backup/restore validation, resource and freshness report, final coverage ledger.           | C4 and explicit extended-run operation. All section 3 gates evaluated; final outcome separately states implemented, live-validated, blocked items, and any actual user acceptance.                                       |
 
 Use `docs/reviews/C0.md` through `C5.md` for sanitized milestone reports when
@@ -319,15 +319,15 @@ file or unchecked task list is evidence that a checkpoint passed.
 | Bounded live           | At most five minutes per implementation smoke run against explicitly configured sources; sanitized evidence and actual failure classification. Stop owned collectors afterward.                                                 |
 | Extended live          | A separately invoked 24-hour experiment using actual sources and the measured cohort, with a recorded interruption/restart and restored backup count comparison. Synthetic history cannot substitute.                           |
 
-Run affected checks through `./ratlas-guix`; do not rerun expensive unrelated
-checks for documentation changes. Keep current Guix browser checks blocked until
+Run affected checks through `./ratlas-env`; do not rerun expensive unrelated
+checks for documentation changes. Keep current-platform browser checks blocked until
 their prerequisite exists, and never call historical Nix results current passes.
 Do not deliberately interrupt a real upstream node to test outages; use deterministic
 fixtures or an isolated application test transport.
 
 ## 11. Final review and remaining decisions
 
-The handoff must include a working Guix production command and local URL, exact
+The handoff must include a working native Linux production command and local URL, exact
 live counts and their evaluation window, source contributions and limitations,
 real Firefox screenshots, the ten navigation journeys, experiment/resource
 results, backup/recovery results, and all unmet targets. It must explain whether

@@ -37,14 +37,17 @@ export async function toolchainSmoke() {
     assert.equal(
       loader(`${name}/package.json`).version,
       versions.playwright,
-      `${name} must match Nix`,
+      `${name} must match the pinned toolchain`,
     );
   }
   const bundle = process.env.PLAYWRIGHT_BROWSERS_PATH;
   const guix = process.env.RATLAS_DEV_PLATFORM === 'guix';
+  const native = process.env.RATLAS_DEV_PLATFORM === 'native';
   assert.ok(
     typeof bundle === 'string' &&
-      (guix ? bundle === resolve('.ratlas/firefox-runtime') : bundle.startsWith('/nix/store/')),
+      (guix || native
+        ? bundle === resolve('.ratlas/firefox-runtime')
+        : bundle.startsWith('/nix/store/')),
   );
   const entries = readdirSync(bundle);
   assert.equal(entries.length, 1);
@@ -52,14 +55,16 @@ export async function toolchainSmoke() {
   const executable = firefox.executablePath();
   assert.ok(executable.startsWith(`${bundle}/`));
   assert.ok(realpathSync(executable).startsWith(realpathSync(resolve(bundle, entries[0]!))));
-  const runtime = guix
-    ? (JSON.parse(readFileSync('.ratlas/firefox-artifact/runtime.json', 'utf8')) as {
-        archiveSha256: string;
-        roots: string[];
-        revision: string;
-        playwrightVersion: string;
-      })
-    : null;
+  const runtime =
+    guix || native
+      ? (JSON.parse(readFileSync('.ratlas/firefox-artifact/runtime.json', 'utf8')) as {
+          archiveSha256: string;
+          roots: string[];
+          revision: string;
+          playwrightVersion: string;
+          platform?: string;
+        })
+      : null;
   if (runtime) {
     assert.equal(runtime.playwrightVersion, versions.playwright);
     assert.equal(runtime.revision, '1511');
@@ -67,18 +72,40 @@ export async function toolchainSmoke() {
       runtime.archiveSha256,
       'cca34e60c472e94fc8f664cbaf8f286f62f78e9ca21ac2643cf95c932f099607',
     );
-    assert.ok(runtime.roots.every((p) => p.startsWith('/gnu/store/')));
+    if (guix) assert.ok(runtime.roots.every((p) => p.startsWith('/gnu/store/')));
+    if (native) assert.equal(runtime.platform, 'native');
   }
-  const closure = runtime
-    ? execFileSync('guix', ['gc', '--requisites', ...runtime.roots], { encoding: 'utf8' })
-    : execFileSync('nix', ['path-info', '--recursive', bundle], { encoding: 'utf8' });
+  const closure = native
+    ? execFileSync(
+        'ldd',
+        [
+          executable,
+          resolve(bundle, entries[0]!, 'firefox/libxul.so'),
+          resolve(bundle, entries[0]!, 'firefox/libmozgtk.so'),
+        ],
+        { encoding: 'utf8' },
+      )
+    : runtime
+      ? execFileSync('guix', ['gc', '--requisites', ...runtime.roots], { encoding: 'utf8' })
+      : execFileSync('nix', ['path-info', '--recursive', bundle], { encoding: 'utf8' });
+  assert.doesNotMatch(
+    closure,
+    /not found/u,
+    'Missing native Firefox libraries; see docs/DEVELOPMENT.md',
+  );
   assert.doesNotMatch(
     closure,
     /\/(?:[^/\n]*-)(?:chromium|google-chrome|chrome-headless-shell|webkitgtk)(?:-|\n)/iu,
   );
   mkdirSync('.ratlas/reports', { recursive: true, mode: 0o700 });
   mkdirSync('.ratlas/tests/toolchain', { recursive: true, mode: 0o700 });
-  writeFileSync('.ratlas/reports/firefox-runtime-closure.txt', closure, { mode: 0o600 });
+  writeFileSync(
+    native
+      ? '.ratlas/reports/firefox-linked-libraries.txt'
+      : '.ratlas/reports/firefox-runtime-closure.txt',
+    closure,
+    { mode: 0o600 },
+  );
   const database = resolve(`.ratlas/tests/toolchain/smoke-${process.pid}-${Date.now()}.sqlite`);
   const writer = nativeDatabase(database);
   let reader: Database.Database | undefined;
@@ -151,12 +178,15 @@ export async function toolchainSmoke() {
   assert.equal(readFileSync('.ratlas/reports/firefox-smoke.png').subarray(1, 4).toString(), 'PNG');
   const report = {
     ...versions,
+    platform: process.env.RATLAS_DEV_PLATFORM,
     nativeBinding,
     sqlite: sqliteVersion,
     firefox: browserVersion,
     executable,
     bundleEntries: entries,
-    runtimeClosurePaths: closure.trim().split('\n').length,
+    ...(native
+      ? { runtimeLibraryLines: closure.trim().split('\n').length }
+      : { runtimeClosurePaths: closure.trim().split('\n').length }),
     sqliteChecks: 'native binding, FTS5, writer/read-only reader, WAL and reopen passed',
     browserChecks: 'isolated headless Firefox content assertion and PNG capture passed',
   };
