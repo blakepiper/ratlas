@@ -1,5 +1,19 @@
 # ratlas implementation status
 
+2026-10-04 map navigation follow-up: implementation
+`e9165d3511beebac32deb685c36ba8c7f35f0f23` adds a `← Back` button beside the
+map's View selector at the user's request. It retraces entity selections,
+restores the original overview/full view, preserves active filters, and keeps the
+Map tab visible on narrow screens. A directly opened entity link returns to the
+overview. Re-selecting the same entity adds no history entry.
+Formatting, lint/policy, types, 74 deterministic tests, production build, and all
+30 desktop/narrow Firefox tests passed with real WebGL and no skips. Reviewed
+synthetic screenshots are under `.ratlas/reviews/R6/*-selected-webgl.png`.
+The existing production API served the rebuilt assets at validation; refresh the
+browser to load the button. The user configured their global Git identity and
+requested committing this work; the implementation is committed with that identity.
+No milestone, live coverage target, historical approval, or remote was changed.
+
 Current platform: native Gentoo Linux x86_64, through `./ratlas-env`.
 The user requested removing Guix on 2026-10-03. Implementation `1d60deeed648344c5c9a9744edc15e3cfb63a0c4`
 removes that runtime/development dependency using verified prebuilt project-local
