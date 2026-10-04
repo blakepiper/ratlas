@@ -932,6 +932,10 @@ export function App() {
                 windowBucket={info?.windowBucket}
                 active={mobileTab === 'map'}
                 onSelect={select}
+                onBack={(selection) => {
+                  setParam('selected', selection ? `${selection.kind}:${selection.id}` : '', false);
+                  setMobileTab('map');
+                }}
                 onClearSelection={() => setParam('selected', '', false)}
               />
               <aside

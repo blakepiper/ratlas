@@ -46,6 +46,7 @@
   width: 75px;
 }
 .controls select,
+.controls button,
 .controls input[type='number'],
 .message button,
 .displayNote button,

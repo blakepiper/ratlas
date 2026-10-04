@@ -302,6 +302,7 @@ export function GraphMap({
   windowBucket,
   active,
   onSelect,
+  onBack,
   onClearSelection,
 }: {
   filterQuery: string;
@@ -310,9 +311,10 @@ export function GraphMap({
   windowBucket: number | undefined;
   active: boolean;
   onSelect: (selection: Selection) => void;
+  onBack: (selection: Selection | null) => void;
   onClearSelection: () => void;
 }) {
-  const [mode, setMode] = useState<GraphMode>('overview');
+  const [mode, setMode] = useState<GraphMode>(selected ? 'neighborhood' : 'overview');
   const [hideHubs, setHideHubs] = useState(false);
   const [threshold, setThreshold] = useState(1000);
   const [notice, setNotice] = useState<string | null>(null);
@@ -322,6 +324,11 @@ export function GraphMap({
   );
   const positions = useRef(new Map<string, Position>());
   const selectedKey = selected ? `${selected.kind}:${selected.id}` : null;
+  const [selectionHistory, setSelectionHistory] = useState<
+    { selection: Selection | null; mode: GraphMode }[]
+  >([]);
+  const previousView = useRef({ selection: selected, mode });
+  const navigatingBack = useRef(false);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 1023px)');
@@ -332,9 +339,27 @@ export function GraphMap({
   }, []);
 
   useEffect(() => {
-    if (selectedKey) setMode('neighborhood');
-    else setMode((current) => (current === 'neighborhood' ? 'overview' : current));
-  }, [selectedKey]);
+    const previous = previousView.current;
+    const previousKey = previous.selection
+      ? `${previous.selection.kind}:${previous.selection.id}`
+      : null;
+    if (previousKey !== selectedKey) {
+      if (navigatingBack.current) navigatingBack.current = false;
+      else {
+        setSelectionHistory((history) => [...history, previous]);
+        setMode(selectedKey ? 'neighborhood' : 'overview');
+      }
+    }
+    previousView.current = { selection: selected, mode };
+  }, [selected, selectedKey, mode]);
+
+  function goBack() {
+    const previous = selectionHistory.at(-1) ?? { selection: null, mode: 'overview' as const };
+    navigatingBack.current = true;
+    setSelectionHistory((history) => history.slice(0, -1));
+    setMode(previous.mode);
+    onBack(previous.selection);
+  }
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams(filterQuery);
@@ -388,6 +413,14 @@ export function GraphMap({
         <span>Observed hosting · [repo] ↔ [node]</span>
       </div>
       <div className={styles.controls}>
+        <button
+          type="button"
+          disabled={!selectedKey && !selectionHistory.length}
+          onClick={goBack}
+          title="Return to the previous map selection"
+        >
+          ← Back
+        </button>
         <label>
           View
           <select

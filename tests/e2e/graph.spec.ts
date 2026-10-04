@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { demoIdentities } from '../../packages/db/dist/index.js';
 
 async function showMap(page: Page) {
   const tabs = page.getByRole('navigation', { name: 'Workspace tabs' });
@@ -16,26 +17,39 @@ async function openMapEntities(map: Locator) {
     await details.locator('summary').click();
 }
 
-test('map entities navigate repository to host to another repository', async ({ page }) => {
-  await page.goto('/');
+test('map entities navigate repository to host to another repository and back', async ({
+  page,
+}) => {
+  await page.goto('/?window=all');
   const map = await showMap(page);
   await expect(map.getByText('Displaying 120 of 120 eligible entities')).toBeVisible();
+  const back = map.getByRole('button', { name: '← Back', exact: true });
+  await expect(back).toBeDisabled();
+  await map.getByRole('combobox', { name: 'Graph view' }).selectOption('full');
   await openMapEntities(map);
   await map
     .getByRole('button', { name: /\[repo\]/u })
     .first()
     .click();
   await expect(page).toHaveURL(/selected=repo%3A/u);
+  const firstRepository = new URL(page.url()).searchParams.get('selected');
   await expect(page.getByRole('complementary', { name: 'Details' })).toContainText(
     'Repository details',
   );
   await showMap(page);
   await expect(map.getByRole('combobox', { name: 'Graph view' })).toHaveValue('neighborhood');
+  // Re-selecting the same repository must not add a duplicate back step.
+  await map
+    .getByRole('button', { name: /\[repo\]/u })
+    .first()
+    .click();
+  await showMap(page);
   await map
     .getByRole('button', { name: /\[node\]/u })
     .first()
     .click();
   await expect(page).toHaveURL(/selected=node%3A/u);
+  const host = new URL(page.url()).searchParams.get('selected');
   await expect(page.getByRole('complementary', { name: 'Details' })).toContainText('Node details');
   await showMap(page);
   await map
@@ -46,6 +60,34 @@ test('map entities navigate repository to host to another repository', async ({ 
   await expect(page.getByRole('complementary', { name: 'Details' })).toContainText(
     'Repository details',
   );
+  await showMap(page);
+  await expect(back).toBeEnabled();
+  await back.click();
+  await expect(page).toHaveURL(new RegExp(`selected=${encodeURIComponent(host!)}`, 'u'));
+  await expect(map.getByRole('combobox', { name: 'Graph view' })).toHaveValue('neighborhood');
+  await back.click();
+  await expect(page).toHaveURL(new RegExp(`selected=${encodeURIComponent(firstRepository!)}`, 'u'));
+  await back.click();
+  await expect(page).not.toHaveURL(/selected=/u);
+  await expect(page).toHaveURL(/window=all/u);
+  await expect(map.getByRole('combobox', { name: 'Graph view' })).toHaveValue('full');
+  await expect(map.getByText('Displaying 120 of 120 eligible entities')).toBeVisible();
+  await expect(back).toBeDisabled();
+});
+
+test('map back from a direct entity link returns to the overview with filters intact', async ({
+  page,
+}) => {
+  const selected = `repo:${demoIdentities().rids[0]}`;
+  await page.goto(`/?window=all&selected=${encodeURIComponent(selected)}`);
+  const map = await showMap(page);
+  await expect(map.getByRole('combobox', { name: 'Graph view' })).toHaveValue('neighborhood');
+  await map.getByRole('button', { name: '← Back', exact: true }).click();
+  await expect(page).not.toHaveURL(/selected=/u);
+  await expect(page).toHaveURL(/window=all/u);
+  await expect(map.getByRole('combobox', { name: 'Graph view' })).toHaveValue('overview');
+  await expect(map.getByText('Displaying 120 of 120 eligible entities')).toBeVisible();
+  await expect(map.getByRole('button', { name: '← Back', exact: true })).toBeDisabled();
 });
 
 test('hub visibility changes only displayed graph counts, and full mode keeps coverage wording', async ({
