@@ -1,6 +1,7 @@
 import type { Config } from '@ratlas/core';
 import { parseEvent } from '@ratlas/radicle';
 import { observe, storeAlias, type Db } from '@ratlas/db';
+import { observerEvent } from './observer-publication.js';
 
 export function applyPendingEvents(db: Db, config: Config) {
   const pending = db
@@ -10,7 +11,9 @@ export function applyPendingEvents(db: Db, config: Config) {
     .all() as { id: string; source_id: string; observed_at: number; normalized_event: string }[];
   for (const entry of pending)
     db.transaction(() => {
-      const event = parseEvent(JSON.parse(entry.normalized_event));
+      const parsed = parseEvent(JSON.parse(entry.normalized_event));
+      const event =
+        entry.source_id === 'local-observer' ? observerEvent(db, config, parsed) : parsed;
       if (event?.type === 'inventoryAnnounced') {
         for (const rid of new Set(event.inventory))
           observe(

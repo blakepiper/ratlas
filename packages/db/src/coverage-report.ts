@@ -169,6 +169,11 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
         JSON.stringify({
           mode: config.mode,
           preset: config.sourcePreset,
+          localObserver: {
+            enabled: config.radicle.enabled,
+            publication: config.localObserverPublication,
+            publicRepositoriesOnly: config.localObserverPublicRepositoriesOnly,
+          },
           sources: config.httpSources.map(
             ({ id, enabled, apiBaseUrl, expectedNid, metadataPriority }) => ({
               id,
@@ -384,10 +389,7 @@ export function coverageReport(db: Db, config: Config, now = Date.now(), revisio
         ),
       },
       candidates: {
-        publicSubjects: count(
-          db,
-          "SELECT COUNT(DISTINCT c.nid) count FROM node_candidates c JOIN sources s ON s.id=c.evidence_source_id WHERE s.publication_policy!='quarantine'",
-        ),
+        publicSubjects: count(db, 'SELECT COUNT(DISTINCT nid) count FROM eligible_node_candidates'),
         records: count(db, 'SELECT COUNT(*) count FROM node_candidates'),
         cap: 10000,
       },

@@ -14,6 +14,7 @@ export const sourceSchema = z.strictObject({
   observerNid: nidSchema.nullable().default(null),
   metadataPriority: z.number().int().min(0).max(1_000_000).default(100),
   enabled: z.boolean().default(true),
+  publicRepositoriesOnly: z.boolean().default(false),
 });
 export type Source = z.infer<typeof sourceSchema>;
 export const routeSchema = z.strictObject({ rid: ridSchema, nid: nidSchema });

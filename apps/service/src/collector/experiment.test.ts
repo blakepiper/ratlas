@@ -94,6 +94,9 @@ it('measures only an explicitly public observer storage tree without following s
     localObserverPublication: 'public-only-observer',
   });
   expect(observerStorage(config)).toMatchObject({ status: 'measured', directories: 1 });
+  expect(observerStorage({ ...config, localObserverPublicRepositoriesOnly: true }).status).toBe(
+    'not-measured',
+  );
   expect(observerStorage({ ...config, localObserverPublication: 'quarantine' }).status).toBe(
     'not-measured',
   );

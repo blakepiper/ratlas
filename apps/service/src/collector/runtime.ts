@@ -3,6 +3,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { sourceSchema, type Config } from '@ratlas/core';
 import {
   admitCandidate,
+  independentlyPublicRepository,
   publicCandidate,
   sampleSummary,
   pruneExpired,
@@ -44,6 +45,7 @@ import {
   type JsonTransport,
 } from '@ratlas/radicle';
 import { applyPendingEvents, fullJitter, retryAfterTime } from './events.js';
+import { observerEvent } from './observer-publication.js';
 
 export class Deferred extends Error {
   constructor(public readonly until: number) {
@@ -126,9 +128,12 @@ export class Collector {
         this.db,
         sourceSchema.parse({
           id: 'local-observer',
-          label: 'Configured local observer',
+          label: this.config.localObserverPublicRepositoriesOnly
+            ? 'Local routing for independently public repositories'
+            : 'Configured local observer',
           adapter: 'cli',
           policy: this.config.localObserverPublication,
+          publicRepositoriesOnly: this.config.localObserverPublicRepositoriesOnly,
         }),
       );
     // Removed or disabled configured sources retain historical evidence, but stop jobs.
@@ -166,6 +171,7 @@ export class Collector {
             routing: true,
             events: this.capabilities.events,
             snapshotOnly: !this.capabilities.events,
+            publicRepositoriesOnly: this.config.localObserverPublicRepositoriesOnly,
             version: this.capabilities.version,
           }),
           'local-observer',
@@ -225,6 +231,8 @@ export class Collector {
               .run('local-observer');
             continue;
           }
+          const event = observerEvent(this.db, this.config, incoming.event);
+          if (!event) continue;
           enqueueEvent(
             this.db,
             {
@@ -233,7 +241,7 @@ export class Collector {
               sessionId,
               sequence,
               at: this.now(),
-              event: incoming.event,
+              event,
             },
             this.config.collection.eventQueueMaxEntries,
           );
@@ -284,6 +292,11 @@ export class Collector {
     try {
       let rows: { rid: string; nid: string }[] = [];
       for await (const row of routingSnapshot(this.config, this.signal)) {
+        if (
+          this.config.localObserverPublicRepositoriesOnly &&
+          !independentlyPublicRepository(this.db, row.rid)
+        )
+          continue;
         rows.push(row);
         if (rows.length === 1000) {
           stageSnapshot(this.db, runId, rows);
@@ -340,7 +353,7 @@ export class Collector {
       admitCandidate(this.db, row.nid, row.source_id, 'public-route', at);
     const nodes = this.db
       .prepare(
-        `SELECT DISTINCT r.nid,COALESCE(j.last_success,0) refreshed FROM node_candidates r JOIN sources evidence ON evidence.id=r.evidence_source_id AND evidence.publication_policy!='quarantine'
+        `SELECT DISTINCT r.nid,COALESCE(j.last_success,0) refreshed FROM eligible_node_candidates r
       LEFT JOIN metadata_jobs j ON j.source_id=? AND j.task='other-inventory' AND j.entity_id=r.nid
       WHERE r.publication_eligible=1 AND r.nid!=(SELECT COALESCE(observer_nid,'') FROM sources WHERE id=?) ORDER BY (j.key IS NOT NULL),COALESCE(j.due_at,0),r.nid COLLATE BINARY LIMIT ?`,
       )

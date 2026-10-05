@@ -59,6 +59,7 @@ export const capabilitiesSchema = z.object({
   routing: z.boolean().optional(),
   events: z.boolean().optional(),
   snapshotOnly: z.boolean().optional(),
+  publicRepositoriesOnly: z.boolean().optional(),
   version: z.string().max(160).optional(),
   node: z.boolean().optional(),
   inventory: z.union([z.boolean(), z.literal('pending')]).optional(),

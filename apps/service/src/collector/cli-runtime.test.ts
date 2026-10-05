@@ -4,6 +4,119 @@ import { resolve } from 'node:path';
 import { configSchema, sourceSchema, syntheticRid, syntheticNid } from '@ratlas/core';
 import { openWriter, migrate, registerSource, observe, summary } from '@ratlas/db';
 import { Collector } from './runtime.js';
+import { enqueueEvent, independentlyPublicRepository } from '@ratlas/db';
+import { applyPendingEvents } from './events.js';
+import { observerEvent } from './observer-publication.js';
+
+it('publishes only independently known public routing rows and filters mixed inventories before persistence and replay', async () => {
+  mkdirSync('.ratlas/tests', { recursive: true });
+  const dir = resolve(mkdtempSync('.ratlas/tests/public-routing-'));
+  const rid = syntheticRid(new Uint8Array(20).fill(51)),
+    privateRid = syntheticRid(new Uint8Array(20).fill(52)),
+    nid = syntheticNid(new Uint8Array(32).fill(51)),
+    privateNid = syntheticNid(new Uint8Array(32).fill(52));
+  const executable = resolve(dir, 'fixture.mjs');
+  writeFileSync(
+    executable,
+    '#!' +
+      process.execPath +
+      '\n' +
+      `
+const args=process.argv.slice(2).join(' ');
+if(args==='--version')console.log('rad fixture');
+else if(args==='self --help')console.log('--home');
+else if(args==='node --help')console.log('routing status');
+else if(args==='node routing --help')console.log('--json');
+else if(args==='node status --help')console.log('--only nid');
+else if(args==='self --home')console.log(process.env.RAD_HOME);
+else if(args==='node status --only nid')console.log(${JSON.stringify(nid)});
+else if(args==='node routing --json'){
+ console.log(${JSON.stringify(JSON.stringify({ rid, nid }))});
+ console.log(${JSON.stringify(JSON.stringify({ rid: privateRid, nid: privateNid }))});
+}else process.exitCode=9;
+`,
+    { mode: 0o700 },
+  );
+  const config = configSchema.parse({
+    mode: 'live',
+    storage: { databasePath: dir + '/data.sqlite' },
+    radicle: { enabled: true, executablePath: executable, homePath: dir },
+    localObserverPublication: 'public-only-observer',
+    localObserverPublicRepositoriesOnly: true,
+  });
+  const writer = openWriter(config.storage.databasePath),
+    now = Date.now();
+  migrate(writer.db, 'live', now);
+  registerSource(
+    writer.db,
+    sourceSchema.parse({ id: 'public', label: 'public', adapter: 'http', policy: 'public-http' }),
+  );
+  observe(writer.db, {
+    id: 'known-public',
+    sourceId: 'public',
+    rid,
+    nid,
+    kind: 'present',
+    observedAt: now,
+  });
+  const controller = new AbortController(),
+    collector = new Collector(writer.db, config, controller.signal);
+  try {
+    await collector.run(true);
+    expect(
+      writer.db
+        .prepare("SELECT rid,nid FROM source_route_state WHERE source_id='local-observer'")
+        .all(),
+    ).toEqual([{ rid, nid }]);
+    expect(
+      writer.db.prepare('SELECT 1 FROM repositories WHERE rid=?').get(privateRid),
+    ).toBeUndefined();
+    expect(independentlyPublicRepository(writer.db, privateRid)).toBe(false);
+    const event = {
+      type: 'inventoryAnnounced' as const,
+      nid,
+      inventory: [rid, privateRid],
+      timestamp: now,
+    };
+    expect(observerEvent(writer.db, config, event)).toMatchObject({ inventory: [rid] });
+    expect(
+      observerEvent(writer.db, config, {
+        type: 'seedDiscovered',
+        nid: privateNid,
+        rid: privateRid,
+      }),
+    ).toBeNull();
+    expect(
+      observerEvent(writer.db, config, {
+        type: 'nodeAnnounced',
+        nid: privateNid,
+        alias: 'private',
+        timestamp: now,
+      }),
+    ).toBeNull();
+    enqueueEvent(
+      writer.db,
+      {
+        id: 'mixed',
+        sourceId: 'local-observer',
+        sessionId: 'fixture',
+        sequence: 1,
+        at: now,
+        event,
+      },
+      100,
+    );
+    applyPendingEvents(writer.db, config);
+    expect(
+      writer.db.prepare('SELECT 1 FROM observations WHERE rid=?').get(privateRid),
+    ).toBeUndefined();
+    expect(writer.db.prepare('SELECT COUNT(*) n FROM collector_events').get()).toEqual({ n: 0 });
+  } finally {
+    controller.abort();
+    await collector.close();
+    writer.close();
+  }
+});
 it('starts its subscriber and completes the initial one-shot snapshot without overwriting a racing event', async () => {
   mkdirSync('.ratlas/tests', { recursive: true });
   const dir = resolve(mkdtempSync('.ratlas/tests/cli-runtime-'));

@@ -110,6 +110,28 @@ Otherwise retain quarantine or leave the CLI disabled. An approved public HTTP
 source needs only its explicit reviewed origin; private and loopback origins
 are rejected by the live HTTP adapter.
 
+On 2026-10-05 the user authorized using and starting their existing local node;
+`AGENTS.md` records this exception to the earlier dedicated-profile requirement.
+For an existing profile whose full routing knowledge has not been designated
+public-only, set `localObserverPublication: "public-only-observer"` together with
+`localObserverPublicRepositoriesOnly: true`. In this combination the publication
+policy applies to the filtered observation stream, not the entire profile.
+Supply the verified absolute executable, profile and control-socket paths in the
+ignored local configuration. The collector still only reads the node; start it
+explicitly with its existing configuration if it is stopped. Collector shutdown
+leaves the user's node running.
+
+The filter accepts routing rows and inventory/event RIDs only when independent
+eligible public HTTP evidence already exists in ratlas. Unknown RIDs are discarded
+before persistence and never sent upstream to test their visibility. Stored local
+routes cannot confirm themselves; database projections and discovery candidates
+recheck independent eligibility, including after restart or upstream privacy
+changes. Node announcements alone do not create hosting edges. The coverage source
+label and `publicRepositoriesOnly` capability disclose this restricted scope.
+Without this filter, retain the requirement to verify a public-only observer before
+publishing its complete routing stream. The default remains quarantine with the
+filter disabled; no example or preset automatically accesses a personal profile.
+
 Keep data directories private (`0700`) and database/log files private (`0600`).
 The collector needs database-directory write access; the API needs read access
 to the database and its existing `-wal` and `-shm` companions. Keep SQLite WAL

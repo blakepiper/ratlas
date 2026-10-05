@@ -217,11 +217,9 @@ function coverageMetrics(db: Db, query: Filters, now: number) {
     if (cache.size > 8) cache.delete(cache.keys().next().value!);
   }
   const publicCandidates = (
-    db
-      .prepare(
-        "SELECT COUNT(DISTINCT c.nid) count FROM node_candidates c JOIN sources s ON s.id=c.evidence_source_id WHERE s.publication_policy!='quarantine'",
-      )
-      .get() as { count: number }
+    db.prepare('SELECT COUNT(DISTINCT nid) count FROM eligible_node_candidates').get() as {
+      count: number;
+    }
   ).count;
   let references = coverageReferences.get(db);
   if (!references || Math.abs(ref - references.at) >= 15000) {

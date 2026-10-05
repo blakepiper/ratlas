@@ -34,6 +34,7 @@ export function observerStorage(config: Config): StorageMeasurement {
   if (
     !config.radicle.enabled ||
     config.localObserverPublication !== 'public-only-observer' ||
+    config.localObserverPublicRepositoriesOnly ||
     !config.radicle.homePath
   )
     return { status: 'not-measured', reason: 'No enabled dedicated public-only observer' };

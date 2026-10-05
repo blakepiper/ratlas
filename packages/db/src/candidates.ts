@@ -11,8 +11,10 @@ export function admitCandidate(
   nidSchema.parse(nid);
   if (
     !db
-      .prepare("SELECT 1 FROM sources WHERE id=? AND publication_policy!='quarantine'")
-      .get(sourceId)
+      .prepare(
+        "SELECT 1 FROM sources s WHERE s.id=? AND s.publication_policy!='quarantine' AND (s.public_repositories_only=0 OR EXISTS (SELECT 1 FROM eligible_routes r WHERE r.source_id=s.id AND r.nid=?))",
+      )
+      .get(sourceId, nid)
   )
     return false;
   const existing = db
@@ -35,9 +37,5 @@ export function admitCandidate(
 }
 
 export function publicCandidate(db: Db, nid: string) {
-  return !!db
-    .prepare(
-      `SELECT 1 FROM node_candidates c JOIN sources s ON s.id=c.evidence_source_id WHERE c.nid=? AND c.publication_eligible=1 AND s.publication_policy!='quarantine'`,
-    )
-    .get(nid);
+  return !!db.prepare('SELECT 1 FROM eligible_node_candidates WHERE nid=?').get(nid);
 }

@@ -48,6 +48,7 @@ export const configSchema = z
       })
       .default({ enabled: false, executablePath: null, homePath: null, socketPath: null }),
     localObserverPublication: z.enum(['quarantine', 'public-only-observer']).default('quarantine'),
+    localObserverPublicRepositoriesOnly: z.boolean().default(false),
     httpSources: z
       .array(
         z.strictObject({

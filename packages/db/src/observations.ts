@@ -65,11 +65,13 @@ export function registerSource(db: Db, input: Source) {
   db.transaction(() => {
     const previous = prepared(
       db,
-      'SELECT publication_policy,metadata_priority FROM sources WHERE id=?',
-    ).get(s.id) as { publication_policy: string; metadata_priority: number } | undefined;
+      'SELECT publication_policy,metadata_priority,public_repositories_only FROM sources WHERE id=?',
+    ).get(s.id) as
+      | { publication_policy: string; metadata_priority: number; public_repositories_only: number }
+      | undefined;
     prepared(
       db,
-      'INSERT INTO sources(id,adapter,label,origin,observer_nid,publication_policy,metadata_priority,enabled) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET label=excluded.label,origin=excluded.origin,publication_policy=excluded.publication_policy,metadata_priority=excluded.metadata_priority,enabled=excluded.enabled,observer_nid=excluded.observer_nid',
+      'INSERT INTO sources(id,adapter,label,origin,observer_nid,publication_policy,metadata_priority,enabled,public_repositories_only) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET label=excluded.label,origin=excluded.origin,publication_policy=excluded.publication_policy,metadata_priority=excluded.metadata_priority,enabled=excluded.enabled,observer_nid=excluded.observer_nid,public_repositories_only=excluded.public_repositories_only',
     ).run(
       s.id,
       s.adapter,
@@ -79,23 +81,34 @@ export function registerSource(db: Db, input: Source) {
       s.policy,
       s.metadataPriority,
       Number(s.enabled),
+      Number(s.publicRepositoriesOnly),
     );
     prepared(db, 'INSERT OR IGNORE INTO source_health(source_id) VALUES (?)').run(s.id);
     if (
       previous &&
       (previous.publication_policy !== s.policy ||
-        previous.metadata_priority !== s.metadataPriority)
+        previous.metadata_priority !== s.metadataPriority ||
+        previous.public_repositories_only !== Number(s.publicRepositoriesOnly))
     )
       for (const { rid } of prepared(
         db,
         'SELECT rid FROM source_route_state WHERE source_id=? UNION SELECT rid FROM repository_metadata WHERE source_id=?',
       ).all(s.id, s.id) as { rid: string }[])
         refreshPublication(db, rid);
-    if (s.policy === 'quarantine' && previous?.publication_policy !== 'quarantine')
+    if (
+      (s.policy === 'quarantine' && previous?.publication_policy !== 'quarantine') ||
+      (s.publicRepositoriesOnly && previous && !previous.public_repositories_only)
+    )
       db.exec('DELETE FROM stats_samples');
     if (s.policy !== 'quarantine' || (previous && previous.publication_policy !== 'quarantine'))
       incrementRevision(db);
   })();
+}
+export function independentlyPublicRepository(db: Db, rid: string) {
+  return !!prepared(
+    db,
+    'SELECT 1 FROM independently_public_http_repositories WHERE rid=? LIMIT 1',
+  ).get(rid);
 }
 export function ensureEntities(db: Db, rid: string, nid: string | null, at: number) {
   prepared(
