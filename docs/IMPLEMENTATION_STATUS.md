@@ -1,5 +1,20 @@
 # ratlas implementation status
 
+2026-10-05 existing-node observation: the user explicitly authorized read-only
+use of their existing local Radicle node/profile for broader coverage.
+Authorization is recorded in `AGENTS.md` and `docs/DECISIONS.md` at `4dfbad7`;
+it supersedes the dedicated-observer requirement for reads, while publication
+eligibility and identity/authentication preservation remain required.
+Bounded read-only checks found Radicle 1.10.3 (`7e1cb406b`), compatible routing
+JSON/help interfaces, a configured public identity and matching profile path.
+`rad node status --only nid` exited 2, no node control socket was present, and
+the cached routing snapshot completed with zero rows. No observations were
+persisted and no node was started or reconfigured. Earlier in this continuation,
+22 routing/collector/discovery/privacy/report tests passed across four files.
+The next live dependency is a running existing node with routing knowledge;
+private or unverified observations remain quarantined. C2–C5 and all numeric
+targets remain open. Machine-local paths and credentials are not recorded here.
+
 2026-10-04 branding follow-up: implementation
 `26bd1959dcbf92f632293eff5fb050a3b6b810d7` replaces the yellow `r.` header
 mark with the user-selected Orbit Rat V2 PNG, bundled from

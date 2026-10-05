@@ -13,6 +13,15 @@ new user acceptance. Current development uses `./ratlas-env`.
 
 ## Data coverage plan
 
+2026-10-05 continuation: the user authorized read-only observation of their
+existing node in place of requiring a dedicated profile; see `AGENTS.md` and
+`docs/DECISIONS.md` at `4dfbad7`. Live checks verified the installed CLI and
+configured public identity, but found a stopped node and an empty cached
+routing table. No new public hosting evidence was collected. C2 remains open
+until the existing node supplies routing knowledge with validated publication
+eligibility. Node start/stop, replication and identity changes remain prohibited;
+no historical approval or coverage target changed.
+
 The active [data coverage plan](../DATA_COVERAGE_PLAN.md) was written at
 `b0ebc9b2e6ef3e69633a5f8a7525eaa3d2444adf` on 2026-09-29 at the user's request.
 The original [specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md)
