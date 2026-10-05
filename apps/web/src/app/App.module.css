@@ -56,16 +56,11 @@
   font-variant-numeric: tabular-nums;
 }
 .mark {
-  display: inline-block;
-  width: 30px;
-  height: 30px;
-  line-height: 28px;
-  text-align: center;
-  color: var(--background);
-  background: var(--repo);
-  border-radius: 6px;
-  font-size: 21px;
-  font-weight: 800;
+  display: block;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 .searchLabel {
   display: flex;

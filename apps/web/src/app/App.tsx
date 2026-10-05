@@ -22,6 +22,7 @@ import {
 } from './explore.js';
 import { GraphMap } from './GraphMap.js';
 import { ActivityView } from './ActivityView.js';
+import logoUrl from '../assets/ratlas-logo.png';
 import styles from './App.module.css';
 
 type Repo = z.infer<typeof repoDetailSchema>;
@@ -569,9 +570,7 @@ export function App() {
       <header className={styles.header}>
         <div className={styles.brand}>
           <div className={styles.brandTitle}>
-            <span className={styles.mark} aria-hidden="true">
-              r.
-            </span>
+            <img className={styles.mark} src={logoUrl} alt="" width={36} height={36} />
             <h1>ratlas</h1>
           </div>
           <section className={styles.headerStats} aria-label="Dataset summary">
