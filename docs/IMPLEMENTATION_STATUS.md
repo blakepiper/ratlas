@@ -1,5 +1,20 @@
 # ratlas implementation status
 
+2026-10-04 branding follow-up: implementation
+`26bd1959dcbf92f632293eff5fb050a3b6b810d7` replaces the yellow `r.` header
+mark with the user-selected Orbit Rat V2 PNG, bundled from
+`apps/web/src/assets/ratlas-logo.png`. The transparent image displays at 36 px
+beside the existing wordmark and is decorative for assistive technology.
+The original and two alternate root-level proposals were deleted at the user's
+request; the approved V2 remains available in the root.
+Formatting, lint/policy, types, production build, and the existing catalog/detail/
+relationship/URL workflow passed in desktop and narrow Firefox (two tests).
+Additional isolated browser checks verified that the logo loads, the served PNG
+matches approved V2 byte-for-byte, and the header has no horizontal overflow.
+Reviewed synthetic screenshots are `.ratlas/reviews/logo/desktop-header.png`
+and `.ratlas/reviews/logo/narrow-header.png`. The temporary review API and Firefox
+were stopped; no live collection was started for this change.
+
 2026-10-04 map navigation follow-up: implementation
 `e9165d3511beebac32deb685c36ba8c7f35f0f23` adds a `← Back` button beside the
 map's View selector at the user's request. It retraces entity selections,

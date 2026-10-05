@@ -4,6 +4,14 @@ The active coverage work is defined by [DATA_COVERAGE_PLAN.md](../DATA_COVERAGE_
 The architecture and execution constraints remain defined by revision 6 of the
 [archived implementation specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md).
 
+2026-10-04 user-selected branding: the user chose Orbit Rat Option 2, accepted its
+V2 refinement, and requested deleting the earlier options and integrating V2.
+Use the approved transparent PNG as the header logo beside the `ratlas` wordmark.
+Its rat silhouette, globe, and connected nodes reflect rat, atlas, and Radicle.
+The production source asset is `apps/web/src/assets/ratlas-logo.png`; root-level
+drafts remain outside Git. This design selection does not change the coverage
+plan's acceptance status or historical milestone approvals.
+
 2026-10-03 user-directed platform change: “We are not on Guix anymore, retool
 it so we don't need Guix”. Native Linux through `./ratlas-env` supersedes the
 Guix development/Git entry requirement for this machine. Keep the exact
