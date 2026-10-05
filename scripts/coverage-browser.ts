@@ -29,7 +29,21 @@ const unresolved = db
   )
   .get() as { rid: string } | undefined;
 db.close();
-const candidates = report.windows[0]!.topology.journeys.slice(0, 10);
+const journeyPool = report.windows[0]!.topology.journeys;
+const subjectJourneys = new Map<string, typeof journeyPool>();
+for (const journey of journeyPool) {
+  const group = subjectJourneys.get(journey.subjectNid) ?? [];
+  group.push(journey);
+  subjectJourneys.set(journey.subjectNid, group);
+}
+// Rotate through subjects so ten checks can exercise the five-subject target.
+const candidates: typeof journeyPool = [];
+for (let round = 0; round < 4 && candidates.length < 10; round++)
+  for (const group of subjectJourneys.values()) {
+    const journey = group[round];
+    if (journey) candidates.push(journey);
+    if (candidates.length === 10) break;
+  }
 if (!candidates.length || !named)
   throw new Error('No live navigation or named search sample is available');
 const directory = '.ratlas/reviews/C4';
