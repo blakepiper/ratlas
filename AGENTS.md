@@ -35,6 +35,8 @@ Read `DATA_COVERAGE_PLAN.md`, the archived architecture and execution constraint
   This supersedes earlier node-start prohibitions for this node only. Do not stop
   the node, initialize or replace identities, read or expose private keys,
   passphrases or authentication tokens, or perform replication operations.
-  Authorization to observe does
-  not establish public-only publication eligibility: keep private or unverified
-  observations quarantined and do not send their IDs to HTTP enrichment sources.
+  Authorization to observe does not establish public-only publication eligibility.
+  For this existing profile, publish local routing only with
+  `localObserverPublicRepositoriesOnly: true`, which requires independent public
+  HTTP evidence for each RID. Keep other private or unverified observations
+  quarantined or discard them; do not send their IDs to HTTP enrichment sources.

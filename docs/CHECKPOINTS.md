@@ -13,6 +13,17 @@ new user acceptance. Current development uses `./ratlas-env`.
 
 ## Data coverage plan
 
+2026-10-05 startup and live continuation: authorization `334d789`, filtered
+observer implementation `2d8a7e0`, and tested browser-review revision `ceaa17c`.
+The existing node is running; its filtered routing source is enabled in ignored
+local ratlas settings. The measured 24h dataset is 16,066 RIDs / 46 hosting
+subjects / 22,501 pairs. All 76 deterministic tests and actual Firefox navigation
+passed; 20 desktop/narrow journeys span six subjects. The local collector snapshot
+succeeded, while the combined bounded run exited 1 for Iris/Rosa timeouts.
+The 100-node target, metadata/reference gates and sustained run remain open.
+The node remains running under user ownership; bounded collection is stopped.
+See the current status and [C2 continuation](reviews/C2.md) for scope/evidence.
+
 2026-10-05 continuation: the user authorized read-only observation of their
 existing node in place of requiring a dedicated profile; see `AGENTS.md` and
 `docs/DECISIONS.md` at `4dfbad7`. Live checks verified the installed CLI and
@@ -29,14 +40,14 @@ was archived byte-for-byte. Formatting, lint/policy/repository checks, and local
 plan/README links passed. Planning is complete. Autonomous implementation was requested on 2026-09-29;
 C0 is recorded in [its review](reviews/C0.md). No user acceptance is inferred.
 
-| Checkpoint | Status    | Evidence and remaining gate                                                                            |
-| ---------- | --------- | ------------------------------------------------------------------------------------------------------ |
-| C0         | completed | [Baseline/audit/backup](reviews/C0.md)                                                                 |
-| C1         | completed | [Source matrix/preset/feasibility](reviews/C1.md); operator diversity gap recorded                     |
-| C2         | blocked   | [Candidate/HTTP topology](reviews/C2.md) implemented; public observer needed for 100 subjects          |
-| C3         | blocked   | [Backfill/reports](reviews/C3.md) implemented; names 39.6721%, broad catalog denominators unknown      |
-| C4         | blocked   | [Production/Firefox](reviews/C4.md) validated; journeys span three subjects, required five unavailable |
-| C5         | blocked   | [Restart/restore/resources](reviews/C5.md) validated in bounded runs; operator 24h evaluation unrun    |
+| Checkpoint | Status      | Evidence and remaining gate                                                                           |
+| ---------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| C0         | completed   | [Baseline/audit/backup](reviews/C0.md)                                                                |
+| C1         | completed   | [Source matrix/preset/feasibility](reviews/C1.md); operator diversity gap recorded                    |
+| C2         | in_progress | [Topology](reviews/C2.md): existing filtered observer live; 46 subjects, 100 required                 |
+| C3         | in_progress | [Backfill/reports](reviews/C3.md) implemented; latest names 30.6%, reference denominators unknown     |
+| C4         | in_progress | [Production/Firefox](reviews/C4.md): latest 20 live journeys across six subjects; upstream gates open |
+| C5         | blocked     | [Restart/restore/resources](reviews/C5.md) validated in bounded runs; operator 24h evaluation unrun   |
 
 Implementation `ebf781c0ad12d3934dc250ef1ea10a312079e897`; final counts and
 unchanged gates are in the [coverage ledger](COVERAGE_LEDGER.md). Blocked live

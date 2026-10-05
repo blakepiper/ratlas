@@ -1,5 +1,51 @@
 # ratlas implementation status
 
+2026-10-05 existing-node startup and broader coverage: the user explicitly
+authorized starting their configured node and retaining that permission in
+`AGENTS.md` (`334d789`). The existing node is running with its original profile,
+identity, authentication and settings. Startup is an operator-authorized action;
+ratlas's collector does not start or stop it. Read-only CLI capability checks,
+live routing collection and subscriber cleanup now have actual results.
+
+Implementation `2d8a7e07016d530718bd9788fa7c94d64c7d0dda` adds an explicit
+`localObserverPublicRepositoriesOnly` filter, independent public HTTP evidence,
+database publication/discovery guards, and schema-10 migration. Unknown local
+RIDs are discarded before persistence or outbound enrichment; filtered routes
+cannot establish their own publication eligibility. This permits publishing a
+restricted stream from the user's profile without declaring the whole profile
+public-only. Personal observer storage remains unmeasured. The ignored default
+local config now enables this filtered observer; its original settings and a
+verified pre-migration database backup were preserved. Restoring that backup to
+a new ignored path passed integrity and reproduced the earlier 16,039/3/19,035
+all-retained counts.
+
+At 2026-10-05T16:47:35.225Z the live 24h dataset has **16,066 repositories,
+46 hosting subjects, 22,501 distinct pairs and 5,566 multi-host RIDs**. Names
+are usable for 30.6% of hosting RIDs. The local source contributes 3,439 pairs
+across 43 subjects, including 35 subjects unique relative to the other sources.
+The 60-second collector completed its local snapshot without a source error;
+the combined live check exited 1 because Iris and Rosa timed out. Local event
+help/subscription startup were verified, but no recognized live inventory event
+was received; event ordering/recovery remain validated by deterministic tests.
+The bounded collector is stopped; the user's node remains running.
+
+Tested review revision `ceaa17c` rotates browser checks across subjects instead
+of taking a prefix concentrated on a few hubs. All 76 deterministic tests passed,
+as did formatting, lint/policy, types and production build; affected telemetry/
+report tests also passed after the final small changes. Isolated Firefox verified
+ten live journeys per viewport, **20 across six subjects**, with real software
+WebGL and zero application errors. The API summary agrees with the report; full
+graph returns 16,112 vertices including all 46 hosting subjects, while overview
+remains bounded at 2,000. Reports/restore evidence are `.ratlas/observer/`; actual
+desktop/narrow screenshots and browser results are `.ratlas/reviews/C4/`.
+
+Run `./ratlas --config config/ratlas.local.json --continuous` for the built app
+and ongoing collection on the configured loopback port; ordinary `./ratlas` still
+performs a bounded refresh before serving. The 100-subject target remains unmet,
+metadata/reference completeness and 24-hour freshness/reliability remain open,
+and user acceptance is not inferred. The coverage plan is not complete. Earlier
+dedicated-observer/stopped-node records below describe their dated results.
+
 2026-10-05 existing-node observation: the user explicitly authorized read-only
 use of their existing local Radicle node/profile for broader coverage.
 Authorization is recorded in `AGENTS.md` and `docs/DECISIONS.md` at `4dfbad7`;
@@ -65,7 +111,8 @@ results below describe their original handoffs, not this machine. The data
 coverage gates remain open; use the native environment when continuing them.
 
 Active workstream: [data coverage](../DATA_COVERAGE_PLAN.md). C0/C1 `completed`;
-C2–C5 `blocked` on their remaining live gates. **The plan is not complete.**
+C2–C4 `in_progress` with the existing filtered observer; C5 remains `blocked`
+on its operator-invoked sustained evaluation. **The plan is not complete.**
 
 2026-09-29 autonomous implementation is delivered at
 `ebf781c0ad12d3934dc250ef1ea10a312079e897`. The [coverage ledger](COVERAGE_LEDGER.md)
@@ -110,9 +157,12 @@ branch to its existing upstream; see [decisions](DECISIONS.md).
 
 Resume in this order:
 
-1. Resolve [C2's existing public-only observer prerequisite](reviews/C2.md)
-   and verify live CLI/publication semantics before enrolling it. HTTP-only
-   polling cannot create the missing subject population.
+1. Use [C2's verified existing-node integration](reviews/C2.md) with the filtered
+   local source enabled in ignored configuration. If the existing node is stopped,
+   its startup is authorized by `AGENTS.md`; preserve its profile and settings.
+   Measure further public hosting knowledge against the unchanged 100-node target.
+   Ongoing collection remains an explicit operator command; HTTP-only polling
+   cannot replace the local routing source.
 2. Continue budgeted catalog/metadata intake and independent reference
    enumerations per [C3](reviews/C3.md) and [operations](OPERATIONS.md). Compare
    a new ledger with the saved UTC window; retain unknown denominators and

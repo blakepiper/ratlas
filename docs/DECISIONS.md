@@ -4,6 +4,20 @@ The active coverage work is defined by [DATA_COVERAGE_PLAN.md](../DATA_COVERAGE_
 The architecture and execution constraints remain defined by revision 6 of the
 [archived implementation specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md).
 
+2026-10-05 filtered existing-profile publication: implement
+`localObserverPublicRepositoriesOnly: true` alongside the existing public
+observer publication policy to describe a filtered stream, not a public-only
+designation of the entire personal profile. Admit routing/inventory RIDs only
+after independent eligible public HTTP evidence exists in ratlas; discard other
+local RIDs before persistence and never probe them upstream to establish privacy.
+Persist the filter flag per source and recheck it in public database views and
+discovery candidates, so local observations cannot corroborate themselves or
+remain eligible after independent evidence is quarantined. Keep the source's
+filtered scope visible in its label/capabilities and exclude personal observer
+storage from dedicated-observer telemetry. Defaults and the offline example
+remain unchanged. This implements the user's existing-node authorization while
+preserving the public-only dataset contract, budgets and stack.
+
 2026-10-05 user-authorized existing-node startup: the user explicitly instructed
 starting their configured node and allowing that action in `AGENTS.md` going
 forward. Check status first and start the existing node when stopped, using its
