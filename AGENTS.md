@@ -20,16 +20,21 @@ Read `DATA_COVERAGE_PLAN.md`, the archived architecture and execution constraint
 - Never create or modify remotes, push, publish, or rewrite history.
 - Preserve unrelated changes. Keep runtime data, private configuration, and generated
   artifacts ignored. Do not modify system configuration or personal Radicle identities.
-- Do not start a Radicle node or perform replication operations. Live sources require
-  explicit configuration; the demo and deterministic tests stay offline.
+- Do not create new Radicle nodes or perform replication operations. Live sources
+  require explicit configuration; the demo and deterministic tests stay offline.
 - On 2026-10-05 the user explicitly authorized using their existing Radicle node
   on this machine for broader node coverage. Read-only discovery of its executable,
   existing profile/configuration and socket paths, public identity, status, routing
   snapshots and events is authorized; a separate dedicated observer is not required
   for these reads. Record the verified paths in ignored local ratlas configuration.
   This supersedes earlier prohibitions on reading the user's existing profile for
-  observation. Preserve their identity, authentication, configuration and node state;
-  never read or expose private keys, passphrases or authentication tokens, start or
-  stop the node, or perform replication operations. Authorization to observe does
+  observation. The user also explicitly authorized starting this existing configured
+  node, including on future continuations when it is stopped. Check status first;
+  use its existing profile, executable and configured authentication, preserve its
+  settings, and leave the running node under the user's ownership after collection.
+  This supersedes earlier node-start prohibitions for this node only. Do not stop
+  the node, initialize or replace identities, read or expose private keys,
+  passphrases or authentication tokens, or perform replication operations.
+  Authorization to observe does
   not establish public-only publication eligibility: keep private or unverified
   observations quarantined and do not send their IDs to HTTP enrichment sources.

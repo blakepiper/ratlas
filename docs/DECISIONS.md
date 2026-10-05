@@ -4,6 +4,16 @@ The active coverage work is defined by [DATA_COVERAGE_PLAN.md](../DATA_COVERAGE_
 The architecture and execution constraints remain defined by revision 6 of the
 [archived implementation specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md).
 
+2026-10-05 user-authorized existing-node startup: the user explicitly instructed
+starting their configured node and allowing that action in `AGENTS.md` going
+forward. Check status first and start the existing node when stopped, using its
+existing profile, executable and authentication without changing settings or
+identities. Leave the running node under user ownership after bounded collection.
+This supersedes the earlier node-start restriction for this node only; stop,
+replication, new-node setup, credential exposure and unverified publication remain
+outside the authorization. No day-long ratlas experiment or service activation is
+implied. The earlier read-only authorization below remains historical.
+
 2026-10-05 user-authorized existing-node observation: the user requested editing
 `AGENTS.md` to permit using their already configured Radicle node on this machine
 for broader coverage. Read-only discovery of its existing profile/socket paths,
