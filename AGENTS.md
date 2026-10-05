@@ -22,3 +22,14 @@ Read `DATA_COVERAGE_PLAN.md`, the archived architecture and execution constraint
   artifacts ignored. Do not modify system configuration or personal Radicle identities.
 - Do not start a Radicle node or perform replication operations. Live sources require
   explicit configuration; the demo and deterministic tests stay offline.
+- On 2026-10-05 the user explicitly authorized using their existing Radicle node
+  on this machine for broader node coverage. Read-only discovery of its executable,
+  existing profile/configuration and socket paths, public identity, status, routing
+  snapshots and events is authorized; a separate dedicated observer is not required
+  for these reads. Record the verified paths in ignored local ratlas configuration.
+  This supersedes earlier prohibitions on reading the user's existing profile for
+  observation. Preserve their identity, authentication, configuration and node state;
+  never read or expose private keys, passphrases or authentication tokens, start or
+  stop the node, or perform replication operations. Authorization to observe does
+  not establish public-only publication eligibility: keep private or unverified
+  observations quarantined and do not send their IDs to HTTP enrichment sources.

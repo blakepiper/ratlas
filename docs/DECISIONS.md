@@ -4,6 +4,18 @@ The active coverage work is defined by [DATA_COVERAGE_PLAN.md](../DATA_COVERAGE_
 The architecture and execution constraints remain defined by revision 6 of the
 [archived implementation specification](../archive/plans/RATLAS_IMPLEMENTATION_SPEC.md).
 
+2026-10-05 user-authorized existing-node observation: the user requested editing
+`AGENTS.md` to permit using their already configured Radicle node on this machine
+for broader coverage. Read-only discovery of its existing profile/socket paths,
+public identity, status, routing and events is authorized without requiring a
+separate dedicated observer. This supersedes the earlier personal-profile read
+restriction for this purpose. Preserve identity, authentication, settings and node
+state; keys, passphrases and tokens remain inaccessible. Node start/stop and
+replication remain prohibited. This authorization does not designate the profile
+public-only or establish publication eligibility; private/unverified observations
+remain quarantined and cannot drive outbound enrichment. Live compatibility and
+broader public coverage still require measurement.
+
 2026-10-04 user-selected branding: the user chose Orbit Rat Option 2, accepted its
 V2 refinement, and requested deleting the earlier options and integrating V2.
 Use the approved transparent PNG as the header logo beside the `ratlas` wordmark.
